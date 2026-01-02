@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@source "../**/*.{js,ts,jsx,tsx}";
+
+@theme {
+  --spacing-navbar: 72px;
+  --max-width-layout: 1200px;
+  --box-shadow-navbar: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --box-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --box-shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --box-shadow-image: 0 10px 30px rgba(0, 0, 0, 0.1);
+  --box-shadow-hero-image: 0 20px 40px rgba(37, 99, 235, 0.1);
+  --color-gray-50: #f9fafb;
+  --color-blue-50: #dbeafe;
+}
