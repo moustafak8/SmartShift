@@ -2,8 +2,8 @@ import { Activity, BookOpen, Shuffle, TrendingUp } from "lucide-react";
 import { motion } from "motion/react";
 import { useInView } from "../../hooks/useInView";
 import { Container, SectionHeader, IconText, Heading } from "../ui";
-import pic1 from "../assets/team_fatigue_trendline.png";
-import pic2 from "../assets/2150041850.jpg";
+import pic1 from "../../assets/team_fatigue_trendline.png";
+import pic2 from "../../assets/Swap.jpg";
 const features = [
   {
     icon: Activity,

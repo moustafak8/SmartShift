@@ -2,9 +2,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useInView } from "../../hooks/useInView";
 import { Container, Button, SectionHeader, Heading } from "../ui";
-import pic1 from "../assets/Healthcare.jpeg";
-import pic2 from "../assets/Hotel.jpeg";
-import pic3 from "../assets/Restaurant.jpeg";
+import pic1 from "../../assets/Healthcare.jpeg";
+import pic2 from "../../assets/Hotel.jpeg";
+import pic3 from "../../assets/Restaurant.jpeg";
 
 const useCases = {
   healthcare: {

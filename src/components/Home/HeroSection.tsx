@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import pic from "../assets/14090.jpg";
+import pic from "../../assets/Hero.jpg";
 import { Container, Card, Button, Heading } from "../ui";
 
 export function HeroSection() {
