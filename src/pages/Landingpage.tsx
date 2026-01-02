@@ -9,7 +9,7 @@ import { UseCaseSection } from "../components/Home/UseCaseSection";
 import { TestimonialsSection } from "../components/Home/TestimonialsSection";
 import { FinalCTASection } from "../components/Home/FinalCTASection";
 import { Footer } from "../components/Home/Footer";
-export default function Homepage() {
+export default function Landingpage() {
   return (
     <div className="min-h-screen bg-white">
       <Navigation />
