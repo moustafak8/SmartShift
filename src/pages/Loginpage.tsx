@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Brain, Eye, EyeOff, ArrowRight, Loader2, Check } from "lucide-react";
 import { motion } from "motion/react";
+import { BackButton } from "../components/ui/BackButton";
 import { Button } from "../components/ui/Button";
 import { Heading } from "../components/ui/Heading";
 import { Card } from "../components/ui/Card";
@@ -40,6 +41,7 @@ export function LoginPage() {
           transition={{ duration: 0.5 }}
           className="w-full max-w-[420px]"
         >
+          <BackButton className="mb-6" />
           <div className="flex items-center gap-3 mb-8">
             <Brain className="w-10 h-10 text-[#2563EB]" />
             <span className="text-black text-[24px] font-bold">SmartShift</span>
