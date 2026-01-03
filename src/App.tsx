@@ -1,5 +1,5 @@
 import Landingpage from "./pages/Landingpage";
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { LoginPage } from "./pages/Loginpage";
 export default function App() {
   return (
