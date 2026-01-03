@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Brain, Menu, X } from "lucide-react";
 import { Container, Button } from "../ui";
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const navLinks = [
     { name: "Solutions", href: "#solutions" },
@@ -33,7 +35,11 @@ export function Navigation() {
             ))}
           </div>
           <div className="flex items-center gap-4">
-            <Button size="sm" className="hidden md:inline">
+            <Button
+              size="sm"
+              className="hidden md:inline"
+              onClick={() => navigate("/login")}
+            >
               Sign In
             </Button>
             <button
@@ -69,7 +75,9 @@ export function Navigation() {
                   {link.name}
                 </a>
               ))}
-              <Button size="lg">Sign In</Button>
+              <Button size="lg" onClick={() => navigate("/login")}>
+                Sign In
+              </Button>
             </div>
           </motion.div>
         )}
