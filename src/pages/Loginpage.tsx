@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Brain, Eye, EyeOff, ArrowRight, Loader2, Check } from "lucide-react";
+import { useLogin } from "../hooks/useLogin";
 import { motion } from "motion/react";
 import { BackButton } from "../components/ui/BackButton";
 import { Button } from "../components/ui/Button";
@@ -9,19 +10,19 @@ import { IconText } from "../components/ui/IconText";
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
+  const { login, loading, error, isSuccess } = useLogin();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log("Login attempt:", formData);
-    setIsLoading(false);
+    login({
+      email: formData.email,
+      password: formData.password,
+    });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,14 +108,26 @@ export function LoginPage() {
               </div>
             </div>
 
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
+            {isSuccess && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-600 text-sm">Login successful!</p>
+              </div>
+            )}
+
             <Button
               type="submit"
-              disabled={isLoading}
+              disabled={loading}
               size="lg"
               variant="primary"
               className="disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
             >
-              {isLoading ? (
+              {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
                   Signing in...

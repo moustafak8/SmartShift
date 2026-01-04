@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useInView } from "../../hooks/useInView";
+import { useInView } from "../../hooks/types/useInView";
 import { Container, Button, SectionHeader, Heading } from "../ui";
 import pic1 from "../../assets/Healthcare.jpeg";
 import pic2 from "../../assets/Hotel.jpeg";
