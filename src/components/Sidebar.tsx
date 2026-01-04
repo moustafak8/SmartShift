@@ -17,7 +17,7 @@ import {
     Home,
     User,
 } from "lucide-react";
-import { Badge } from "./ui/badge";
+import { Badge } from "./ui/Badge";
 import { useAuth } from "../hooks/context/AuthContext";
 import { useLogout } from "../hooks/useLogout";
 import { cn } from "./ui/utils";
