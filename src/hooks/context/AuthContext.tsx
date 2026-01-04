@@ -13,15 +13,20 @@ export type User = {
 };
 
 type LoginPayload = {
-  token: string;
   user: User;
 };
 
 type AuthContextType = {
-  token: string | null;
   user: User | null;
+  isLoading: boolean;
+  setUser: (user: User | null) => void;
+  setIsLoading: (loading: boolean) => void;
   loginAction: (data: LoginPayload) => void;
   logOut: () => void;
+  isAuthenticated: () => boolean;
+  isManager: () => boolean;
+  isEmployee: () => boolean;
+  getUserRole: () => "manager" | "employee" | null;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,29 +34,46 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  });
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("token")
-  );
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loginAction = (data: LoginPayload) => {
     setUser(data.user);
-    setToken(data.token);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
   };
 
   const logOut = () => {
     setUser(null);
-    setToken(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
   };
 
-  const value: AuthContextType = { token, user, loginAction, logOut };
+  const isAuthenticated = () => {
+    return user !== null;
+  };
+
+  const isManager = () => {
+    return user?.user_type_id === 1;
+  };
+
+  const isEmployee = () => {
+    return user?.user_type_id === 2;
+  };
+
+  const getUserRole = (): "manager" | "employee" | null => {
+    if (!user) return null;
+    return user.user_type_id === 1 ? "manager" : "employee";
+  };
+
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    setUser,
+    setIsLoading,
+    loginAction,
+    logOut,
+    isAuthenticated,
+    isManager,
+    isEmployee,
+    getUserRole,
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
