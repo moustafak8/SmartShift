@@ -73,6 +73,7 @@ export function LoginPage() {
                 onChange={handleChange}
                 placeholder="name@company.com"
                 className="w-full px-4 py-3 text-[14px] text-[#111827] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
+                autoComplete="off"
               />
             </div>
 
