@@ -13,22 +13,10 @@ class ShiftsController extends Controller
     {
         $this->employeeShiftsService = $employeeShiftsService;
     }
+
     public function getEmployeeShifts($id)
     {
-        try {
-            $data = $this->employeeShiftsService->getEmployeeShifts($id);
-
-            return $this->responseJSON(
-                $data,
-                'success',
-                200
-            );
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            return $this->responseJSON(
-                [],
-                'error',
-                404
-            );
-        }
+        $data = $this->employeeShiftsService->getEmployeeShifts($id);
+        return $this->responseJSON($data, 'success', 200);
     }
 }

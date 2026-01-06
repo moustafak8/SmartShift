@@ -13,21 +13,10 @@ class EmployeeDepartmentController extends Controller
         $this->employeeDepartmentService = $employeeDepartmentService;
     }
 
-    public function getemployees($id = null)
+    public function getemployees($id)
     {
         $employees = $this->employeeDepartmentService->getEmployeeDepartments($id);
-        if ($employees->isEmpty()) {
-            return $this->responseJSON(
-                [],
-                'success',
-                200
-            );
-        }
 
-        return $this->responseJSON(
-            $employees,
-            'success',
-            200
-        );
+        return $this->responseJSON($employees, 'success', 200);
     }
 }
