@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Shifts;
 use App\Services\EmployeeShifts;
 
 class ShiftsController extends Controller
@@ -17,6 +16,7 @@ class ShiftsController extends Controller
     public function getEmployeeShifts($id)
     {
         $data = $this->employeeShiftsService->getEmployeeShifts($id);
+
         return $this->responseJSON($data, 'success', 200);
     }
 }
