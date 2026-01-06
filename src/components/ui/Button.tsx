@@ -16,7 +16,7 @@ export function Button({
   className = "",
   ...props
 }: ButtonProps) {
-  const baseClasses = "rounded-lg transition-all cursor-pointer font-bold";
+  const baseClasses = "rounded-lg transition-all cursor-pointer font-medium";
 
   const sizeClasses: Record<ButtonSize, string> = {
     sm: "text-[14px] px-6 py-2",
