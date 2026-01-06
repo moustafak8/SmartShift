@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Employee_Department;
 use App\Services\EmployeeDepartmentService;
-use Illuminate\Http\Request;
 
 class EmployeeDepartmentController extends Controller
 {
@@ -14,6 +12,7 @@ class EmployeeDepartmentController extends Controller
     {
         $this->employeeDepartmentService = $employeeDepartmentService;
     }
+
     public function getemployees($id = null)
     {
         $employees = $this->employeeDepartmentService->getEmployeeDepartments($id);
@@ -24,6 +23,7 @@ class EmployeeDepartmentController extends Controller
                 200
             );
         }
+
         return $this->responseJSON(
             $employees,
             'success',

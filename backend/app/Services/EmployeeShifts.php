@@ -51,7 +51,7 @@ class EmployeeShifts
             ->whereBetween('shifts.shift_date', [$monthStart, $monthEnd])
             ->whereIn('shift__assigments.status', ['assigned', 'confirmed', 'completed'])
             ->selectRaw('COUNT(*) as total_shifts')
-            ->selectRaw("SUM(TIME_TO_SEC(TIMEDIFF(shifts.end_time, shifts.start_time)) / 3600) as total_hours")
+            ->selectRaw('SUM(TIME_TO_SEC(TIMEDIFF(shifts.end_time, shifts.start_time)) / 3600) as total_hours')
             ->selectRaw("SUM(CASE WHEN shifts.shift_type = 'night' THEN 1 ELSE 0 END) as night_shifts")
             ->first();
 
@@ -66,7 +66,7 @@ class EmployeeShifts
             'email' => $employee->email,
             'phone' => $employee->phone,
             'position' => $employee->userType?->name,
-            'employee_code' => 'EMP-' . str_pad($employee->id, 3, '0', STR_PAD_LEFT),
+            'employee_code' => 'EMP-'.str_pad($employee->id, 3, '0', STR_PAD_LEFT),
             'department' => $employee->departments?->first()?->name,
             'fatigue_score' => $latestFatigue ? [
                 'total_score' => $latestFatigue->total_score,

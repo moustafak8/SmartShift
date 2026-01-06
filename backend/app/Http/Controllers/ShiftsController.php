@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Shifts;
 use App\Services\EmployeeShifts;
-use Illuminate\Http\Request;
 
 class ShiftsController extends Controller
 {
@@ -22,6 +21,7 @@ class ShiftsController extends Controller
     {
         try {
             $data = $this->employeeShiftsService->getEmployeeShifts($id);
+
             return $this->responseJSON(
                 $data,
                 'success',
