@@ -13,10 +13,6 @@ class ShiftsController extends Controller
     {
         $this->employeeShiftsService = $employeeShiftsService;
     }
-
-    /**
-     * Get employee details with upcoming shifts and month stats
-     */
     public function getEmployeeShifts($id)
     {
         try {
