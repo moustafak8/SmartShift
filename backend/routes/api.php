@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
+    Route::get('shifts', [ShiftsController::class, 'index']);
+    Route::post('shifts', [ShiftsController::class, 'store']);
     Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
