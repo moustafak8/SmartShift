@@ -23,15 +23,15 @@ class ShiftsController extends Controller
 
         return $this->responseJSON($data, 'success', 200);
     }
-    
-    public function index()
+
+    public function getShifts()
     {
         $data = $this->shiftService->listShifts();
 
         return $this->responseJSON($data, 'success', 200);
     }
 
-    public function store(StoreShiftRequest $request)
+    public function createShift(StoreShiftRequest $request)
     {
         $shift = $this->shiftService->createShift($request->validated());
 
