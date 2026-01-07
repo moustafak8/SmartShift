@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\Shift_Assigments;
-use Illuminate\Support\Collection;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
 
 class AssigmentsService
 {
@@ -38,6 +38,7 @@ class AssigmentsService
         foreach ($assignments as $data) {
             $ids[] = Shift_Assigments::create($data)->id;
         }
+
         return Shift_Assigments::whereIn('id', $ids)->get();
     }
 
@@ -120,8 +121,11 @@ class AssigmentsService
             if ($p !== '') {
                 $letters[] = mb_strtoupper(mb_substr($p, 0, 1));
             }
-            if (count($letters) === 2) break;
+            if (count($letters) === 2) {
+                break;
+            }
         }
+
         return implode('.', $letters);
     }
 }

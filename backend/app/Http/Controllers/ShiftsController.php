@@ -9,6 +9,7 @@ use App\Services\ShiftService;
 class ShiftsController extends Controller
 {
     protected EmployeeShifts $employeeShiftsService;
+
     protected ShiftService $shiftService;
 
     public function __construct(EmployeeShifts $employeeShiftsService, ShiftService $shiftService)

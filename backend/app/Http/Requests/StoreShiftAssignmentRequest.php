@@ -22,7 +22,7 @@ class StoreShiftAssignmentRequest extends FormRequest
                 'exists:users,id',
                 Rule::unique('shift__assigments')->where(function ($query) {
                     return $query->where('shift_id', $this->input('shift_id'));
-                })
+                }),
             ],
             'assignment_type' => ['required', 'in:regular,overtime,swap,cover'],
             'status' => ['required', 'in:assigned,confirmed,completed,no_show,cancelled'],
