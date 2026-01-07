@@ -1,0 +1,10 @@
+{
+    "require": {
+        "openai-php/laravel": "^0.18.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    }
+}
