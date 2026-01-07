@@ -17,6 +17,7 @@ Route::prefix('v1')->group(function () {
     Route::get('shifts/{id}/assignments', [ShiftAssigmentsController::class, 'getShiftAssignments']);
     Route::post('shift-assignments', [ShiftAssigmentsController::class, 'createAssignment']);
     Route::post('shift-assignments/bulk', [ShiftAssigmentsController::class, 'createBulkAssignments']);
+    Route::get('shift-assignments/week', [ShiftAssigmentsController::class, 'getWeeklyAssignments']);
     Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');

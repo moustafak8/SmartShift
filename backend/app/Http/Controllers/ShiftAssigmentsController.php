@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreShiftAssignmentRequest;
 use App\Http\Requests\BulkAssignmentsRequest;
+use App\Http\Requests\WeeklyAssignmentsRequest;
+use Illuminate\Http\Request;
 use App\Services\AssigmentsService;
 
 class ShiftAssigmentsController extends Controller
@@ -37,5 +39,14 @@ class ShiftAssigmentsController extends Controller
     {
         $assignments = $this->assigmentsService->createBulkAssignments($request->validated('assignments'));
         return $this->responseJSON($assignments, 'success', 201);
+    }
+
+    public function getWeeklyAssignments(WeeklyAssignmentsRequest $request)
+    {
+        $data = $request->validated();
+
+        $schedule = $this->assigmentsService->getWeeklySchedule($data['start_date'], $data['department_id'] ?? null);
+
+        return $this->responseJSON($schedule, 'success', 200);
     }
 }
