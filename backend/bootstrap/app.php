@@ -28,9 +28,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->shouldRenderJsonWhen(function ($request) {
-            return $request->is('api/*') || $request->expectsJson();
-        });
         // Hndling el aghlat
         $exceptions->render(function (ModelNotFoundException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
