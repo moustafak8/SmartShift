@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\ProcessWellnessEntry;
 use App\Models\WellnessEntries;
 use Illuminate\Support\Collection;
 
@@ -29,6 +30,11 @@ class WellnessService
     public function createEntry(array $data): WellnessEntries
     {
         $data['word_count'] = str_word_count($data['entry_text']);
-        return WellnessEntries::create($data);
+        $entry = WellnessEntries::create($data);
+
+        // Dispatch background job to process entry with OpenAI
+        ProcessWellnessEntry::dispatch($entry->id);
+
+        return $entry;
     }
 }
