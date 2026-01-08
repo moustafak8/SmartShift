@@ -34,6 +34,7 @@ class GenerateWellnessEmbeddings implements ShouldQueue
             $vector = $embeddingService->generateEmbedding($entry->entry_text);
             $sentiment = $embeddingService->extractSentiment($entry->entry_text);
             $flagging = $embeddingService->shouldFlag(
+                $entry->id,
                 $sentiment['sentiment_score'],
                 $sentiment['detected_keywords']
             );
@@ -61,6 +62,11 @@ class GenerateWellnessEmbeddings implements ShouldQueue
                     'flag_reason' => $flagging['flag_reason'] ?? null,
                     'flag_severity' => $flagging['flag_severity'] ?? null,
                 ]
+            );
+
+            $embeddingService->calculateFatigueScore(
+                $entry->employee_id,
+                $entry->created_at->format('Y-m-d')
             );
         } catch (Exception $e) {
             Log::error(

@@ -42,7 +42,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($request->is('api/*') || $request->expectsJson()) {
                 return response()->json([
                     'status' => 'error',
-                    'payload' => 'Resource not found',
+                    'payload' => 'Endpoint not found',
                 ], 404);
             }
         });

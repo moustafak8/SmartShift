@@ -14,9 +14,9 @@ class WellnessEntriesController extends Controller
         $this->wellnessService = $wellnessService;
     }
 
-    public function getEntries()
+    public function getEntries($deptartmentId)
     {
-        $entries = $this->wellnessService->listEntries();
+        $entries = $this->wellnessService->listEntries($deptartmentId);
 
         return $this->responseJSON($entries, 'success', 200);
     }
