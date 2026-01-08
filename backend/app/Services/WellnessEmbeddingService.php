@@ -2,17 +2,19 @@
 
 namespace App\Services;
 
-use App\Models\WellnessEntryExtraction;
-use App\Models\Shift_Assigments;
-use App\Models\Shifts;
 use App\Models\FatigueScore;
+use App\Models\Shift_Assigments;
+use App\Models\WellnessEntryExtraction;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class WellnessEmbeddingService
 {
     private const EMBEDDING_MODEL = 'text-embedding-3-small';
+
     private const SENTIMENT_MODEL = 'gpt-4.1';
+
     private const CRITICAL_KEYWORDS = ['suicide', 'harm', 'crisis', 'emergency'];
+
     private const CONCERNING_KEYWORDS = ['severe', 'overwhelmed', 'breakdown', 'collapse'];
 
     public function generateEmbedding(string $text): array
@@ -44,7 +46,8 @@ class WellnessEmbeddingService
 
         if ($this->hasCriticalKeywords($keywords)) {
             $detected = $this->getDetectedCriticalKeywords($keywords);
-            return $this->buildFlagData('critical', 'Critical keywords detected: ' . implode(', ', $detected));
+
+            return $this->buildFlagData('critical', 'Critical keywords detected: '.implode(', ', $detected));
         }
 
         if ($sentimentScore <= -0.7) {
@@ -76,7 +79,7 @@ class WellnessEmbeddingService
 
     private function isCriticalCondition($extraction, float $sentimentScore): bool
     {
-        if (!$extraction) {
+        if (! $extraction) {
             return false;
         }
 
@@ -101,11 +104,11 @@ class WellnessEmbeddingService
         }
 
         if (is_array($extraction->physical_symptoms) && count($extraction->physical_symptoms) >= 2) {
-            $reasons[] = "multiple symptoms";
+            $reasons[] = 'multiple symptoms';
         }
 
         if ($extraction->stress_level === 'high') {
-            $reasons[] = "high stress";
+            $reasons[] = 'high stress';
         }
 
         return implode(' + ', $reasons);
@@ -114,7 +117,8 @@ class WellnessEmbeddingService
     private function hasCriticalKeywords(array $keywords): bool
     {
         $detected = $this->getDetectedCriticalKeywords($keywords);
-        return !empty($detected);
+
+        return ! empty($detected);
     }
 
     private function getDetectedCriticalKeywords(array $keywords): array
@@ -159,7 +163,7 @@ class WellnessEmbeddingService
     {
         $extraction = $this->getWeeklyExtractionData($employeeId, $date);
 
-        if (!$extraction) {
+        if (! $extraction) {
             return 0;
         }
 
@@ -178,7 +182,7 @@ class WellnessEmbeddingService
     {
         $sentimentData = $this->getWeeklySentimentData($employeeId, $date);
 
-        if (!$sentimentData) {
+        if (! $sentimentData) {
             return 0;
         }
 
@@ -197,7 +201,7 @@ class WellnessEmbeddingService
             ->whereHas('shift', function ($query) use ($date) {
                 $query->whereBetween('shift_date', [
                     now()->parse($date)->subDays(6)->format('Y-m-d'),
-                    $date
+                    $date,
                 ]);
             })
             ->with('shift')
@@ -205,9 +209,10 @@ class WellnessEmbeddingService
 
         return $assignments->sum(function ($assignment) {
             $shift = $assignment->shift;
-            if (!$shift || !$shift->start_time || !$shift->end_time) {
+            if (! $shift || ! $shift->start_time || ! $shift->end_time) {
                 return 0;
             }
+
             return now()->parse($shift->start_time)->diffInHours(now()->parse($shift->end_time));
         });
     }
@@ -218,7 +223,7 @@ class WellnessEmbeddingService
             ->whereHas('shift', function ($query) use ($date) {
                 $query->whereBetween('shift_date', [
                     now()->parse($date)->subDays(6)->format('Y-m-d'),
-                    $date
+                    $date,
                 ])->where('shift_type', 'night');
             })
             ->count();
@@ -231,7 +236,7 @@ class WellnessEmbeddingService
         })
             ->whereBetween('created_at', [
                 now()->parse($date)->subDays(6),
-                now()->parse($date)->endOfDay()
+                now()->parse($date)->endOfDay(),
             ])
             ->get();
 
@@ -242,7 +247,7 @@ class WellnessEmbeddingService
         return [
             'avg_sleep' => $extractions->avg('sleep_hours_before') ?? 7,
             'avg_meals' => $extractions->avg('meals_count') ?? 3,
-            'symptoms_count' => $extractions->sum(fn($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0)
+            'symptoms_count' => $extractions->sum(fn ($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0),
         ];
     }
 
@@ -253,7 +258,7 @@ class WellnessEmbeddingService
         })
             ->whereBetween('created_at', [
                 now()->parse($date)->subDays(6),
-                now()->parse($date)->endOfDay()
+                now()->parse($date)->endOfDay(),
             ])
             ->get();
 
@@ -262,7 +267,7 @@ class WellnessEmbeddingService
         })
             ->whereBetween('created_at', [
                 now()->parse($date)->subDays(6),
-                now()->parse($date)->endOfDay()
+                now()->parse($date)->endOfDay(),
             ])
             ->get();
 
@@ -272,7 +277,7 @@ class WellnessEmbeddingService
 
         return [
             'avg_sentiment' => $sentimentData->avg('sentiment_score') ?? 0,
-            'high_stress_count' => $extractions->where('stress_level', 'high')->count()
+            'high_stress_count' => $extractions->where('stress_level', 'high')->count(),
         ];
     }
 
@@ -320,7 +325,7 @@ PROMPT;
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \RuntimeException(
-                'Failed to parse sentiment response as JSON: ' . json_last_error_msg()
+                'Failed to parse sentiment response as JSON: '.json_last_error_msg()
             );
         }
 
