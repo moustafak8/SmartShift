@@ -65,8 +65,6 @@ class EmployeeShifts
             'employee_name' => $employee->full_name,
             'email' => $employee->email,
             'phone' => $employee->phone,
-            'position' => $employee->userType?->name,
-            'employee_code' => 'EMP-'.str_pad($employee->id, 3, '0', STR_PAD_LEFT),
             'department' => $employee->departments?->first()?->name,
             'fatigue_score' => $latestFatigue ? [
                 'total_score' => $latestFatigue->total_score,
@@ -91,8 +89,8 @@ class EmployeeShifts
 
                 return [
                     'shift_id' => $shift->id,
-                    'shift_date' => $shift->shift_date->toDateString(),
-                    'shift_date_formatted' => $shift->shift_date->format('l, F j'),
+                    'shift_date' => Carbon::parse($shift->shift_date)->toDateString(),
+                    'shift_date_formatted' => Carbon::parse($shift->shift_date)->format('l, F j'),
                     'start_time' => $shift->start_time,
                     'end_time' => $shift->end_time,
                     'duration_hours' => $duration,
