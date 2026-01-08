@@ -5,6 +5,8 @@ use App\Http\Controllers\EmployeeDepartmentController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
 use App\Http\Controllers\ShiftTemplatesController;
+use App\Http\Controllers\WellnessEntriesController;
+use App\Http\Controllers\WellnessSearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -18,6 +20,11 @@ Route::prefix('v1')->group(function () {
     Route::post('shift-assignments', [ShiftAssigmentsController::class, 'createAssignment']);
     Route::post('shift-assignments/bulk', [ShiftAssigmentsController::class, 'createBulkAssignments']);
     Route::get('shift-assignments/week', [ShiftAssigmentsController::class, 'getWeeklyAssignments']);
+    Route::get('wellness-entries', [WellnessEntriesController::class, 'getEntries']);
+    Route::get('employees/{id}/wellness-entries', [WellnessEntriesController::class, 'getByEmployee']);
+    Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);
+    Route::post('wellness/search', [WellnessSearchController::class, 'search']);
+    Route::post('wellness/search/insights', [WellnessSearchController::class, 'searchWithInsights']);
     Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
