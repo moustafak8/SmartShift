@@ -2,12 +2,12 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeDepartmentController;
+use App\Http\Controllers\FatigueScoreController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
 use App\Http\Controllers\ShiftTemplatesController;
 use App\Http\Controllers\WellnessEntriesController;
 use App\Http\Controllers\WellnessSearchController;
-use App\Http\Controllers\FatigueScoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
