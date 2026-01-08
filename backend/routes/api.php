@@ -20,7 +20,7 @@ Route::prefix('v1')->group(function () {
     Route::post('shift-assignments', [ShiftAssigmentsController::class, 'createAssignment']);
     Route::post('shift-assignments/bulk', [ShiftAssigmentsController::class, 'createBulkAssignments']);
     Route::get('shift-assignments/week', [ShiftAssigmentsController::class, 'getWeeklyAssignments']);
-    Route::get('wellness-entries', [WellnessEntriesController::class, 'getEntries']);
+    Route::get('wellness-entries/{departmentId}', [WellnessEntriesController::class, 'getEntries']);
     Route::get('employees/{id}/wellness-entries', [WellnessEntriesController::class, 'getByEmployee']);
     Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);
     Route::post('wellness/search', [WellnessSearchController::class, 'search']);

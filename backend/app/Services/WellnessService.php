@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 class WellnessService
 {
-    public function listEntries(): Collection
+    public function listEntries($departmentId): Collection
     {
         return WellnessEntries::select([
             'id',
