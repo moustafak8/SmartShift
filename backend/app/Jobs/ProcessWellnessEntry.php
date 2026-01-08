@@ -13,7 +13,7 @@ class ProcessWellnessEntry implements ShouldQueue
 {
     use Queueable;
 
-    private const OPENAI_MODEL = 'gpt-4.1';
+    private const OPENAI_MODEL = 'gpt-4o-mini';
     private const TEMPERATURE = 0.3;
 
     private const EXTRACTION_SCHEMA = [
@@ -46,6 +46,9 @@ class ProcessWellnessEntry implements ShouldQueue
             $extractedData = $this->extractDataFromText($entry->entry_text);
 
             $this->saveExtraction($entry->id, $extractedData);
+
+            // Dispatch next job for embedding generation
+            GenerateWellnessEmbeddings::dispatch($entry->id);
 
             Log::info("Successfully processed wellness entry {$this->entryId}");
         } catch (\Exception $e) {
