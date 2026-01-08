@@ -7,6 +7,7 @@ use App\Http\Controllers\ShiftsController;
 use App\Http\Controllers\ShiftTemplatesController;
 use App\Http\Controllers\WellnessEntriesController;
 use App\Http\Controllers\WellnessSearchController;
+use App\Http\Controllers\FatigueScoreController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -27,6 +28,7 @@ Route::prefix('v1')->group(function () {
     Route::post('wellness/search/insights', [WellnessSearchController::class, 'searchWithInsights']);
     Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
+    Route::get('/fatigue-scores/{employeeId}', [FatigueScoreController::class, 'getEmployeeScore']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
     Route::get('me', [AuthController::class, 'me'])->middleware('jwt');
 
