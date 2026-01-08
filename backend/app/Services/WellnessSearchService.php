@@ -9,10 +9,15 @@ use OpenAI\Laravel\Facades\OpenAI;
 class WellnessSearchService
 {
     private const DEFAULT_SEARCH_LIMIT = 5;
+
     private const DEFAULT_SCORE_THRESHOLD = 0.2;
+
     private const DEFAULT_PREVIEW_LENGTH = 150;
+
     private const OPENAI_CHAT_MODEL = 'gpt-4.1';
+
     private const OPENAI_TEMPERATURE = 0.3;
+
     private const OPENAI_MAX_TOKENS = 1000;
 
     public function __construct(
@@ -53,6 +58,7 @@ class WellnessSearchService
             'sources' => $sources,
         ];
     }
+
     private function enrichSearchResults(array $results, string $query): array
     {
         if (empty($results)) {
@@ -67,7 +73,7 @@ class WellnessSearchService
         foreach ($results as $result) {
             $entry = $entries->get($result['id']);
 
-            if (!$entry || !$this->isResultRelevant($query, $entry->entry_text, $result['payload'] ?? [])) {
+            if (! $entry || ! $this->isResultRelevant($query, $entry->entry_text, $result['payload'] ?? [])) {
                 continue;
             }
 
@@ -122,8 +128,9 @@ class WellnessSearchService
         return $employeeNames[$entry->employee_id]
             ?? $entry->employee->name
             ?? $result['payload']['employee_name']
-            ?? ('Employee #' . $entry->employee_id);
+            ?? ('Employee #'.$entry->employee_id);
     }
+
     private function extractRelevantSnippet(string $text, array $keywords): string
     {
         if (empty($keywords)) {
@@ -137,7 +144,8 @@ class WellnessSearchService
             return $this->formatPreview($text);
         }
 
-        usort($scoredSentences, fn($a, $b) => $b['score'] - $a['score']);
+        usort($scoredSentences, fn ($a, $b) => $b['score'] - $a['score']);
+
         return $this->formatPreview($scoredSentences[0]['sentence']);
     }
 
@@ -174,6 +182,7 @@ class WellnessSearchService
 
         return $score;
     }
+
     private function formatPreview(string $content): string
     {
         $preview = trim($content);
@@ -191,10 +200,10 @@ class WellnessSearchService
         }
 
         if ($lastSpace !== false) {
-            return mb_substr($preview, 0, $lastSpace) . '...';
+            return mb_substr($preview, 0, $lastSpace).'...';
         }
 
-        return $preview . '...';
+        return $preview.'...';
     }
 
     private function buildContextAndSources(array $searchResults): array
@@ -203,7 +212,7 @@ class WellnessSearchService
         $sources = [];
 
         foreach ($searchResults as $index => $result) {
-            $context .= $result['content'] . "\n\n";
+            $context .= $result['content']."\n\n";
             $sources[] = $this->buildSource($result, $index + 1);
         }
 
@@ -229,6 +238,7 @@ class WellnessSearchService
     {
         return sprintf('[%d] %s (%s)', $citationNumber, $employeeName, $entryDate);
     }
+
     private function isResultRelevant(string $query, string $content, array $payload = []): bool
     {
         $queryLower = strtolower($query);
@@ -237,11 +247,12 @@ class WellnessSearchService
         $constraint = $this->parseSleepConstraint($queryLower);
         if ($constraint !== null) {
             $hours = $this->extractHoursFromText($contentLower);
-            return !empty($hours) && $this->matchesNumericConstraint($hours, $constraint);
+
+            return ! empty($hours) && $this->matchesNumericConstraint($hours, $constraint);
         }
 
         $queryKeywords = $this->extractQueryKeywords($queryLower);
-        if (!empty($queryKeywords)) {
+        if (! empty($queryKeywords)) {
             return $this->hasKeywordMatch($queryKeywords, $contentLower, $payload);
         }
 
@@ -260,18 +271,19 @@ class WellnessSearchService
 
         return false;
     }
+
     private function parseSleepConstraint(string $q): ?array
     {
         $q = preg_replace('/\s+/', ' ', $q);
 
-        if (!preg_match('/(\d+(?:\.\d+)?)/', $q, $m)) {
+        if (! preg_match('/(\d+(?:\.\d+)?)/', $q, $m)) {
             return null;
         }
 
-        $num = (float)$m[1];
+        $num = (float) $m[1];
         $hasSleep = str_contains($q, 'sleep') || str_contains($q, 'slept') || str_contains($q, 'hours');
 
-        if (!$hasSleep) {
+        if (! $hasSleep) {
             return null;
         }
 
@@ -308,25 +320,35 @@ class WellnessSearchService
     private function matchesNumericConstraint(array $values, array $constraint): bool
     {
         $op = $constraint['op'];
-        $target = (float)$constraint['value'];
+        $target = (float) $constraint['value'];
         $eps = 0.25;
 
         foreach ($values as $v) {
             switch ($op) {
                 case 'lt':
-                    if ($v < $target) return true;
+                    if ($v < $target) {
+                        return true;
+                    }
                     break;
                 case 'lte':
-                    if ($v <= $target) return true;
+                    if ($v <= $target) {
+                        return true;
+                    }
                     break;
                 case 'gt':
-                    if ($v > $target) return true;
+                    if ($v > $target) {
+                        return true;
+                    }
                     break;
                 case 'gte':
-                    if ($v >= $target) return true;
+                    if ($v >= $target) {
+                        return true;
+                    }
                     break;
                 case 'eq':
-                    if (abs($v - $target) <= $eps) return true;
+                    if (abs($v - $target) <= $eps) {
+                        return true;
+                    }
                     break;
             }
         }
@@ -384,13 +406,13 @@ class WellnessSearchService
             'entry',
             'employee',
             'employees',
-            'wellness'
+            'wellness',
         ];
 
         $out = [];
         foreach ($parts as $p) {
             $pl = strtolower($p);
-            if (strlen($pl) > 2 && !in_array($pl, $stop, true)) {
+            if (strlen($pl) > 2 && ! in_array($pl, $stop, true)) {
                 $out[] = $pl;
             }
         }
@@ -400,12 +422,12 @@ class WellnessSearchService
 
     private function callOpenAIChat(string $query, string $context, array $sources): string
     {
-        $systemPrompt = "You are a helpful HR wellness analyst. " .
-            "Answer questions about employee wellness entries based ONLY on the provided context. " .
-            "Provide comprehensive, detailed answers that include relevant contextual information from the wellness entries. " .
-            "Always cite your sources using [1], [2], etc. corresponding to the provided sources. " .
-            "Include specific details like dates, times, and situations mentioned in the entries. " .
-            "Format the answer as a natural, flowing response that addresses the query thoroughly.";
+        $systemPrompt = 'You are a helpful HR wellness analyst. '.
+            'Answer questions about employee wellness entries based ONLY on the provided context. '.
+            'Provide comprehensive, detailed answers that include relevant contextual information from the wellness entries. '.
+            'Always cite your sources using [1], [2], etc. corresponding to the provided sources. '.
+            'Include specific details like dates, times, and situations mentioned in the entries. '.
+            'Format the answer as a natural, flowing response that addresses the query thoroughly.';
 
         $sourcesText = $this->formatSourcesForPrompt($sources);
         $userPrompt = "Sources:\n{$sourcesText}\n\nContext from Wellness Entries:\n{$context}\n\nQuestion: {$query}\n\nProvide a detailed, comprehensive answer using the sources above. Always cite which source each piece of information comes from using [1], [2], etc.";
@@ -434,6 +456,7 @@ class WellnessSearchService
                 $source['entry_date']
             );
         }
+
         return $formatted;
     }
 }

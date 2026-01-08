@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\SearchWithInsightsRequest;
 use App\Http\Requests\SearchWellnessRequest;
 use App\Services\WellnessSearchService;
-use Illuminate\Http\JsonResponse;
 
 class WellnessSearchController extends Controller
 {
@@ -28,10 +26,11 @@ class WellnessSearchController extends Controller
             ]);
         } catch (\Exception $e) {
             return $this->responseJSON([
-                'error' => 'Search failed: ' . $e->getMessage(),
+                'error' => 'Search failed: '.$e->getMessage(),
             ], 500);
         }
     }
+
     public function searchWithInsights(SearchWellnessRequest $request)
     {
         try {
@@ -40,7 +39,7 @@ class WellnessSearchController extends Controller
             return $this->responseJSON($response);
         } catch (\Exception $e) {
             return $this->responseJSON([
-                'error' => 'Search failed: ' . $e->getMessage(),
+                'error' => 'Search failed: '.$e->getMessage(),
             ], 500);
         }
     }

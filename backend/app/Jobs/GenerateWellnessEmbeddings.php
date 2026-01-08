@@ -25,7 +25,7 @@ class GenerateWellnessEmbeddings implements ShouldQueue
     ): void {
         $entry = WellnessEntries::find($this->entryId);
 
-        if (!$entry) {
+        if (! $entry) {
             return;
         }
 
@@ -46,7 +46,6 @@ class GenerateWellnessEmbeddings implements ShouldQueue
                 'keywords' => $sentiment['detected_keywords'],
                 'is_flagged' => $flagging['is_flagged'],
             ];
-
 
             $qdrantService->storeVector($entry->id, $vector, $payload);
 

@@ -14,6 +14,7 @@ class ProcessWellnessEntry implements ShouldQueue
     use Queueable;
 
     private const OPENAI_MODEL = 'gpt-4o-mini';
+
     private const TEMPERATURE = 0.3;
 
     private const EXTRACTION_SCHEMA = [
@@ -110,12 +111,12 @@ class ProcessWellnessEntry implements ShouldQueue
     private function formatSchema(): string
     {
         $fields = array_map(
-            fn($key, $type) => "  \"{$key}\": {$type}",
+            fn ($key, $type) => "  \"{$key}\": {$type}",
             array_keys(self::EXTRACTION_SCHEMA),
             self::EXTRACTION_SCHEMA
         );
 
-        return "{\n" . implode(",\n", $fields) . "\n}";
+        return "{\n".implode(",\n", $fields)."\n}";
     }
 
     private function cleanResponse(string $content): string
@@ -131,7 +132,7 @@ class ProcessWellnessEntry implements ShouldQueue
         $extracted = json_decode($content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Failed to parse OpenAI response as JSON: ' . json_last_error_msg());
+            throw new \RuntimeException('Failed to parse OpenAI response as JSON: '.json_last_error_msg());
         }
 
         return $extracted;

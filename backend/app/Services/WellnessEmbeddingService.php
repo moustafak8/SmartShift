@@ -7,8 +7,8 @@ use OpenAI\Laravel\Facades\OpenAI;
 class WellnessEmbeddingService
 {
     private const EMBEDDING_MODEL = 'text-embedding-3-small';
-    private const SENTIMENT_MODEL = 'gpt-4o-mini';
 
+    private const SENTIMENT_MODEL = 'gpt-4o-mini';
 
     public function generateEmbedding(string $text): array
     {
@@ -16,9 +16,9 @@ class WellnessEmbeddingService
             'model' => self::EMBEDDING_MODEL,
             'input' => $text,
         ]);
+
         return $this->extractEmbeddingVector($response);
     }
-
 
     public function extractSentiment(string $text): array
     {
@@ -54,7 +54,6 @@ PROMPT;
         return $this->parseSentimentResponse($content);
     }
 
-
     public function shouldFlag(float $sentimentScore, array $keywords): array
     {
 
@@ -66,7 +65,6 @@ PROMPT;
             ];
         }
 
-
         $criticalKeywords = ['suicide', 'harm', 'crisis', 'emergency'];
         $detectedCritical = array_intersect(array_map('strtolower', $keywords), $criticalKeywords);
 
@@ -74,10 +72,9 @@ PROMPT;
             return [
                 'is_flagged' => true,
                 'flag_severity' => 'critical',
-                'flag_reason' => 'Critical keywords detected: ' . implode(', ', $detectedCritical),
+                'flag_reason' => 'Critical keywords detected: '.implode(', ', $detectedCritical),
             ];
         }
-
 
         $concerningKeywords = ['severe', 'overwhelmed', 'breakdown', 'collapse'];
         $detectedConcerning = array_intersect(array_map('strtolower', $keywords), $concerningKeywords);
@@ -109,23 +106,19 @@ PROMPT;
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \RuntimeException(
-                'Failed to parse sentiment response as JSON: ' . json_last_error_msg()
+                'Failed to parse sentiment response as JSON: '.json_last_error_msg()
             );
         }
-
 
         if (! isset($data['sentiment_label'], $data['sentiment_score'], $data['detected_keywords'])) {
             throw new \RuntimeException('Sentiment response missing required fields');
         }
 
-
         if (! in_array($data['sentiment_label'], ['positive', 'neutral', 'negative'])) {
             $data['sentiment_label'] = 'neutral';
         }
 
-
         $data['sentiment_score'] = max(-1, min(1, (float) $data['sentiment_score']));
-
 
         $data['detected_keywords'] = is_array($data['detected_keywords'])
             ? array_map('strtolower', $data['detected_keywords'])
@@ -133,7 +126,6 @@ PROMPT;
 
         return $data;
     }
-
 
     private function extractEmbeddingVector(object $response): array
     {
