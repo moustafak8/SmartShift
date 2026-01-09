@@ -69,6 +69,7 @@ class AuthController extends Controller
         $this->authService->logout();
 
         $response = $this->responseJSON('Successfully logged out', 'success', 200);
+
         return $response->withCookie(cookie()->forget('auth_token'));
     }
 

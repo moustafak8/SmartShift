@@ -31,9 +31,9 @@ class JWTMiddleware
 
             return $next($request);
         } catch (JWTException $e) {
-            return $this->responseJSON('Invalid token: ' . $e->getMessage(), 'error', 401);
+            return $this->responseJSON('Invalid token: '.$e->getMessage(), 'error', 401);
         } catch (\Exception $e) {
-            return $this->responseJSON('Unauthorized: ' . $e->getMessage(), 'error', 401);
+            return $this->responseJSON('Unauthorized: '.$e->getMessage(), 'error', 401);
         }
     }
 }
