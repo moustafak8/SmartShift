@@ -9,4 +9,19 @@ class Employee_Availability extends Model
 {
     /** @use HasFactory<\Database\Factories\EmployeeAvailabilityFactory> */
     use HasFactory;
+
+    protected $fillable = [
+        'employee_id',
+        'day_of_week',
+        'specific_date',
+        'is_available',
+        'preferred_shift_type',
+        'reason',
+        'notes',
+    ];
+
+    protected $casts = [
+        'is_available' => 'boolean',
+        'specific_date' => 'date',
+    ];
 }

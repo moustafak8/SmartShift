@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\EmployeeAvailabilityController;
 use App\Http\Controllers\EmployeeDepartmentController;
+use App\Http\Controllers\EmployeePreferencesController;
 use App\Http\Controllers\FatigueScoreController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
@@ -30,6 +32,15 @@ Route::prefix('v1')->group(function () {
     Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
     Route::get('/fatigue-scores/{employeeId}', [FatigueScoreController::class, 'getEmployeeScore']);
+    Route::get('employee-preferences', [EmployeePreferencesController::class, 'listPreferences']);
+    Route::get('employees/{employeeId}/preferences', [EmployeePreferencesController::class, 'getPreference']);
+    Route::post('employee-preferences', [EmployeePreferencesController::class, 'storePreference']);
+    Route::delete('employees/{employeeId}/preferences', [EmployeePreferencesController::class, 'deletePreference']);
+    Route::get('employee-availability', [EmployeeAvailabilityController::class, 'listAvailability']);
+    Route::get('employees/{employeeId}/availability', [EmployeeAvailabilityController::class, 'getAvailability']);
+    Route::post('employee-availability', [EmployeeAvailabilityController::class, 'storeAvailability']);
+    Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
+    Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
     Route::get('me', [AuthController::class, 'me'])->middleware('jwt');
 
