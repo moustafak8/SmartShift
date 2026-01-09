@@ -8,7 +8,6 @@ use Illuminate\Support\Collection;
 
 class EmployeeAvailabilityService
 {
-
     public function listAvailability(): Collection
     {
         return Employee_Availability::select([
@@ -22,7 +21,6 @@ class EmployeeAvailabilityService
             'notes',
         ])->orderByDesc('id')->get();
     }
-
 
     public function getByEmployee(int $employeeId): Collection
     {
@@ -40,7 +38,6 @@ class EmployeeAvailabilityService
             ->orderBy('id')
             ->get();
     }
-
 
     public function getAvailabilityForDate(int $employeeId, string $date): ?array
     {
@@ -83,7 +80,6 @@ class EmployeeAvailabilityService
         return null;
     }
 
-
     public function getWeeklyPattern(int $employeeId): array
     {
         $records = Employee_Availability::where('employee_id', $employeeId)
@@ -103,7 +99,6 @@ class EmployeeAvailabilityService
         return $pattern;
     }
 
-
     public function getSpecificDateExceptions(int $employeeId): Collection
     {
         return Employee_Availability::where('employee_id', $employeeId)
@@ -118,7 +113,6 @@ class EmployeeAvailabilityService
             ])
             ->get();
     }
-
 
     public function storeAvailability(array $data): Employee_Availability
     {
@@ -141,7 +135,6 @@ class EmployeeAvailabilityService
             return Employee_Availability::whereIn('id', $ids)->first();
         }
 
-
         return Employee_Availability::create([
             'employee_id' => $data['employee_id'],
             'day_of_week' => $data['day_of_week'] ?? null,
@@ -152,7 +145,6 @@ class EmployeeAvailabilityService
             'notes' => $data['notes'] ?? null,
         ]);
     }
-
 
     public function updateAvailability(int $id, array $data): Employee_Availability
     {
@@ -169,7 +161,6 @@ class EmployeeAvailabilityService
 
         return $availability;
     }
-
 
     public function deleteAvailability(int $id): bool
     {
