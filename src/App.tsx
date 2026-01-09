@@ -3,12 +3,10 @@ import { Route, Routes } from "react-router-dom";
 import { LoginPage } from "./pages/Loginpage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleBasedRoute } from "./components/RoleBasedRoute";
-import { useCurrentUser } from "./hooks/useCurrentUser";
 import { Dashboard as EmployeeDashboard } from "./pages/Employee/Dashboard";
 import { Dashboard as ManagerDashboard } from "./pages/Manager/Dashboard";
 
 export default function App() {
-  useCurrentUser();
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />

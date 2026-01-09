@@ -50,11 +50,25 @@ export const useLogin = () => {
     },
   });
 
+  const getErrorMessage = (error: any): string | null => {
+    // Handle axios errors
+    if (error?.response?.data?.payload) {
+      return error.response.data.payload;
+    }
+    if (error?.response?.data?.message) {
+      return error.response.data.message;
+    }
+    if (error?.response?.status === 401) {
+      return "Invalid email or password";
+    }
+    return error?.message || null;
+  };
+
   return {
     login: mutation.mutate,
     loginAsync: mutation.mutateAsync,
     loading: mutation.isPending,
-    error: mutation.error?.message || null,
+    error: getErrorMessage(mutation.error),
     isSuccess: mutation.isSuccess,
     isError: mutation.isError,
   };
