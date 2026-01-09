@@ -70,7 +70,7 @@ jobs:
 
             # 3. Update Laravel Dependencies
             cd backend
-            /usr/local/bin/composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            /usr/local/bin/composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --ignore-platform-reqs
 
             # 4. Run Migrations & Cache
             php artisan migrate --force
