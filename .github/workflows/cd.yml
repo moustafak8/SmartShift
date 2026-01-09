@@ -52,20 +52,24 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            set -e # Stop script if any command fails
+            set -e
 
-            echo "Starting Backend Deployment..."
+            echo " Starting Backend Deployment"
 
             # 1. Navigate to the main repo folder
             cd /var/www/html/smartshift
 
-            # 2. Pull the latest code from GitHub
+            # --- THE FIX IS HERE ---
+            # We force 'ubuntu' to take ownership of everything so Git can overwrite files
+            sudo chown -R ubuntu:ubuntu .
+            # -----------------------
+
+            # 2. Pull the latest code
             git fetch origin main
             git reset --hard origin/main
 
             # 3. Update Laravel Dependencies
             cd backend
-            # We use the full path to composer just in case
             /usr/local/bin/composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 
             # 4. Run Migrations & Cache
@@ -74,11 +78,11 @@ jobs:
             php artisan route:cache
             php artisan view:cache
 
-            # 5. Fix Permissions (Crucial for Apache)
+            # 5. Give permissions BACK to Apache (Crucial!)
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # 6. Reload Apache to see changes
+            # 6. Reload Apache
             sudo systemctl reload apache2
 
             echo " Deployment Finished Successfully!"
