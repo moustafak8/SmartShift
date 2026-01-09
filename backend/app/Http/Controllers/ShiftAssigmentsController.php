@@ -52,4 +52,13 @@ class ShiftAssigmentsController extends Controller
 
         return $this->responseJSON($schedule, 'success', 200);
     }
+
+    public function getWeeklyAssignmentsByEmployee($employeeId, WeeklyAssignmentsRequest $request)
+    {
+        $data = $request->validated();
+
+        $schedule = $this->assigmentsService->getWeeklyScheduleByEmployee($data['start_date'], (int) $employeeId);
+
+        return $this->responseJSON($schedule, 'success', 200);
+    }
 }
