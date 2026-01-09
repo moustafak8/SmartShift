@@ -44,40 +44,57 @@ class AuthController extends Controller
             );
         }
 
-        // Set HTTP-only cookie with JWT token
-        cookie()->queue(
+        $cookie = cookie(
             'auth_token',
             $result['token'],
-            60 * 24 * 7,           // 7 days (in minutes)
+            60 * 24 * 7,
             '/',
-            null,
-            config('app.env') === 'production', // Secure (HTTPS only in production)
+            '',
+            false,
             true,
             false,
-            'strict'
+            'lax'
         );
 
-        return $this->responseJSON([
+        $response = $this->responseJSON([
             'message' => 'User logged in successfully',
             'user' => $result['user'],
         ], 'success', 200);
+
+        return $response->withCookie($cookie);
     }
 
     public function logout()
     {
         $this->authService->logout();
 
-        cookie()->queue(cookie()->forget('auth_token'));
+        $response = $this->responseJSON('Successfully logged out', 'success', 200);
 
-        return $this->responseJSON('Successfully logged out', 'success', 200);
+        return $response->withCookie(cookie()->forget('auth_token'));
     }
 
     public function me()
     {
-        $user = JWTAuth::user();
+        try {
+            $user = JWTAuth::user();
 
-        return $this->responseJSON([
-            'user' => $user,
-        ], 'success', 200);
+            if (! $user) {
+                return $this->responseJSON(
+                    'Token invalid or expired',
+                    'error',
+                    401
+                );
+            }
+
+            return $this->responseJSON([
+                'user' => $user,
+            ], 'success', 200);
+        } catch (\Exception $e) {
+            return $this->responseJSON(
+                'Unauthorized',
+                'error',
+                401
+            );
+        }
     }
 }

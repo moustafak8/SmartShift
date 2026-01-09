@@ -25,7 +25,7 @@ const fetchCurrentUser = async (): Promise<CurrentUserResponse> => {
   return response.data;
 };
 
-export const useCurrentUser = () => {
+export const useCurrentUser = (enabled: boolean = true) => {
   const { setUser, setIsLoading } = useAuth();
 
   const query = useQuery({
@@ -33,9 +33,18 @@ export const useCurrentUser = () => {
     queryFn: fetchCurrentUser,
     retry: false,
     refetchOnWindowFocus: false,
+    enabled,
   });
 
   useEffect(() => {
+    if (!enabled) {
+      setIsLoading(false);
+      return;
+    }
+    if (query.isLoading) {
+      setIsLoading(true);
+    }
+
     if (query.isSuccess && query.data?.payload?.user) {
       setUser(query.data.payload.user);
       setIsLoading(false);
@@ -43,12 +52,13 @@ export const useCurrentUser = () => {
       setUser(null);
       setIsLoading(false);
     }
-  }, [query.isSuccess, query.isError, query.data, setUser, setIsLoading]);
+  }, [query.isSuccess, query.isError, query.isLoading, query.data, setUser, setIsLoading, enabled]);
 
   return {
     user: query.data?.payload?.user || null,
     isLoading: query.isLoading,
     isError: query.isError,
+    isSuccess: query.isSuccess,
     error: query.error,
   };
 };

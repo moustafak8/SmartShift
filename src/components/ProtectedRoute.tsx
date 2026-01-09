@@ -1,5 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/context/AuthContext";
+import { useCurrentUser } from "../hooks/useCurrentUser";
 import { Loader2 } from "lucide-react";
 
 type ProtectedRouteProps = {
@@ -8,6 +9,8 @@ type ProtectedRouteProps = {
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, isLoading } = useAuth();
+  const shouldFetchUser = !user;
+  useCurrentUser(shouldFetchUser);
 
   if (isLoading) {
     return (

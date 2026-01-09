@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EmployeeMiddleware;
+use App\Http\Middleware\JWTFromCookie;
 use App\Http\Middleware\JWTMiddleware;
 use App\Http\Middleware\ManagerMiddleware;
 use Illuminate\Auth\AuthenticationException;
@@ -21,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(JWTFromCookie::class);
+
         $middleware->alias([
             'employee' => EmployeeMiddleware::class,
             'manager' => ManagerMiddleware::class,

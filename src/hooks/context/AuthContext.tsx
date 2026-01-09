@@ -39,10 +39,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const loginAction = (data: LoginPayload) => {
     setUser(data.user);
+    setIsLoading(false);
   };
 
   const logOut = () => {
     setUser(null);
+    setIsLoading(false);
   };
 
   const isAuthenticated = () => {
