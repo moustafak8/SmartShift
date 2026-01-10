@@ -54,35 +54,39 @@ jobs:
           script: |
             set -e
 
-            echo " Starting Backend Deployment"
+            echo "Starting Backend Deployment..."
 
             # 1. Navigate to the main repo folder
             cd /var/www/html/smartshift
 
-            # --- THE FIX IS HERE ---
-            # We force 'ubuntu' to take ownership of everything so Git can overwrite files
+            # 2. Force 'ubuntu' to take ownership
             sudo chown -R ubuntu:ubuntu .
-            # -----------------------
 
-            # 2. Pull the latest code
+            # 3. Pull the latest code
             git fetch origin main
             git reset --hard origin/main
 
-            # 3. Update Laravel Dependencies
+            # 4. Update Laravel Dependencies
             cd backend
+
+
+            echo " Nuke broken vendor folder..."
+            rm -rf vendor
+
+            # install fresh composer dependencies
             /usr/local/bin/composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --ignore-platform-reqs
 
-            # 4. Run Migrations & Cache
+            # 5. Run Migrations & Cache
             php artisan migrate --force
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
 
-            # 5. Give permissions BACK to Apache (Crucial!)
+            # 6. Give permissions BACK to Apache
             sudo chown -R www-data:www-data storage bootstrap/cache
             sudo chmod -R 775 storage bootstrap/cache
 
-            # 6. Reload Apache
+            # 7. Reload Apache
             sudo systemctl reload apache2
 
             echo " Deployment Finished Successfully!"
