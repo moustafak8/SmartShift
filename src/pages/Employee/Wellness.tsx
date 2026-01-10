@@ -5,6 +5,7 @@ import { Card } from '../../components/ui/Card';
 import { Textarea } from '../../components/ui/Textarea';
 import { Button } from '../../components/ui/Button';
 import { useWellnessEntries } from '../../hooks/Employee/useWellnessEntries';
+import { useSubmitWellnessEntry } from '../../hooks/Employee/useSubmitWellnessEntry';
 
 export function Wellness() {
     const [activePage, setActivePage] = useState('wellness');
@@ -12,6 +13,7 @@ export function Wellness() {
     const [submitted, setSubmitted] = useState(false);
     const navigate = useNavigate();
     const { entries, isLoading, isError } = useWellnessEntries();
+    const { submit, isLoading: isSubmitting, isError: isSubmitError } = useSubmitWellnessEntry();
 
     const handleNavigate = (page: string) => {
         setActivePage(page);
@@ -32,6 +34,7 @@ export function Wellness() {
     const handleSubmit = () => {
         if (!entryText.trim()) return;
 
+        submit(entryText);
         setSubmitted(true);
         setTimeout(() => {
             setEntryText('');
@@ -91,14 +94,20 @@ export function Wellness() {
                                 />
                             </Card>
 
+                            {isSubmitError && (
+                                <Card className="p-4 mb-4 bg-red-50 border-red-200">
+                                    <p className="text-red-600 text-sm">Failed to submit wellness entry. Please try again.</p>
+                                </Card>
+                            )}
+
                             <div className="flex justify-end mb-8">
                                 <Button
                                     onClick={handleSubmit}
-                                    disabled={!entryText.trim()}
+                                    disabled={!entryText.trim() || isSubmitting}
                                     variant="primary"
                                     size="md"
                                 >
-                                    Submit Entry
+                                    {isSubmitting ? 'Submitting...' : 'Submit Entry'}
                                 </Button>
                             </div>
                         </>
