@@ -1,6 +1,6 @@
 import { BrainCog, HeartPulse, Shuffle } from "lucide-react";
 import { motion } from "motion/react";
-import { useInView } from "../../hooks/types/useInView";
+import { useInView } from "../../hooks/useInView";
 import { Container, Card, SectionHeader, IconText, Heading } from "../ui";
 
 const pillars = [

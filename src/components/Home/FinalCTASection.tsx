@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { useInView } from "../../hooks/types/useInView";
+import { useInView } from "../../hooks/useInView";
 import { Container, Button, Heading } from "../ui";
 
 export function FinalCTASection() {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useInView } from "../../hooks/types/useInView";
+import { useInView } from "../../hooks/useInView";
 import { Container, Button, SectionHeader, Heading } from "../ui";
 import pic1 from "../../assets/Healthcare.jpeg";
 import pic2 from "../../assets/Hotel.jpeg";
@@ -76,11 +76,10 @@ export function UseCaseSection() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`px-6 py-3 text-[14px] font-bold transition-all ${
-                  activeTab === tab.key
+                className={`px-6 py-3 text-[14px] font-bold transition-all ${activeTab === tab.key
                     ? "text-black border-b-[3px] border-[#2563EB]"
                     : "text-[#6B7280] hover:bg-blue-50/30"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>

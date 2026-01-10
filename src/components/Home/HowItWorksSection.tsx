@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { useInView } from "../../hooks/types/useInView";
+import { useInView } from "../../hooks/useInView";
 import { ArrowDown } from "lucide-react";
 import { Container, SectionHeader, Heading } from "../ui";
 

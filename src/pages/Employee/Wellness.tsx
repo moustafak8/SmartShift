@@ -4,12 +4,14 @@ import { Layout } from '../../components/Sidebar';
 import { Card } from '../../components/ui/Card';
 import { Textarea } from '../../components/ui/Textarea';
 import { Button } from '../../components/ui/Button';
+import { useWellnessEntries } from '../../hooks/Employee/useWellnessEntries';
 
 export function Wellness() {
     const [activePage, setActivePage] = useState('wellness');
     const [entryText, setEntryText] = useState('');
     const [submitted, setSubmitted] = useState(false);
     const navigate = useNavigate();
+    const { entries, isLoading, isError } = useWellnessEntries();
 
     const handleNavigate = (page: string) => {
         setActivePage(page);
@@ -35,6 +37,17 @@ export function Wellness() {
             setEntryText('');
             setSubmitted(false);
         }, 3000);
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     return (
@@ -78,7 +91,7 @@ export function Wellness() {
                                 />
                             </Card>
 
-                            <div className="flex justify-end">
+                            <div className="flex justify-end mb-8">
                                 <Button
                                     onClick={handleSubmit}
                                     disabled={!entryText.trim()}
@@ -90,6 +103,37 @@ export function Wellness() {
                             </div>
                         </>
                     )}
+
+                    {/* Previous Entries Section */}
+                    <div className="mt-8">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Previous Entries</h2>
+
+                        {isLoading ? (
+                            <Card className="p-6 text-center">
+                                <p className="text-gray-500">Loading your wellness entries...</p>
+                            </Card>
+                        ) : isError ? (
+                            <Card className="p-6 text-center bg-red-50 border-red-200">
+                                <p className="text-red-600">Failed to load wellness entries. Please try again later.</p>
+                            </Card>
+                        ) : entries.length === 0 ? (
+                            <Card className="p-6 text-center">
+                                <p className="text-gray-500">No previous entries yet. Start by submitting your first wellness check-in above!</p>
+                            </Card>
+                        ) : (
+                            <div className="space-y-4">
+                                {entries.map((entry) => (
+                                    <Card key={entry.id} className="p-6 shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className="text-sm text-gray-500">{formatDate(entry.created_at)}</span>
+                                            <span className="text-xs text-gray-400">{entry.word_count} words</span>
+                                        </div>
+                                        <p className="text-gray-700 leading-relaxed">{entry.entry_text}</p>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </Layout>

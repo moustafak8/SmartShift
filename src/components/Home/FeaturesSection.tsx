@@ -1,6 +1,6 @@
 import { Activity, BookOpen, Shuffle, TrendingUp } from "lucide-react";
 import { motion } from "motion/react";
-import { useInView } from "../../hooks/types/useInView";
+import { useInView } from "../../hooks/useInView";
 import { Container, SectionHeader, IconText, Heading } from "../ui";
 import pic1 from "../../assets/team_fatigue_trendline.png";
 import pic2 from "../../assets/Swap.jpg";
@@ -81,14 +81,12 @@ export function FeaturesSection() {
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`grid lg:grid-cols-2 gap-12 items-center ${
-                feature.imagePosition === "right" ? "lg:flex-row-reverse" : ""
-              }`}
+              className={`grid lg:grid-cols-2 gap-12 items-center ${feature.imagePosition === "right" ? "lg:flex-row-reverse" : ""
+                }`}
             >
               <div
-                className={`${
-                  feature.imagePosition === "right" ? "lg:order-2" : ""
-                }`}
+                className={`${feature.imagePosition === "right" ? "lg:order-2" : ""
+                  }`}
               >
                 <div className="overflow-hidden rounded-lg shadow-image hover:scale-[1.02] transition-transform duration-300">
                   <img
@@ -100,9 +98,8 @@ export function FeaturesSection() {
               </div>
 
               <div
-                className={`${
-                  feature.imagePosition === "right" ? "lg:order-1" : ""
-                }`}
+                className={`${feature.imagePosition === "right" ? "lg:order-1" : ""
+                  }`}
               >
                 <IconText
                   icon={feature.icon}
