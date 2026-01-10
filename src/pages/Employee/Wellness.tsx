@@ -60,7 +60,7 @@ export function Wellness() {
             notificationCount={3}
         >
             <div className="bg-white">
-                <div className="px-8 py-6 border-b border-gray-200">
+                <div className="px-7 py-4 border-b border-gray-200">
                     <h1 className="text-2xl font-semibold text-gray-900 mb-1">
                         Daily Wellness Check-in
                     </h1>
@@ -115,7 +115,7 @@ export function Wellness() {
 
                     {/* Previous Entries Section */}
                     <div className="mt-8">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Previous Entries</h2>
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Previous Entries (7 days)</h2>
 
                         {isLoading ? (
                             <Card className="p-6 text-center">

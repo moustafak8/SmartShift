@@ -34,6 +34,10 @@ class WellnessService
     public function listByEmployee(int $employeeId): Collection
     {
         return WellnessEntries::where('employee_id', $employeeId)
+            ->whereBetween('created_at', [
+                now()->subDays(6)->startOfDay(),
+                now()->endOfDay(),
+            ])
             ->select(['id', 'employee_id', 'entry_text', 'word_count', 'created_at'])
             ->orderByDesc('created_at')
             ->get();
