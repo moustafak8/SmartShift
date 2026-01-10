@@ -6,6 +6,7 @@ export { Badge } from "./Badge";
 export { Heading } from "./Heading";
 export { IconText } from "./IconText";
 export { SectionHeader } from "./SectionHeader";
+export { Textarea } from "./Textarea";
 
 export { Input } from "./Input";
 export type { InputProps } from "./Input";
