@@ -4,6 +4,7 @@ import { Layout } from '../../components/Sidebar';
 import { Card } from '../../components/ui/Card';
 import { Textarea } from '../../components/ui/Textarea';
 import { Button } from '../../components/ui/Button';
+import { BackButton } from '../../components/ui';
 
 export function Wellness() {
     const [activePage, setActivePage] = useState('wellness');
@@ -52,6 +53,7 @@ export function Wellness() {
                         Track your wellbeing to help us support you better
                     </p>
                 </div>
+                <BackButton />
 
                 <div className="p-8">
                     <div className="max-w-4xl">
