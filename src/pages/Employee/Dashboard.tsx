@@ -1,13 +1,26 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Layout } from "../../components/Sidebar";
 
 export const Dashboard = () => {
     const [activePage, setActivePage] = useState("dashboard");
+    const navigate = useNavigate();
 
     const handleNavigate = (page: string) => {
         setActivePage(page);
-        console.log("Navigating to:", page);
-        // routing logic here later
+
+        // Route to appropriate pages
+        switch (page) {
+            case "wellness":
+                navigate("/employee/wellness");
+                break;
+            case "dashboard":
+                navigate("/employee/dashboard");
+                break;
+            // Add more cases as needed for other pages
+            default:
+                console.log("Navigating to:", page);
+        }
     };
 
     return (
