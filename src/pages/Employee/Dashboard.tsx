@@ -9,15 +9,16 @@ export const Dashboard = () => {
     const handleNavigate = (page: string) => {
         setActivePage(page);
 
-        // Route to appropriate pages
         switch (page) {
             case "wellness":
                 navigate("/employee/wellness");
                 break;
+            case "fatigue":
+                navigate("/employee/score");
+                break;
             case "dashboard":
                 navigate("/employee/dashboard");
                 break;
-            // Add more cases as needed for other pages
             default:
                 console.log("Navigating to:", page);
         }
