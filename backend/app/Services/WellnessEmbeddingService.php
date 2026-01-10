@@ -245,8 +245,8 @@ class WellnessEmbeddingService
         }
 
         return [
-            'avg_sleep' => $extractions->avg('sleep_hours_before') ?? 7,
-            'avg_meals' => $extractions->avg('meals_count') ?? 3,
+            'avg_sleep' => $extractions->avg('sleep_hours_before'),
+            'avg_meals' => $extractions->avg('meals_count'),
             'symptoms_count' => $extractions->sum(fn ($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0),
         ];
     }

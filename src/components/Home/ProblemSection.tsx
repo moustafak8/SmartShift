@@ -1,6 +1,6 @@
 import { AlertTriangle, Clock, TrendingDown, ChartBar } from "lucide-react";
 import { motion } from "motion/react";
-import { useInView } from "../../hooks/types/useInView";
+import { useInView } from "../../hooks/useInView";
 import { Container, SectionHeader, IconText, Heading } from "../ui";
 
 const problems = [

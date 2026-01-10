@@ -5,6 +5,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { RoleBasedRoute } from "./components/RoleBasedRoute";
 import { Dashboard as EmployeeDashboard } from "./pages/Employee/Dashboard";
 import { Dashboard as ManagerDashboard } from "./pages/Manager/Dashboard";
+import { Wellness } from "./pages/Employee/Wellness";
 
 export default function App() {
   return (
@@ -17,6 +18,16 @@ export default function App() {
           <ProtectedRoute>
             <RoleBasedRoute allowedRoles={["employee"]}>
               <EmployeeDashboard />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee/wellness"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["employee"]}>
+              <Wellness />
             </RoleBasedRoute>
           </ProtectedRoute>
         }
