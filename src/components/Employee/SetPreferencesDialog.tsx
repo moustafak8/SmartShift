@@ -15,6 +15,7 @@ import {
     DialogTrigger,
 } from "../ui/Dialog";
 import { Briefcase, Calendar, Clock } from "lucide-react";
+import { useToast } from "../ui/Toast";
 
 interface SetPreferencesDialogProps {
     trigger?: React.ReactNode;
@@ -32,6 +33,7 @@ export function SetPreferencesDialog({
     initialData,
 }: SetPreferencesDialogProps) {
     const { user } = useAuth();
+    const toast = useToast();
     const { mutate: storePreferences, isPending } = useStoreEmployeePreferences();
     const [isOpen, setIsOpen] = useState(false);
 
@@ -66,7 +68,10 @@ export function SetPreferencesDialog({
         storePreferences(payload, {
             onSuccess: () => {
                 handleOpenChange(false);
-                // Optionally show toast success
+                toast.success("Preferences saved successfully");
+            },
+            onError: () => {
+                toast.error("Failed to save preferences. Please try again.");
             },
         });
     };
