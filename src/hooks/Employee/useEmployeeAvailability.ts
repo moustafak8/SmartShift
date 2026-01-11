@@ -26,11 +26,9 @@ export const useStoreEmployeeAvailability = () => {
 
     return useMutation({
         mutationFn: storeEmployeeAvailability,
-        onSuccess: (data) => {
-            // Invalidate the availability query for the employee
-            if (data.payload && data.payload.length > 0) {
-                queryClient.invalidateQueries({ queryKey: ["employeeAvailability", data.payload[0].employee_id] });
-            }
+        onSuccess: () => {
+            // Invalidate all availability queries to refresh the data
+            queryClient.invalidateQueries({ queryKey: ["employeeAvailability"] });
         },
     });
 };

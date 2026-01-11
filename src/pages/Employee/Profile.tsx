@@ -216,32 +216,118 @@ export function Profile() {
                         ) : availability && availability.length > 0 ? (
                             <div className="p-6">
                                 <div className="space-y-3">
-                                    {availability.map((avail) => (
-                                        <div
-                                            key={avail.id}
-                                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <Calendar className="w-5 h-5 text-blue-600" />
-                                                <div>
-                                                    <p className="font-medium text-gray-900">
-                                                        {avail.specific_date
-                                                            ? new Date(avail.specific_date).toLocaleDateString()
-                                                            : avail.day_of_week !== null
-                                                                ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][avail.day_of_week]
-                                                                : 'Unknown'}
-                                                    </p>
-                                                    <p className="text-sm text-gray-600">
-                                                        {avail.is_available ? 'Available' : 'Unavailable'}
-                                                        {avail.preferred_shift_type && avail.preferred_shift_type !== 'any' && (
-                                                            <span> • {avail.preferred_shift_type}</span>
-                                                        )}
-                                                        {avail.reason && <span> • {avail.reason}</span>}
-                                                    </p>
+                                    {(() => {
+                                        const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+
+                                        const specificDates = availability.filter(a => a.specific_date);
+                                        const recurringDays = availability.filter(a => a.day_of_week !== null && !a.specific_date);
+
+
+                                        const availableGroups = new Map<string, number[]>();
+                                        const unavailableGroups = new Map<string, number[]>();
+
+                                        recurringDays.forEach(avail => {
+                                            if (avail.day_of_week === null) return;
+
+                                            const shiftType = avail.preferred_shift_type || 'any';
+                                            const key = `${shiftType}`;
+
+                                            if (avail.is_available) {
+                                                if (!availableGroups.has(key)) {
+                                                    availableGroups.set(key, []);
+                                                }
+                                                availableGroups.get(key)!.push(avail.day_of_week);
+                                            } else {
+                                                const reasonKey = avail.reason ? `${avail.reason}` : 'no-reason';
+                                                if (!unavailableGroups.has(reasonKey)) {
+                                                    unavailableGroups.set(reasonKey, []);
+                                                }
+                                                unavailableGroups.get(reasonKey)!.push(avail.day_of_week);
+                                            }
+                                        });
+
+                                        const displayItems: React.ReactElement[] = [];
+
+                                        availableGroups.forEach((days, shiftType) => {
+                                            days.sort((a, b) => a - b);
+                                            const isAllWeek = days.length === 7;
+                                            const dayNames = isAllWeek ? 'All week' : days.map(d => DAYS[d]).join(', ');
+
+                                            displayItems.push(
+                                                <div
+                                                    key={`available-${shiftType}`}
+                                                    className="flex items-center gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200"
+                                                >
+                                                    <Calendar className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900">{dayNames}</p>
+                                                        <p className="text-sm text-gray-600">
+                                                            Available
+                                                            {shiftType !== 'any' && <span> • {shiftType} shift</span>}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                            );
+                                        });
+
+                                        unavailableGroups.forEach((days, reasonKey) => {
+                                            days.sort((a, b) => a - b);
+                                            const dayNames = days.map(d => DAYS[d]).join(', ');
+
+                                            displayItems.push(
+                                                <div
+                                                    key={`unavailable-${reasonKey}`}
+                                                    className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200"
+                                                >
+                                                    <Calendar className="w-5 h-5 text-red-600 flex-shrink-0" />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900">{dayNames}</p>
+                                                        <p className="text-sm text-gray-600">
+                                                            Unavailable
+                                                            {reasonKey !== 'no-reason' && <span> • {reasonKey}</span>}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+
+                                        specificDates.forEach(avail => {
+                                            const dateStr = new Date(avail.specific_date!).toLocaleDateString('en-US', {
+                                                month: 'short',
+                                                day: 'numeric',
+                                                year: 'numeric'
+                                            });
+
+                                            displayItems.push(
+                                                <div
+                                                    key={avail.id}
+                                                    className={`flex items-center gap-3 p-4 rounded-lg border ${avail.is_available
+                                                        ? 'bg-blue-50 border-blue-200'
+                                                        : 'bg-red-50 border-red-200'
+                                                        }`}
+                                                >
+                                                    <Calendar className={`w-5 h-5 flex-shrink-0 ${avail.is_available ? 'text-blue-600' : 'text-red-600'
+                                                        }`} />
+                                                    <div className="flex-1">
+                                                        <p className="font-medium text-gray-900">{dateStr}</p>
+                                                        <p className="text-sm text-gray-600">
+                                                            {avail.is_available ? 'Available' : 'Unavailable'}
+                                                            {avail.preferred_shift_type && avail.preferred_shift_type !== 'any' && (
+                                                                <span> • {avail.preferred_shift_type} shift</span>
+                                                            )}
+                                                            {avail.reason && <span> • {avail.reason}</span>}
+                                                        </p>
+                                                        {avail.notes && (
+                                                            <p className="text-xs text-gray-500 mt-1">{avail.notes}</p>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        });
+
+                                        return displayItems;
+                                    })()}
                                 </div>
                             </div>
                         ) : (
