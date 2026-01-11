@@ -42,11 +42,12 @@ export function SetAvailabilityDialog({
     const { mutate: storeAvailability, isPending } = useStoreEmployeeAvailability();
     const [isOpen, setIsOpen] = useState(false);
 
-    // Form state
+
     const [formData, setFormData] = useState({
-        availability_type: "recurring" as "recurring" | "specific_date",
+        availability_type: "recurring" as "recurring" | "specific",
+        date_type: "specific_date" as "specific_date" | "day_of_week",
         specific_date: "",
-        selected_days: [] as number[],
+        day_of_week: null as number | null,
         is_available: true,
         preferred_shift_type: "any" as "day" | "evening" | "night" | "any",
         reason: "" as "vacation" | "sick" | "personal" | "appointment" | "other" | "",
@@ -60,8 +61,9 @@ export function SetAvailabilityDialog({
         if (!newOpen) {
             setFormData({
                 availability_type: "recurring",
+                date_type: "specific_date",
                 specific_date: "",
-                selected_days: [],
+                day_of_week: null,
                 is_available: true,
                 preferred_shift_type: "any",
                 reason: "",
@@ -70,21 +72,12 @@ export function SetAvailabilityDialog({
         }
     };
 
-    const handleDayToggle = (day: number) => {
-        setFormData((prev) => ({
-            ...prev,
-            selected_days: prev.selected_days.includes(day)
-                ? prev.selected_days.filter((d) => d !== day)
-                : [...prev.selected_days, day],
-        }));
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
 
         if (formData.availability_type === "recurring") {
-            // Create recurring availability for all week
+
             const payload: StoreAvailabilityPayload = {
                 employee_id: user.id,
                 is_recurring: true,
@@ -101,8 +94,8 @@ export function SetAvailabilityDialog({
                     toast.error("Failed to save availability. Please try again.");
                 },
             });
-        } else if (formData.specific_date) {
-            // Single date availability (typically for unavailability)
+        } else if (formData.date_type === "specific_date" && formData.specific_date) {
+
             const payload: StoreAvailabilityPayload = {
                 employee_id: user.id,
                 specific_date: formData.specific_date,
@@ -111,7 +104,6 @@ export function SetAvailabilityDialog({
                 notes: formData.notes || undefined,
             };
 
-            // Only include preferred_shift_type if available
             if (formData.is_available && formData.preferred_shift_type) {
                 payload.preferred_shift_type = formData.preferred_shift_type;
             }
@@ -129,8 +121,37 @@ export function SetAvailabilityDialog({
                     toast.error("Failed to save availability. Please try again.");
                 },
             });
+        } else if (formData.date_type === "day_of_week" && formData.day_of_week !== null) {
+
+            const payload: StoreAvailabilityPayload = {
+                employee_id: user.id,
+                day_of_week: formData.day_of_week,
+                is_available: formData.is_available,
+                reason: formData.reason || undefined,
+                notes: formData.notes || undefined,
+            };
+
+
+            if (formData.is_available && formData.preferred_shift_type) {
+                payload.preferred_shift_type = formData.preferred_shift_type;
+            }
+
+            storeAvailability(payload, {
+                onSuccess: () => {
+                    const dayName = DAYS_OF_WEEK[formData.day_of_week!].label;
+                    toast.success(
+                        formData.is_available
+                            ? `Availability saved for ${dayName}s`
+                            : `Unavailability saved for ${dayName}s`
+                    );
+                    handleOpenChange(false);
+                },
+                onError: () => {
+                    toast.error("Failed to save availability. Please try again.");
+                },
+            });
         } else {
-            toast.error("Please select a date");
+            toast.error("Please select a date or day of week");
         }
     };
 
@@ -146,7 +167,7 @@ export function SetAvailabilityDialog({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-5 mt-2">
-                    {/* Availability Type */}
+
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Availability Type</label>
                         <div className="grid grid-cols-2 gap-3">
@@ -154,27 +175,56 @@ export function SetAvailabilityDialog({
                                 type="button"
                                 onClick={() => setFormData({ ...formData, availability_type: "recurring" })}
                                 className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.availability_type === "recurring"
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                                     }`}
                             >
                                 All Week (Recurring)
                             </button>
                             <button
                                 type="button"
-                                onClick={() => setFormData({ ...formData, availability_type: "specific_date" })}
-                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.availability_type === "specific_date"
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                onClick={() => setFormData({ ...formData, availability_type: "specific" })}
+                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.availability_type === "specific"
+                                    ? "bg-blue-600 text-white border-blue-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                                     }`}
                             >
-                                Specific Date
+                                Specific
                             </button>
                         </div>
                     </div>
 
-                    {/* Specific Date (shown when specific_date is selected) */}
-                    {formData.availability_type === "specific_date" && (
+
+                    {formData.availability_type === "specific" && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Select Type</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, date_type: "specific_date" })}
+                                    className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.date_type === "specific_date"
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    Specific Date
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, date_type: "day_of_week" })}
+                                    className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.date_type === "day_of_week"
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                        }`}
+                                >
+                                    Day of Week
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+
+                    {formData.availability_type === "specific" && formData.date_type === "specific_date" && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium">
                                 Date <span className="text-red-500">*</span>
@@ -188,7 +238,27 @@ export function SetAvailabilityDialog({
                         </div>
                     )}
 
-                    {/* Available/Unavailable Toggle */}
+
+                    {formData.availability_type === "specific" && formData.date_type === "day_of_week" && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">
+                                Day of Week <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                value={formData.day_of_week ?? ""}
+                                onChange={(e) => setFormData({ ...formData, day_of_week: e.target.value ? parseInt(e.target.value) : null })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required
+                            >
+                                <option value="">Select a day</option>
+                                {DAYS_OF_WEEK.map((day) => (
+                                    <option key={day.value} value={day.value}>
+                                        {day.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Status</label>
                         <div className="grid grid-cols-2 gap-3">
@@ -196,8 +266,8 @@ export function SetAvailabilityDialog({
                                 type="button"
                                 onClick={() => setFormData({ ...formData, is_available: true })}
                                 className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.is_available
-                                        ? "bg-emerald-600 text-white border-emerald-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    ? "bg-emerald-600 text-white border-emerald-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                                     }`}
                             >
                                 Available
@@ -206,16 +276,14 @@ export function SetAvailabilityDialog({
                                 type="button"
                                 onClick={() => setFormData({ ...formData, is_available: false })}
                                 className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${!formData.is_available
-                                        ? "bg-red-600 text-white border-red-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    ? "bg-red-600 text-white border-red-600"
+                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
                                     }`}
                             >
                                 Unavailable
                             </button>
                         </div>
                     </div>
-
-                    {/* Preferred Shift Type (only shown when available) */}
                     {formData.is_available && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Preferred Shift Type</label>
@@ -232,8 +300,8 @@ export function SetAvailabilityDialog({
                         </div>
                     )}
 
-                    {/* Reason (only shown when unavailable and specific date) */}
-                    {!formData.is_available && formData.availability_type === "specific_date" && (
+
+                    {!formData.is_available && formData.availability_type === "specific" && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Reason</label>
                             <select
@@ -251,8 +319,8 @@ export function SetAvailabilityDialog({
                         </div>
                     )}
 
-                    {/* Notes (only shown for specific dates) */}
-                    {formData.availability_type === "specific_date" && (
+
+                    {formData.availability_type === "specific" && (
                         <div className="space-y-2">
                             <label className="text-sm font-medium">Notes</label>
                             <Textarea
