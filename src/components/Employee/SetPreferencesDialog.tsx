@@ -37,8 +37,6 @@ export function SetPreferencesDialog({
     const { mutate: storePreferences, isPending } = useStoreEmployeePreferences();
     const [isOpen, setIsOpen] = useState(false);
 
-    // Form state
-    // We initialize with defaults or initialData
     const [formData, setFormData] = useState<Partial<StorePreferencePayload>>(
         initialData || {
             employee_id: user?.id || 0,
