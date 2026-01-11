@@ -1,21 +1,27 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Settings, Calendar, Clock, Briefcase } from 'lucide-react';
+import { User, Settings, Calendar, Clock, Briefcase, Trash2 } from 'lucide-react';
 import { Layout } from '../../components/Sidebar';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { useAuth } from '../../hooks/context/AuthContext';
 import { useEmployeePreferences } from '../../hooks/Employee/useEmployeePreferences';
-import { useEmployeeAvailability } from '../../hooks/Employee/useEmployeeAvailability';
+import { useEmployeeAvailability, useDeleteEmployeeAvailability } from '../../hooks/Employee/useEmployeeAvailability';
 import { SetPreferencesDialog } from '../../components/Employee/SetPreferencesDialog';
 import { SetAvailabilityDialog } from '../../components/Employee/SetAvailabilityDialog';
+import { useToast } from '../../components/ui/Toast';
+import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
 export function Profile() {
     const [activePage, setActivePage] = useState('profile');
+    const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [availabilityToDelete, setAvailabilityToDelete] = useState<number | null>(null);
     const navigate = useNavigate();
     const { user } = useAuth();
+    const toast = useToast();
     const { data: preferencesData, isLoading: preferencesLoading } = useEmployeePreferences(user?.id);
     const { data: availabilityData, isLoading: availabilityLoading } = useEmployeeAvailability(user?.id);
+    const { mutate: deleteAvailability, isPending: isDeleting } = useDeleteEmployeeAvailability();
 
     const preferences = preferencesData?.payload;
     const availability = availabilityData?.payload;
@@ -38,6 +44,26 @@ export function Profile() {
                 break;
             default:
                 console.log("Navigating to:", page);
+        }
+    };
+
+    const handleDeleteAvailability = (id: number) => {
+        setAvailabilityToDelete(id);
+        setDeleteConfirmOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (availabilityToDelete !== null) {
+            deleteAvailability(availabilityToDelete, {
+                onSuccess: () => {
+                    toast.success('Availability deleted successfully');
+                    setAvailabilityToDelete(null);
+                },
+                onError: () => {
+                    toast.error('Failed to delete availability. Please try again.');
+                    setAvailabilityToDelete(null);
+                },
+            });
         }
     };
 
@@ -302,26 +328,36 @@ export function Profile() {
                                             displayItems.push(
                                                 <div
                                                     key={avail.id}
-                                                    className={`flex items-center gap-3 p-4 rounded-lg border ${avail.is_available
+                                                    className={`flex items-center justify-between p-4 rounded-lg border ${avail.is_available
                                                         ? 'bg-blue-50 border-blue-200'
                                                         : 'bg-red-50 border-red-200'
                                                         }`}
                                                 >
-                                                    <Calendar className={`w-5 h-5 flex-shrink-0 ${avail.is_available ? 'text-blue-600' : 'text-red-600'
-                                                        }`} />
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">{dateStr}</p>
-                                                        <p className="text-sm text-gray-600">
-                                                            {avail.is_available ? 'Available' : 'Unavailable'}
-                                                            {avail.preferred_shift_type && avail.preferred_shift_type !== 'any' && (
-                                                                <span> • {avail.preferred_shift_type} shift</span>
+                                                    <div className="flex items-center gap-3 flex-1">
+                                                        <Calendar className={`w-5 h-5 flex-shrink-0 ${avail.is_available ? 'text-blue-600' : 'text-red-600'
+                                                            }`} />
+                                                        <div className="flex-1">
+                                                            <p className="font-medium text-gray-900">{dateStr}</p>
+                                                            <p className="text-sm text-gray-600">
+                                                                {avail.is_available ? 'Available' : 'Unavailable'}
+                                                                {avail.preferred_shift_type && avail.preferred_shift_type !== 'any' && (
+                                                                    <span> • {avail.preferred_shift_type} shift</span>
+                                                                )}
+                                                                {avail.reason && <span> • {avail.reason}</span>}
+                                                            </p>
+                                                            {avail.notes && (
+                                                                <p className="text-xs text-gray-500 mt-1">{avail.notes}</p>
                                                             )}
-                                                            {avail.reason && <span> • {avail.reason}</span>}
-                                                        </p>
-                                                        {avail.notes && (
-                                                            <p className="text-xs text-gray-500 mt-1">{avail.notes}</p>
-                                                        )}
+                                                        </div>
                                                     </div>
+                                                    <button
+                                                        onClick={() => handleDeleteAvailability(avail.id)}
+                                                        disabled={isDeleting}
+                                                        className="p-2 text-red-600 hover:bg-red-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                        title="Delete availability"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
                                                 </div>
                                             );
                                         });
@@ -355,6 +391,17 @@ export function Profile() {
                     </Card>
                 </div>
             </div>
+
+            <ConfirmDialog
+                open={deleteConfirmOpen}
+                onOpenChange={setDeleteConfirmOpen}
+                onConfirm={confirmDelete}
+                title="Delete Availability"
+                description="Are you sure you want to delete this availability record? This action cannot be undone."
+                confirmText="Delete"
+                cancelText="Cancel"
+                variant="danger"
+            />
         </Layout>
     );
 }

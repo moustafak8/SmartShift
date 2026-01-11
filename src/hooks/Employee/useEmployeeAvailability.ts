@@ -12,6 +12,10 @@ const storeEmployeeAvailability = async (data: StoreAvailabilityPayload): Promis
     return response.data;
 };
 
+const deleteEmployeeAvailability = async (id: number): Promise<void> => {
+    await api.delete(`employee-availability/${id}`);
+};
+
 export const useEmployeeAvailability = (employeeId: number | undefined) => {
     return useQuery({
         queryKey: ["employeeAvailability", employeeId],
@@ -26,6 +30,18 @@ export const useStoreEmployeeAvailability = () => {
 
     return useMutation({
         mutationFn: storeEmployeeAvailability,
+        onSuccess: () => {
+            // Invalidate all availability queries to refresh the data
+            queryClient.invalidateQueries({ queryKey: ["employeeAvailability"] });
+        },
+    });
+};
+
+export const useDeleteEmployeeAvailability = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: deleteEmployeeAvailability,
         onSuccess: () => {
             // Invalidate all availability queries to refresh the data
             queryClient.invalidateQueries({ queryKey: ["employeeAvailability"] });
