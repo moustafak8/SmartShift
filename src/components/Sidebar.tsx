@@ -66,10 +66,21 @@ export function Layout({
     notificationCount = 8,
 }: LayoutProps) {
     const [isOpen, setIsOpen] = useState(true);
-    const { isManager } = useAuth();
+    const { isManager, user } = useAuth();
     const { logout, loading: logoutLoading } = useLogout();
 
     const navigationItems = isManager() ? ManagerNavigationItems : EmployeeNavigationItems;
+    const getUserInitials = () => {
+        if (!user?.full_name) return 'U';
+
+        const nameParts = user.full_name.trim().split(' ');
+        if (nameParts.length === 1) {
+            return nameParts[0].charAt(0).toUpperCase();
+        }
+        const firstInitial = nameParts[0].charAt(0).toUpperCase();
+        const lastInitial = nameParts[nameParts.length - 1].charAt(0).toUpperCase();
+        return firstInitial + lastInitial;
+    };
 
     const handleToggle = () => {
         setIsOpen(!isOpen);
@@ -210,8 +221,8 @@ export function Layout({
                         </button>
 
 
-                        <button className="w-10 h-10 bg-[#6366F1] rounded-full flex items-center justify-center text-white font-medium hover:bg-[#4F46E5] transition-colors">
-                            SJ
+                        <button className="w-10 h-10 bg-[#6366F1] rounded-full flex items-center justify-center text-white font-medium hover:bg-[#4F46E5] transition-colors" onClick={() => onNavigate("profile")}>
+                            {getUserInitials()}
                         </button>
                     </div>
                 </header>
