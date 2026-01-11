@@ -7,6 +7,7 @@ import { Dashboard as EmployeeDashboard } from "./pages/Employee/Dashboard";
 import { Dashboard as ManagerDashboard } from "./pages/Manager/Dashboard";
 import { Wellness } from "./pages/Employee/Wellness";
 import { Score } from "./pages/Employee/Score";
+import { Profile } from "./pages/Employee/Profile";
 
 export default function App() {
   return (
@@ -39,6 +40,16 @@ export default function App() {
           <ProtectedRoute>
             <RoleBasedRoute allowedRoles={["employee"]}>
               <Score />
+            </RoleBasedRoute>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee/profile"
+        element={
+          <ProtectedRoute>
+            <RoleBasedRoute allowedRoles={["employee"]}>
+              <Profile />
             </RoleBasedRoute>
           </ProtectedRoute>
         }
