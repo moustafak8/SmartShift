@@ -243,7 +243,7 @@ export function Profile() {
                     </Card>
 
                     {/* Availability Section */}
-                    <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                    <Card className="mt-6 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
                         <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-gray-100">
                             <h3 className="text-xl font-semibold text-gray-900">Availability</h3>
                             <SetAvailabilityDialog
