@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Settings, Calendar, Clock, Briefcase, Trash2 } from 'lucide-react';
+import { User, Settings, Calendar, Clock, Briefcase, Trash2, Pencil } from 'lucide-react';
 import { Layout } from '../../components/Sidebar';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -16,6 +16,8 @@ export function Profile() {
     const [activePage, setActivePage] = useState('profile');
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [availabilityToDelete, setAvailabilityToDelete] = useState<number | null>(null);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [availabilityToEdit, setAvailabilityToEdit] = useState<any>(null);
     const navigate = useNavigate();
     const { user } = useAuth();
     const toast = useToast();
@@ -65,6 +67,11 @@ export function Profile() {
                 },
             });
         }
+    };
+
+    const handleEditAvailability = (avail: any) => {
+        setAvailabilityToEdit(avail);
+        setEditDialogOpen(true);
     };
 
     return (
@@ -350,14 +357,23 @@ export function Profile() {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <button
-                                                        onClick={() => handleDeleteAvailability(avail.id)}
-                                                        disabled={isDeleting}
-                                                        className="p-2 text-red-600 hover:bg-red-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                                        title="Delete availability"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => handleEditAvailability(avail)}
+                                                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
+                                                            title="Edit availability"
+                                                        >
+                                                            <Pencil className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteAvailability(avail.id)}
+                                                            disabled={isDeleting}
+                                                            className="p-2 text-red-600 hover:bg-red-100 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            title="Delete availability"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             );
                                         });
@@ -401,6 +417,15 @@ export function Profile() {
                 confirmText="Delete"
                 cancelText="Cancel"
                 variant="danger"
+            />
+
+            <SetAvailabilityDialog
+                open={editDialogOpen}
+                onOpenChange={(open) => {
+                    setEditDialogOpen(open);
+                    if (!open) setAvailabilityToEdit(null);
+                }}
+                initialData={availabilityToEdit}
             />
         </Layout>
     );

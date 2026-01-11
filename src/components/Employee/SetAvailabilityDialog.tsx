@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/context/AuthContext";
-import { useStoreEmployeeAvailability } from "../../hooks/Employee/useEmployeeAvailability";
-import type { StoreAvailabilityPayload } from "../../hooks/types/availability";
+import { useStoreEmployeeAvailability, useUpdateEmployeeAvailability } from "../../hooks/Employee/useEmployeeAvailability";
+import type { StoreAvailabilityPayload, EmployeeAvailability } from "../../hooks/types/availability";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Textarea } from "../ui/Textarea";
@@ -20,6 +20,7 @@ interface SetAvailabilityDialogProps {
     trigger?: React.ReactNode;
     open?: boolean;
     onOpenChange?: (open: boolean) => void;
+    initialData?: EmployeeAvailability;
 }
 
 const DAYS_OF_WEEK = [
@@ -36,11 +37,15 @@ export function SetAvailabilityDialog({
     trigger,
     open,
     onOpenChange,
+    initialData,
 }: SetAvailabilityDialogProps) {
     const { user } = useAuth();
     const toast = useToast();
-    const { mutate: storeAvailability, isPending } = useStoreEmployeeAvailability();
+    const { mutate: storeAvailability, isPending: isCreating } = useStoreEmployeeAvailability();
+    const { mutate: updateAvailability, isPending: isUpdating } = useUpdateEmployeeAvailability();
     const [isOpen, setIsOpen] = useState(false);
+    const isPending = isCreating || isUpdating;
+    const isEditMode = !!initialData;
 
 
     const [formData, setFormData] = useState({
@@ -54,11 +59,25 @@ export function SetAvailabilityDialog({
         notes: "",
     });
 
+    useEffect(() => {
+        if (initialData) {
+            setFormData({
+                availability_type: initialData.specific_date ? "specific" : "recurring",
+                date_type: initialData.specific_date ? "specific_date" : initialData.day_of_week !== null ? "day_of_week" : "specific_date",
+                specific_date: initialData.specific_date || "",
+                day_of_week: initialData.day_of_week,
+                is_available: initialData.is_available,
+                preferred_shift_type: initialData.preferred_shift_type || "any",
+                reason: initialData.reason || "",
+                notes: initialData.notes || "",
+            });
+        }
+    }, [initialData]);
+
     const handleOpenChange = (newOpen: boolean) => {
         setIsOpen(newOpen);
         onOpenChange?.(newOpen);
-        // Reset form when closing
-        if (!newOpen) {
+        if (!newOpen && !initialData) {
             setFormData({
                 availability_type: "recurring",
                 date_type: "specific_date",
@@ -76,6 +95,28 @@ export function SetAvailabilityDialog({
         e.preventDefault();
         if (!user) return;
 
+        if (isEditMode && initialData) {
+            // Update existing availability
+            const updateData: Partial<StoreAvailabilityPayload> = {
+                is_available: formData.is_available,
+                preferred_shift_type: formData.is_available ? formData.preferred_shift_type : undefined,
+                reason: formData.reason || undefined,
+                notes: formData.notes || undefined,
+            };
+
+            updateAvailability({ id: initialData.id, data: updateData }, {
+                onSuccess: () => {
+                    toast.success("Availability updated successfully");
+                    handleOpenChange(false);
+                },
+                onError: () => {
+                    toast.error("Failed to update availability. Please try again.");
+                },
+            });
+            return;
+        }
+
+        // Create new availability
         if (formData.availability_type === "recurring") {
 
             const payload: StoreAvailabilityPayload = {
@@ -160,9 +201,11 @@ export function SetAvailabilityDialog({
             {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
             <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>Set Availability</DialogTitle>
+                    <DialogTitle>{isEditMode ? "Edit Availability" : "Set Availability"}</DialogTitle>
                     <DialogDescription>
-                        Set your availability for the entire week or mark specific dates as unavailable.
+                        {isEditMode
+                            ? "Update your availability settings."
+                            : "Set your availability for the entire week or mark specific dates as unavailable."}
                     </DialogDescription>
                 </DialogHeader>
 
