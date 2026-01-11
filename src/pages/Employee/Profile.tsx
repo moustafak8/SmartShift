@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Settings, Calendar, Clock, Briefcase, Trash2, Pencil } from 'lucide-react';
+import { User, Settings, Calendar, Clock, Briefcase, Trash2, Pencil, ChevronDown, ChevronUp } from 'lucide-react';
 import { Layout } from '../../components/Sidebar';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -18,6 +18,7 @@ export function Profile() {
     const [availabilityToDelete, setAvailabilityToDelete] = useState<number | null>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [availabilityToEdit, setAvailabilityToEdit] = useState<any>(null);
+    const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
     const navigate = useNavigate();
     const { user } = useAuth();
     const toast = useToast();
@@ -72,6 +73,18 @@ export function Profile() {
     const handleEditAvailability = (avail: any) => {
         setAvailabilityToEdit(avail);
         setEditDialogOpen(true);
+    };
+
+    const toggleGroupExpansion = (groupKey: string) => {
+        setExpandedGroups(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(groupKey)) {
+                newSet.delete(groupKey);
+            } else {
+                newSet.add(groupKey);
+            }
+            return newSet;
+        });
     };
 
     return (
@@ -257,8 +270,8 @@ export function Profile() {
                                         const recurringDays = availability.filter(a => a.day_of_week !== null && !a.specific_date);
 
 
-                                        const availableGroups = new Map<string, number[]>();
-                                        const unavailableGroups = new Map<string, number[]>();
+                                        const availableGroups = new Map<string, typeof availability>();
+                                        const unavailableGroups = new Map<string, typeof availability>();
 
                                         recurringDays.forEach(avail => {
                                             if (avail.day_of_week === null) return;
@@ -270,57 +283,129 @@ export function Profile() {
                                                 if (!availableGroups.has(key)) {
                                                     availableGroups.set(key, []);
                                                 }
-                                                availableGroups.get(key)!.push(avail.day_of_week);
+                                                availableGroups.get(key)!.push(avail);
                                             } else {
                                                 const reasonKey = avail.reason ? `${avail.reason}` : 'no-reason';
                                                 if (!unavailableGroups.has(reasonKey)) {
                                                     unavailableGroups.set(reasonKey, []);
                                                 }
-                                                unavailableGroups.get(reasonKey)!.push(avail.day_of_week);
+                                                unavailableGroups.get(reasonKey)!.push(avail);
                                             }
                                         });
 
                                         const displayItems: React.ReactElement[] = [];
 
-                                        availableGroups.forEach((days, shiftType) => {
-                                            days.sort((a, b) => a - b);
+                                        availableGroups.forEach((availRecords, shiftType) => {
+                                            const days = availRecords.map(a => a.day_of_week!).sort((a, b) => a - b);
                                             const isAllWeek = days.length === 7;
                                             const dayNames = isAllWeek ? 'All week' : days.map(d => DAYS[d]).join(', ');
+                                            const groupKey = `available-${shiftType}`;
+                                            const isExpanded = expandedGroups.has(groupKey);
 
                                             displayItems.push(
-                                                <div
-                                                    key={`available-${shiftType}`}
-                                                    className="flex items-center gap-3 p-4 bg-emerald-50 rounded-lg border border-emerald-200"
-                                                >
-                                                    <Calendar className="w-5 h-5 text-emerald-600 flex-shrink-0" />
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">{dayNames}</p>
-                                                        <p className="text-sm text-gray-600">
-                                                            Available
-                                                            {shiftType !== 'any' && <span> • {shiftType} shift</span>}
-                                                        </p>
+                                                <div key={groupKey} className="bg-emerald-50 rounded-lg border border-emerald-200">
+                                                    <div className="flex items-center justify-between p-4">
+                                                        <div className="flex items-center gap-3 flex-1">
+                                                            <Calendar className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+                                                            <div className="flex-1">
+                                                                <p className="font-medium text-gray-900">{dayNames}</p>
+                                                                <p className="text-sm text-gray-600">
+                                                                    Available
+                                                                    {shiftType !== 'any' && <span> • {shiftType} shift</span>}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => toggleGroupExpansion(groupKey)}
+                                                            className="p-2 text-gray-600 hover:bg-emerald-100 rounded-md transition-colors"
+                                                            title={isExpanded ? "Hide options" : "Show options"}
+                                                        >
+                                                            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                        </button>
                                                     </div>
+                                                    {isExpanded && (
+                                                        <div className="px-4 pb-4 pt-2 border-t border-emerald-200 space-y-2">
+                                                            {availRecords.map(avail => (
+                                                                <div key={avail.id} className="flex items-center justify-between py-2 px-3 bg-white rounded-md">
+                                                                    <span className="text-sm font-medium text-gray-700">{DAYS[avail.day_of_week!]}</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => handleEditAvailability(avail)}
+                                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Pencil className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteAvailability(avail.id)}
+                                                                            disabled={isDeleting}
+                                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         });
 
-                                        unavailableGroups.forEach((days, reasonKey) => {
-                                            days.sort((a, b) => a - b);
+                                        unavailableGroups.forEach((availRecords, reasonKey) => {
+                                            const days = availRecords.map(a => a.day_of_week!).sort((a, b) => a - b);
                                             const dayNames = days.map(d => DAYS[d]).join(', ');
+                                            const groupKey = `unavailable-${reasonKey}`;
+                                            const isExpanded = expandedGroups.has(groupKey);
 
                                             displayItems.push(
-                                                <div
-                                                    key={`unavailable-${reasonKey}`}
-                                                    className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200"
-                                                >
-                                                    <Calendar className="w-5 h-5 text-red-600 flex-shrink-0" />
-                                                    <div className="flex-1">
-                                                        <p className="font-medium text-gray-900">{dayNames}</p>
-                                                        <p className="text-sm text-gray-600">
-                                                            Unavailable
-                                                            {reasonKey !== 'no-reason' && <span> • {reasonKey}</span>}
-                                                        </p>
+                                                <div key={groupKey} className="bg-red-50 rounded-lg border border-red-200">
+                                                    <div className="flex items-center justify-between p-4">
+                                                        <div className="flex items-center gap-3 flex-1">
+                                                            <Calendar className="w-5 h-5 text-red-600 flex-shrink-0" />
+                                                            <div className="flex-1">
+                                                                <p className="font-medium text-gray-900">{dayNames}</p>
+                                                                <p className="text-sm text-gray-600">
+                                                                    Unavailable
+                                                                    {reasonKey !== 'no-reason' && <span> • {reasonKey}</span>}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => toggleGroupExpansion(groupKey)}
+                                                            className="p-2 text-gray-600 hover:bg-red-100 rounded-md transition-colors"
+                                                            title={isExpanded ? "Hide options" : "Show options"}
+                                                        >
+                                                            {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                                        </button>
                                                     </div>
+                                                    {isExpanded && (
+                                                        <div className="px-4 pb-4 pt-2 border-t border-red-200 space-y-2">
+                                                            {availRecords.map(avail => (
+                                                                <div key={avail.id} className="flex items-center justify-between py-2 px-3 bg-white rounded-md">
+                                                                    <span className="text-sm font-medium text-gray-700">{DAYS[avail.day_of_week!]}</span>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => handleEditAvailability(avail)}
+                                                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                                                                            title="Edit"
+                                                                        >
+                                                                            <Pencil className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDeleteAvailability(avail.id)}
+                                                                            disabled={isDeleting}
+                                                                            className="p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                                            title="Delete"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         });
