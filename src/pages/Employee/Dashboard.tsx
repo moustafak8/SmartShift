@@ -19,6 +19,9 @@ export const Dashboard = () => {
             case "dashboard":
                 navigate("/employee/dashboard");
                 break;
+            case "profile":
+                navigate("/employee/profile")
+                break;
             default:
                 console.log("Navigating to:", page);
         }
