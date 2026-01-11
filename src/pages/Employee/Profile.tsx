@@ -6,15 +6,19 @@ import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { useAuth } from '../../hooks/context/AuthContext';
 import { useEmployeePreferences } from '../../hooks/Employee/useEmployeePreferences';
+import { useEmployeeAvailability } from '../../hooks/Employee/useEmployeeAvailability';
 import { SetPreferencesDialog } from '../../components/Employee/SetPreferencesDialog';
+import { SetAvailabilityDialog } from '../../components/Employee/SetAvailabilityDialog';
 
 export function Profile() {
     const [activePage, setActivePage] = useState('profile');
     const navigate = useNavigate();
     const { user } = useAuth();
     const { data: preferencesData, isLoading: preferencesLoading } = useEmployeePreferences(user?.id);
+    const { data: availabilityData, isLoading: availabilityLoading } = useEmployeeAvailability(user?.id);
 
     const preferences = preferencesData?.payload;
+    const availability = availabilityData?.payload;
 
     const handleNavigate = (page: string) => {
         setActivePage(page);
@@ -185,6 +189,78 @@ export function Profile() {
                                     trigger={
                                         <Button size="lg" className="shadow-md hover:shadow-lg">
                                             Set Preferences
+                                        </Button>
+                                    }
+                                />
+                            </div>
+                        )}
+                    </Card>
+
+                    {/* Availability Section */}
+                    <Card className="shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                        <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-gray-100">
+                            <h3 className="text-xl font-semibold text-gray-900">Availability</h3>
+                            <SetAvailabilityDialog
+                                trigger={
+                                    <Button size="sm" variant="secondary">
+                                        Add Availability
+                                    </Button>
+                                }
+                            />
+                        </div>
+
+                        {availabilityLoading ? (
+                            <div className="text-center py-12 text-gray-500">
+                                <div className="animate-pulse">Loading availability...</div>
+                            </div>
+                        ) : availability && availability.length > 0 ? (
+                            <div className="p-6">
+                                <div className="space-y-3">
+                                    {availability.map((avail) => (
+                                        <div
+                                            key={avail.id}
+                                            className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <Calendar className="w-5 h-5 text-blue-600" />
+                                                <div>
+                                                    <p className="font-medium text-gray-900">
+                                                        {avail.specific_date
+                                                            ? new Date(avail.specific_date).toLocaleDateString()
+                                                            : avail.day_of_week !== null
+                                                                ? ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][avail.day_of_week]
+                                                                : 'Unknown'}
+                                                    </p>
+                                                    <p className="text-sm text-gray-600">
+                                                        {avail.is_available ? 'Available' : 'Unavailable'}
+                                                        {avail.preferred_shift_type && avail.preferred_shift_type !== 'any' && (
+                                                            <span> • {avail.preferred_shift_type}</span>
+                                                        )}
+                                                        {avail.reason && <span> • {avail.reason}</span>}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-16 px-6">
+                                <div className="mb-6">
+                                    <div className="w-24 h-24 bg-gradient-to-br from-blue-50 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm">
+                                        <Calendar className="w-12 h-12 text-blue-600" />
+                                    </div>
+                                    <h4 className="text-xl font-semibold text-gray-900 mb-3">
+                                        No availability set
+                                    </h4>
+                                    <p className="text-gray-600 max-w-md mx-auto leading-relaxed">
+                                        Let us know when you're available to work by adding your schedule.
+                                    </p>
+                                </div>
+                                <SetAvailabilityDialog
+                                    trigger={
+                                        <Button size="lg" className="shadow-md hover:shadow-lg">
+                                            Add Availability
                                         </Button>
                                     }
                                 />

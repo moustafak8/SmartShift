@@ -20,6 +20,7 @@ export type StoreAvailabilityPayload = {
     employee_id: number;
     day_of_week?: number;
     specific_date?: string;
+    is_recurring?: boolean;
     is_available?: boolean;
     preferred_shift_type?: 'day' | 'evening' | 'night' | 'any';
     reason?: 'vacation' | 'sick' | 'personal' | 'appointment' | 'other';

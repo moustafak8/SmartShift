@@ -32,11 +32,6 @@ const DAYS_OF_WEEK = [
     { value: 6, label: 'Saturday' },
 ];
 
-const RECURRENCE_OPTIONS = [
-    { value: 'once', label: 'Once' },
-    { value: 'weekly', label: 'Weekly' },
-];
-
 export function SetAvailabilityDialog({
     trigger,
     open,
@@ -49,11 +44,8 @@ export function SetAvailabilityDialog({
 
     // Form state
     const [formData, setFormData] = useState({
+        availability_type: "recurring" as "recurring" | "specific_date",
         specific_date: "",
-        start_time: "09:00",
-        end_time: "17:00",
-        repeat: false,
-        recurrence: "weekly",
         selected_days: [] as number[],
         is_available: true,
         preferred_shift_type: "any" as "day" | "evening" | "night" | "any",
@@ -67,11 +59,8 @@ export function SetAvailabilityDialog({
         // Reset form when closing
         if (!newOpen) {
             setFormData({
+                availability_type: "recurring",
                 specific_date: "",
-                start_time: "09:00",
-                end_time: "17:00",
-                repeat: false,
-                recurrence: "weekly",
                 selected_days: [],
                 is_available: true,
                 preferred_shift_type: "any",
@@ -94,37 +83,46 @@ export function SetAvailabilityDialog({
         e.preventDefault();
         if (!user) return;
 
-        // If repeat is enabled, create availability for each selected day
-        if (formData.repeat && formData.selected_days.length > 0) {
-            formData.selected_days.forEach((day) => {
-                const payload: StoreAvailabilityPayload = {
-                    employee_id: user.id,
-                    day_of_week: day,
-                    is_available: formData.is_available,
-                    preferred_shift_type: formData.preferred_shift_type,
-                    reason: formData.reason || undefined,
-                    notes: formData.notes || undefined,
-                };
-
-                storeAvailability(payload);
-            });
-
-            toast.success("Recurring availability saved successfully");
-            handleOpenChange(false);
-        } else if (formData.specific_date) {
-            // Single date availability
+        if (formData.availability_type === "recurring") {
+            // Create recurring availability for all week
             const payload: StoreAvailabilityPayload = {
                 employee_id: user.id,
-                specific_date: formData.specific_date,
+                is_recurring: true,
                 is_available: formData.is_available,
                 preferred_shift_type: formData.preferred_shift_type,
-                reason: formData.reason || undefined,
-                notes: formData.notes || undefined,
             };
 
             storeAvailability(payload, {
                 onSuccess: () => {
-                    toast.success("Availability saved successfully");
+                    toast.success("Recurring availability saved for all week");
+                    handleOpenChange(false);
+                },
+                onError: () => {
+                    toast.error("Failed to save availability. Please try again.");
+                },
+            });
+        } else if (formData.specific_date) {
+            // Single date availability (typically for unavailability)
+            const payload: StoreAvailabilityPayload = {
+                employee_id: user.id,
+                specific_date: formData.specific_date,
+                is_available: formData.is_available,
+                reason: formData.reason || undefined,
+                notes: formData.notes || undefined,
+            };
+
+            // Only include preferred_shift_type if available
+            if (formData.is_available && formData.preferred_shift_type) {
+                payload.preferred_shift_type = formData.preferred_shift_type;
+            }
+
+            storeAvailability(payload, {
+                onSuccess: () => {
+                    toast.success(
+                        formData.is_available
+                            ? "Availability saved successfully"
+                            : "Unavailability saved successfully"
+                    );
                     handleOpenChange(false);
                 },
                 onError: () => {
@@ -132,158 +130,139 @@ export function SetAvailabilityDialog({
                 },
             });
         } else {
-            toast.error("Please select a date or enable recurring availability");
+            toast.error("Please select a date");
         }
     };
 
     return (
         <Dialog open={open !== undefined ? open : isOpen} onOpenChange={handleOpenChange}>
             {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle>New Availability</DialogTitle>
+                    <DialogTitle>Set Availability</DialogTitle>
                     <DialogDescription>
-                        Set your availability for specific dates or recurring schedules.
+                        Set your availability for the entire week or mark specific dates as unavailable.
                     </DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-5 mt-2">
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Date/Start Date */}
+                    {/* Availability Type */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium">Availability Type</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, availability_type: "recurring" })}
+                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.availability_type === "recurring"
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    }`}
+                            >
+                                All Week (Recurring)
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, availability_type: "specific_date" })}
+                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.availability_type === "specific_date"
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    }`}
+                            >
+                                Specific Date
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Specific Date (shown when specific_date is selected) */}
+                    {formData.availability_type === "specific_date" && (
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Date/Start Date</label>
+                            <label className="text-sm font-medium">
+                                Date <span className="text-red-500">*</span>
+                            </label>
                             <Input
                                 type="date"
                                 value={formData.specific_date}
                                 onChange={(e) => setFormData({ ...formData, specific_date: e.target.value })}
-                                disabled={formData.repeat}
+                                required
                             />
                         </div>
-
-                        {/* Time Window */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Time Window</label>
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    type="time"
-                                    value={formData.start_time}
-                                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                                    className="flex-1"
-                                />
-                                <span className="text-gray-500">-</span>
-                                <Input
-                                    type="time"
-                                    value={formData.end_time}
-                                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                                    className="flex-1"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Repeat Toggle */}
-                    <div className="flex items-center gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setFormData({ ...formData, repeat: !formData.repeat })}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${formData.repeat ? 'bg-blue-600' : 'bg-gray-200'
-                                }`}
-                        >
-                            <span
-                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.repeat ? 'translate-x-6' : 'translate-x-1'
-                                    }`}
-                            />
-                        </button>
-                        <label className="text-sm font-medium">Repeat this availability</label>
-                    </div>
-
-                    {/* Recurrence (shown when repeat is enabled) */}
-                    {formData.repeat && (
-                        <>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">
-                                    Recurrence <span className="text-red-500">*</span>
-                                </label>
-                                <select
-                                    value={formData.recurrence}
-                                    onChange={(e) => setFormData({ ...formData, recurrence: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    {RECURRENCE_OPTIONS.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            {/* Days of the week */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium">Days of the week</label>
-                                <div className="grid grid-cols-4 gap-2">
-                                    {DAYS_OF_WEEK.map((day) => {
-                                        const isSelected = formData.selected_days.includes(day.value);
-                                        return (
-                                            <button
-                                                key={day.value}
-                                                type="button"
-                                                onClick={() => handleDayToggle(day.value)}
-                                                className={`px-3 py-2 text-sm rounded-md border transition-colors ${isSelected
-                                                        ? 'bg-blue-600 text-white border-blue-600'
-                                                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                {day.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        </>
                     )}
 
-                    {/* Preferred Shift Type */}
+                    {/* Available/Unavailable Toggle */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Preferred Shift Type</label>
-                        <select
-                            value={formData.preferred_shift_type}
-                            onChange={(e) => setFormData({ ...formData, preferred_shift_type: e.target.value as any })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="any">Any</option>
-                            <option value="day">Day</option>
-                            <option value="evening">Evening</option>
-                            <option value="night">Night</option>
-                        </select>
+                        <label className="text-sm font-medium">Status</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, is_available: true })}
+                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.is_available
+                                        ? "bg-emerald-600 text-white border-emerald-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    }`}
+                            >
+                                Available
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFormData({ ...formData, is_available: false })}
+                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${!formData.is_available
+                                        ? "bg-red-600 text-white border-red-600"
+                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                                    }`}
+                            >
+                                Unavailable
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Reason (Optional) */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Reason (Optional)</label>
-                        <select
-                            value={formData.reason}
-                            onChange={(e) => setFormData({ ...formData, reason: e.target.value as any })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">None</option>
-                            <option value="vacation">Vacation</option>
-                            <option value="sick">Sick</option>
-                            <option value="personal">Personal</option>
-                            <option value="appointment">Appointment</option>
-                            <option value="other">Other</option>
-                        </select>
-                    </div>
+                    {/* Preferred Shift Type (only shown when available) */}
+                    {formData.is_available && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Preferred Shift Type</label>
+                            <select
+                                value={formData.preferred_shift_type}
+                                onChange={(e) => setFormData({ ...formData, preferred_shift_type: e.target.value as any })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="any">Any</option>
+                                <option value="day">Day</option>
+                                <option value="evening">Evening</option>
+                                <option value="night">Night</option>
+                            </select>
+                        </div>
+                    )}
 
-                    {/* Notes */}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Notes</label>
-                        <Textarea
-                            placeholder="Any additional information..."
-                            value={formData.notes}
-                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                            className="resize-y min-h-[80px]"
-                        />
-                    </div>
+                    {/* Reason (only shown when unavailable and specific date) */}
+                    {!formData.is_available && formData.availability_type === "specific_date" && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Reason</label>
+                            <select
+                                value={formData.reason}
+                                onChange={(e) => setFormData({ ...formData, reason: e.target.value as any })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <option value="">Select reason</option>
+                                <option value="vacation">Vacation</option>
+                                <option value="sick">Sick</option>
+                                <option value="personal">Personal</option>
+                                <option value="appointment">Appointment</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    )}
+
+                    {/* Notes (only shown for specific dates) */}
+                    {formData.availability_type === "specific_date" && (
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium">Notes</label>
+                            <Textarea
+                                placeholder="Any additional information..."
+                                value={formData.notes}
+                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                className="resize-y min-h-[80px]"
+                            />
+                        </div>
+                    )}
 
                     <DialogFooter>
                         <Button
