@@ -19,24 +19,12 @@ import {
     DialogFooter,
     Card,
 } from "../../components/ui";
-
-interface TeamOverviewProps {
-    onNavigate: (page: string, data?: any) => void;
-}
-
-interface Employee {
-    id: string;
-    name: string;
-    email: string;
-    role?: string;
-    status?: string;
-}
-
-interface AddEmployeeFormData {
-    name: string;
-    email: string;
-    password: string;
-}
+import { useEmployees } from "../../hooks/Manager/useEmployee";
+import type {
+    TeamOverviewProps,
+    Employee,
+    AddEmployeeFormData,
+} from "../../hooks/types/teamOverview";
 
 export function TeamOverview({ onNavigate }: TeamOverviewProps) {
     const [searchTerm, setSearchTerm] = useState("");

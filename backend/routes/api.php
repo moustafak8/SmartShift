@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
+    Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('shifts', [ShiftsController::class, 'getShifts']);
     Route::post('shifts', [ShiftsController::class, 'createShift']);
     Route::get('shift-templates', [ShiftTemplatesController::class, 'getTemplates']);
@@ -46,7 +47,6 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('manager')->middleware('manager')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
-        Route::get('employees/{id?}', [EmployeeDepartmentController::class, 'getemployees']);
     });
     Route::prefix('employee')->middleware('employee')->group(function () {
         // Employee-specific routes go here
