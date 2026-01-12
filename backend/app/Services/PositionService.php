@@ -13,10 +13,8 @@ class PositionService
             ->select([
                 'id',
                 'name',
-                'description',
-                'is_active',
             ])
-            ->orderBy('name')
+            ->orderBy('id')
             ->get();
     }
 
