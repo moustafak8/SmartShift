@@ -1,19 +1,39 @@
 import { useState } from "react";
-import { Search, ListFilter, User, UserPlus } from "lucide-react";
+import { Search, User, UserPlus } from "lucide-react";
 import { Button, Input, Badge, Card } from "../../components/ui";
 import { AddEmployeeDialog } from "../../components/Manager/AddEmployeeDialog";
 import { EmployeeDetail } from "../../components/Manager/EmployeeDetails";
+import { EmployeeFilter } from "../../components/Manager/EmployeeFilter";
 import { useEmployees } from "../../hooks/Manager/useEmployee";
 
 export function TeamOverview() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [riskFilter, setRiskFilter] = useState<"all" | "high" | "medium" | "low" | "none">("all");
   const { employees, isLoading, isError, error, refetch } = useEmployees();
 
-  const filteredEmployees = employees.filter((emp) =>
-    emp.employee_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = employees.filter((emp) => {
+    const matchesSearch = emp.employee_name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = 
+      statusFilter === "all" ||
+      (statusFilter === "active" && emp.is_active === 1) ||
+      (statusFilter === "inactive" && emp.is_active === 0);
+    
+    const matchesRisk = 
+      riskFilter === "all" ||
+      (riskFilter === "none" && !emp.fatigue_score) ||
+      (emp.fatigue_score && emp.fatigue_score.risk_level === riskFilter);
+    
+    return matchesSearch && matchesStatus && matchesRisk;
+  });
+
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setRiskFilter("all");
+  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -40,10 +60,13 @@ export function TeamOverview() {
             />
           </div>
 
-          <Button variant="secondary" size="sm" className="flex items-center">
-            <ListFilter className="w-4 h-4 mr-2" />
-            Filter
-          </Button>
+          <EmployeeFilter
+            statusFilter={statusFilter}
+            riskFilter={riskFilter}
+            onStatusChange={setStatusFilter}
+            onRiskChange={setRiskFilter}
+            onClearFilters={clearFilters}
+          />
         </div>
 
         <Button
