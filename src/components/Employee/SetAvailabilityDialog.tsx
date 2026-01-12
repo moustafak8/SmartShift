@@ -96,13 +96,20 @@ export function SetAvailabilityDialog({
         if (!user) return;
 
         if (isEditMode && initialData) {
-            // Update existing availability
             const updateData: Partial<StoreAvailabilityPayload> = {
                 is_available: formData.is_available,
-                preferred_shift_type: formData.is_available ? formData.preferred_shift_type : undefined,
-                reason: formData.reason || undefined,
-                notes: formData.notes || undefined,
             };
+            if (formData.is_available) {
+                updateData.preferred_shift_type = formData.preferred_shift_type;
+            } else {
+                // Only include reason and notes if unavailable
+                if (formData.reason) {
+                    updateData.reason = formData.reason;
+                }
+                if (formData.notes) {
+                    updateData.notes = formData.notes;
+                }
+            }
 
             updateAvailability({ id: initialData.id, data: updateData }, {
                 onSuccess: () => {
