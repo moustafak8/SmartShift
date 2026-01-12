@@ -11,6 +11,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 class AuthController extends Controller
 {
     protected AuthService $authService;
+
     protected EmployeeDepartmentService $employeeDepartmentService;
 
     public function __construct(AuthService $authService, EmployeeDepartmentService $employeeDepartmentService)
@@ -44,7 +45,7 @@ class AuthController extends Controller
                 ]);
             } catch (\Exception $e) {
                 return $this->responseJSON(
-                    'Failed to assign employee to department: ' . $e->getMessage(),
+                    'Failed to assign employee to department: '.$e->getMessage(),
                     'error',
                     500
                 );
