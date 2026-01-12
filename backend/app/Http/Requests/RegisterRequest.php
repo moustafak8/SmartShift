@@ -20,6 +20,8 @@ class RegisterRequest extends FormRequest
             'user_type_id' => ['required', 'integer', 'exists:user_types,id'],
             'phone' => ['nullable', 'string', 'max:20'],
             'is_active' => ['nullable', 'boolean'],
+            'department_id' => ['required_if:user_type_id,2', 'exists:departments,id'],
+            'position_id' => ['required_if:user_type_id,2', 'exists:positions,id'],
         ];
     }
 

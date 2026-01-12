@@ -3,10 +3,22 @@
 namespace App\Services;
 
 use App\Models\Department;
+use App\Models\Employee_Department;
 use App\Models\User;
 
 class EmployeeDepartmentService
 {
+    public function assignEmployeeToDepartment(array $data): Employee_Department
+    {
+        return Employee_Department::create([
+            'employee_id' => $data['employee_id'],
+            'department_id' => $data['department_id'],
+            'position_id' => $data['position_id'],
+            'is_primary' => $data['is_primary'] ?? true,
+            'joined_at' => now(),
+        ]);
+    }
+
     public function getEmployeeDepartments($departmentId)
     {
         $department = Department::select(['id', 'name'])

@@ -5,26 +5,50 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Services\AuthService;
+use App\Services\EmployeeDepartmentService;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
     protected AuthService $authService;
+    protected EmployeeDepartmentService $employeeDepartmentService;
 
-    public function __construct(AuthService $authService)
+    public function __construct(AuthService $authService, EmployeeDepartmentService $employeeDepartmentService)
     {
         $this->authService = $authService;
+        $this->employeeDepartmentService = $employeeDepartmentService;
     }
 
     public function register(RegisterRequest $request)
     {
-        $user = $this->authService->registerUser($request->validated());
+        $validated = $request->validated();
+
+        // Create the user
+        $user = $this->authService->registerUser($validated);
         if (! $user) {
             return $this->responseJSON(
                 'Registration failed. Please try again later.',
                 'error',
                 500
             );
+        }
+
+        // If registering an employee, assign to department with position
+        if ($validated['user_type_id'] == 2) { // 2 = employee
+            try {
+                $this->employeeDepartmentService->assignEmployeeToDepartment([
+                    'employee_id' => $user->id,
+                    'department_id' => $validated['department_id'],
+                    'position_id' => $validated['position_id'],
+                    'is_primary' => true,
+                ]);
+            } catch (\Exception $e) {
+                return $this->responseJSON(
+                    'Failed to assign employee to department: ' . $e->getMessage(),
+                    'error',
+                    500
+                );
+            }
         }
 
         return $this->responseJSON([
