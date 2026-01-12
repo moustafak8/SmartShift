@@ -12,21 +12,25 @@ import {
 } from "../ui";
 import { usePositions } from "../../hooks/Manager/usePositions";
 import { useAuth } from "../../hooks/context/AuthContext";
+import { useAddEmployee } from "../../hooks/Manager/useAddEmployee";
+import { useToast } from "../ui/Toast";
 import type { AddEmployeeFormData } from "../../hooks/types/teamOverview";
 
 interface AddEmployeeDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (data: AddEmployeeFormData) => void;
+    onRefresh: () => void;
 }
 
 export function AddEmployeeDialog({
     isOpen,
     onClose,
-    onSubmit,
+    onRefresh,
 }: AddEmployeeDialogProps) {
     const { positions, isLoading: positionsLoading } = usePositions();
     const { departmentId } = useAuth();
+    const { mutate: addEmployee, isPending } = useAddEmployee();
+    const toast = useToast();
     const [formData, setFormData] = useState<AddEmployeeFormData>({
         full_name: "",
         email: "",
@@ -83,19 +87,46 @@ export function AddEmployeeDialog({
             return;
         }
 
-        onSubmit(formData);
+        addEmployee(formData, {
+            onSuccess: () => {
+                toast.success("Employee added successfully!");
+                // Reset form
+                setFormData({
+                    full_name: "",
+                    email: "",
+                    password: "",
+                    phone: "",
+                    user_type_id: 2,
+                    department_id: departmentId || 0,
+                    position_id: null,
+                });
+                setFormErrors({});
+                onClose();
+                onRefresh();
+            },
+            onError: (error: any) => {
+                let errorMessage = "Failed to add employee. Please try again.";
+                if (error?.response?.status === 422) {
+                    const validationErrors = error?.response?.data?.errors;
+                    if (validationErrors && typeof validationErrors === 'object') {
+                        const firstError = Object.values(validationErrors)[0];
+                        errorMessage = Array.isArray(firstError) ? firstError[0] : String(firstError);
+                    } else if (error?.response?.data?.message) {
+                        errorMessage = error.response.data.message;
+                    }
+                } else if (error?.response?.data?.payload) {
+                    errorMessage = typeof error.response.data.payload === 'string'
+                        ? error.response.data.payload
+                        : JSON.stringify(error.response.data.payload);
+                } else if (error?.response?.data?.message) {
+                    errorMessage = error.response.data.message;
+                } else if (error?.message) {
+                    errorMessage = error.message;
+                }
 
-        // Reset form
-        setFormData({
-            full_name: "",
-            email: "",
-            password: "",
-            phone: "",
-            user_type_id: 2,
-            department_id: departmentId || 0,
-            position_id: null,
+                toast.error(errorMessage);
+            },
         });
-        setFormErrors({});
     };
 
     const handleCloseModal = () => {
@@ -123,7 +154,6 @@ export function AddEmployeeDialog({
                     </DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
-                    {/* Row 1: Full Name + Email */}
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label
@@ -174,8 +204,6 @@ export function AddEmployeeDialog({
                             )}
                         </div>
                     </div>
-
-                    {/* Row 2: Phone + Password */}
                     <div className="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label
@@ -224,8 +252,6 @@ export function AddEmployeeDialog({
                             )}
                         </div>
                     </div>
-
-                    {/* Row 3: Position (full width) */}
                     <div className="mb-4">
                         <label
                             htmlFor="position_id"
@@ -238,9 +264,8 @@ export function AddEmployeeDialog({
                             name="position_id"
                             value={formData.position_id || ""}
                             onChange={handleInputChange}
-                            className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${
-                                formErrors.position_id ? "border-[#EF4444]" : "border-[#E5E7EB]"
-                            }`}
+                            className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${formErrors.position_id ? "border-[#EF4444]" : "border-[#E5E7EB]"
+                                }`}
                             disabled={positionsLoading}
                         >
                             <option value="">Select a position</option>
@@ -266,15 +291,16 @@ export function AddEmployeeDialog({
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="secondary" size="sm" onClick={handleCloseModal}>
+                    <Button variant="secondary" size="sm" onClick={handleCloseModal} disabled={isPending}>
                         Cancel
                     </Button>
                     <Button
                         onClick={handleAddEmployee}
                         size="sm"
                         className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                        disabled={isPending}
                     >
-                        Send Invitation
+                        {isPending ? "Adding..." : "Send Invitation"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

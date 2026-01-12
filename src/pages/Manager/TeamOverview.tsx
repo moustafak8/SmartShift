@@ -3,24 +3,16 @@ import { Search, ListFilter, User, UserPlus } from "lucide-react";
 import { Button, Input, Badge, Card } from "../../components/ui";
 import { AddEmployeeDialog } from "../../components/Manager/AddEmployeeDialog";
 import { useEmployees } from "../../hooks/Manager/useEmployee";
-import type {
-  TeamOverviewProps,
-  AddEmployeeFormData,
-} from "../../hooks/types/teamOverview";
+import type { TeamOverviewProps } from "../../hooks/types/teamOverview";
 
 export function TeamOverview({ onNavigate }: TeamOverviewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const { employees, isLoading, isError, error } = useEmployees();
+  const { employees, isLoading, isError, error, refetch } = useEmployees();
 
   const filteredEmployees = employees.filter((emp) =>
     emp.employee_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const handleAddEmployee = (data: AddEmployeeFormData) => {
-    // API call to add employee
-    setIsAddModalOpen(false);
-  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -225,7 +217,7 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
       <AddEmployeeDialog
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddEmployee}
+        onRefresh={refetch}
       />
     </div>
   );
