@@ -50,8 +50,10 @@ Route::prefix('v1')->group(function () {
     Route::delete('positions/{positionId}', [PositionController::class, 'deletePosition']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
     Route::get('me', [AuthController::class, 'me'])->middleware('jwt');
-    Route::post('register', [AuthController::class, 'register']);
-    Route::prefix('manager')->middleware('manager')->group(function () {});
+
+    Route::prefix('manager')->middleware('manager')->group(function () {
+        Route::post('register', [AuthController::class, 'register']);
+    });
     Route::prefix('employee')->middleware('employee')->group(function () {
         // Employee-specific routes go here
     });
