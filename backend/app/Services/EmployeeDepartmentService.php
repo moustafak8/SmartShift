@@ -7,14 +7,15 @@ use App\Models\User;
 
 class EmployeeDepartmentService
 {
-    public function getEmployeeDepartments($id)
+    public function getEmployeeDepartments($managerId)
     {
         $department = Department::select(['id', 'name'])
             ->with([
                 'employees:id,full_name',
                 'employees.latestFatigueScore',
             ])
-            ->findOrFail($id);
+            ->where('manager_id', $managerId)
+            ->firstOrFail();
 
         return [
             'department_id' => $department->id,
