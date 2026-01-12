@@ -49,14 +49,14 @@ class PositionService
     {
         return Position::create([
             'department_id' => $data['department_id'],
-            'name' => $data['name']
+            'name' => $data['name'],
         ]);
     }
 
     public function updatePosition(int $positionId, array $data): bool
     {
         $position = Position::find($positionId);
-        if (!$position) {
+        if (! $position) {
             return false;
         }
 

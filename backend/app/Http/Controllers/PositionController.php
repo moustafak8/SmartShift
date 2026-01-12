@@ -32,7 +32,7 @@ class PositionController extends Controller
     {
         $position = $this->positionService->getPositionById($positionId);
 
-        if (!$position) {
+        if (! $position) {
             return $this->responseJSON(null, 'Position not found', 404);
         }
 
@@ -50,7 +50,7 @@ class PositionController extends Controller
     {
         $updated = $this->positionService->updatePosition($positionId, $request->validated());
 
-        if (!$updated) {
+        if (! $updated) {
             return $this->responseJSON(null, 'Position not found', 404);
         }
 
@@ -63,7 +63,7 @@ class PositionController extends Controller
     {
         $deleted = $this->positionService->deletePosition($positionId);
 
-        if (!$deleted) {
+        if (! $deleted) {
             return $this->responseJSON(null, 'Position not found', 404);
         }
 
