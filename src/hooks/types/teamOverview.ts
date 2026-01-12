@@ -35,9 +35,6 @@ export interface AddEmployeeFormData {
     position_id: number | null;
 }
 
-export interface TeamOverviewProps {
-    onNavigate: (page: string, data?: any) => void;
-}
 export interface Position {
     id: number;
     name: string;

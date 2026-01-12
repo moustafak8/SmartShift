@@ -4,9 +4,8 @@ import { Button, Input, Badge, Card } from "../../components/ui";
 import { AddEmployeeDialog } from "../../components/Manager/AddEmployeeDialog";
 import { EmployeeDetail } from "../../components/Manager/EmployeeDetails";
 import { useEmployees } from "../../hooks/Manager/useEmployee";
-import type { TeamOverviewProps } from "../../hooks/types/teamOverview";
 
-export function TeamOverview({ onNavigate }: TeamOverviewProps) {
+export function TeamOverview() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
