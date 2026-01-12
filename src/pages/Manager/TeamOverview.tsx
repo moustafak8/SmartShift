@@ -19,7 +19,6 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
 
   const handleAddEmployee = (data: AddEmployeeFormData) => {
     // API call to add employee
-    console.log("Adding employee:", data);
     setIsAddModalOpen(false);
   };
 
@@ -125,7 +124,7 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                           {employee.employee_name}
                         </div>
                         <div className="text-sm text-[#6B7280]">
-                          Last updated: {employee.fatigue_score.score_date}
+                          {employee.position}
                         </div>
                       </div>
                     </div>

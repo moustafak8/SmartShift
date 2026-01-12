@@ -11,11 +11,11 @@ export interface Employee {
     employee_id: number;
     employee_name: string;
     is_active: number;
+    position: string;
     fatigue_score: FatigueScore;
 }
 
 export interface EmployeesPayload {
-    department_id: number;
     department_name: string;
     employees: Employee[];
 }

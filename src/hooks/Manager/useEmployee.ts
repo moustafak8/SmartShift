@@ -22,7 +22,6 @@ export const useEmployees = () => {
 
     return {
         employees: query.data?.payload?.employees || [],
-        departmentId: query.data?.payload?.department_id,
         departmentName: query.data?.payload?.department_name,
         isLoading: query.isLoading,
         isError: query.isError,
