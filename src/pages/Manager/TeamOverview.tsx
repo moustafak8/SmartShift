@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Search, ListFilter, User, UserPlus } from "lucide-react";
 import { Button, Input, Badge, Card } from "../../components/ui";
 import { AddEmployeeDialog } from "../../components/Manager/AddEmployeeDialog";
+import { EmployeeDetail } from "../../components/Manager/EmployeeDetails";
 import { useEmployees } from "../../hooks/Manager/useEmployee";
 import type { TeamOverviewProps } from "../../hooks/types/teamOverview";
 
 export function TeamOverview({ onNavigate }: TeamOverviewProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(null);
   const { employees, isLoading, isError, error, refetch } = useEmployees();
 
   const filteredEmployees = employees.filter((emp) =>
@@ -170,7 +172,12 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                     </div>
 
                     <div className="col-span-2 flex items-center justify-end gap-2">
-                      <Button size="sm" variant="secondary">
+                      <Button
+                        size="sm"
+                        onClick={() => setSelectedEmployeeId(employee.employee_id)}
+                        className="border border-[#E5E7EB]"
+                        variant="secondary"
+                      >
                         View
                       </Button>
                     </div>
@@ -219,6 +226,13 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
         onClose={() => setIsAddModalOpen(false)}
         onRefresh={refetch}
       />
+
+      {selectedEmployeeId && (
+        <EmployeeDetail
+          employeeId={selectedEmployeeId}
+          onClose={() => setSelectedEmployeeId(null)}
+        />
+      )}
     </div>
   );
 }
