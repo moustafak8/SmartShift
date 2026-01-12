@@ -10,6 +10,7 @@ import {
     DialogDescription,
     DialogFooter,
 } from "../ui";
+import { usePositions } from "../../hooks/Manager/usePositions";
 import type { AddEmployeeFormData } from "../../hooks/types/teamOverview";
 
 interface AddEmployeeDialogProps {
@@ -23,18 +24,20 @@ export function AddEmployeeDialog({
     onClose,
     onSubmit,
 }: AddEmployeeDialogProps) {
+    const { positions, isLoading: positionsLoading } = usePositions();
     const [formData, setFormData] = useState<AddEmployeeFormData>({
         name: "",
         email: "",
         password: "",
+        position_id: null,
     });
     const [formErrors, setFormErrors] = useState<Partial<AddEmployeeFormData>>({});
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({
             ...prev,
-            [name]: value,
+            [name]: name === "position_id" ? (value ? Number(value) : null) : value,
         }));
         // Clear error for this field when user starts typing
         if (formErrors[name as keyof AddEmployeeFormData]) {
@@ -62,6 +65,10 @@ export function AddEmployeeDialog({
             errors.password = "Password is required";
         }
 
+        if (!formData.position_id) {
+            errors.position_id = "Position is required" as any;
+        }
+
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -78,6 +85,7 @@ export function AddEmployeeDialog({
             name: "",
             email: "",
             password: "",
+            position_id: null,
         });
         setFormErrors({});
     };
@@ -88,6 +96,7 @@ export function AddEmployeeDialog({
             name: "",
             email: "",
             password: "",
+            position_id: null,
         });
         setFormErrors({});
     };
@@ -149,6 +158,36 @@ export function AddEmployeeDialog({
                         {formErrors.email && (
                             <p className="text-xs text-[#EF4444] mt-1">
                                 {formErrors.email}
+                            </p>
+                        )}
+                    </div>
+                    <div>
+                        <label
+                            htmlFor="position_id"
+                            className="block text-sm font-medium text-[#111827] mb-2"
+                        >
+                            Position <span className="text-[#EF4444]">*</span>
+                        </label>
+                        <select
+                            id="position_id"
+                            name="position_id"
+                            value={formData.position_id || ""}
+                            onChange={handleInputChange}
+                            className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${
+                                formErrors.position_id ? "border-[#EF4444]" : "border-[#E5E7EB]"
+                            }`}
+                            disabled={positionsLoading}
+                        >
+                            <option value="">Select a position</option>
+                            {positions.map((position) => (
+                                <option key={position.id} value={position.id}>
+                                    {position.name}
+                                </option>
+                            ))}
+                        </select>
+                        {formErrors.position_id && (
+                            <p className="text-xs text-[#EF4444] mt-1">
+                                {String(formErrors.position_id)}
                             </p>
                         )}
                     </div>

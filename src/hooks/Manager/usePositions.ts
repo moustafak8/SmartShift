@@ -1,12 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../context/AuthContext";
 import api from "../../api/axios";
-import type { EmployeesResponse } from "../types/teamOverview";
+import type { PositionsResponse } from "../types/teamOverview";
 
 const fetchPositions = async (
     departmentId: number
-): Promise<EmployeesResponse> => {
-    const response = await api.get<EmployeesResponse>(
+): Promise<PositionsResponse> => {
+    const response = await api.get<PositionsResponse>(
         `departments/${departmentId}/positions`
     );
     return response.data;
@@ -24,8 +24,7 @@ export const usePositions = () => {
     });
 
     return {
-        positions: query.data?.payload?.employees || [],
-        departmentName: query.data?.payload?.department_name,
+        positions: query.data?.payload || [],
         isLoading: query.isLoading,
         isError: query.isError,
         isSuccess: query.isSuccess,

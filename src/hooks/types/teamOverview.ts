@@ -29,8 +29,19 @@ export interface AddEmployeeFormData {
     name: string;
     email: string;
     password: string;
+    position_id: number | null;
 }
 
 export interface TeamOverviewProps {
     onNavigate: (page: string, data?: any) => void;
 }
+export interface Position {
+    id: number;
+    name: string;
+}
+
+export interface PositionsResponse {
+    status: string;
+    payload: Position[];
+}
+
