@@ -113,8 +113,8 @@ class AuthController extends Controller
 
             $response = ['user' => $user];
             if ($user->user_type_id == 1) {
-                $departmentId = $user->managedDepartments()->first();
-                $response['department_id'] = $departmentId;
+                $department = $user->managedDepartments()->first();
+                $response['department_id'] = $department ? $department->id : null;
             }
 
             return $this->responseJSON($response, 'success', 200);
