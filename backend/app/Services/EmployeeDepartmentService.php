@@ -13,20 +13,26 @@ class EmployeeDepartmentService
             ->with([
                 'employees:id,full_name,is_active',
                 'employees.latestFatigueScore',
+                'employees.employeeDepartments' => function ($query) use ($managerId) {
+                    $query->whereHas('department', function ($q) use ($managerId) {
+                        $q->where('manager_id', $managerId);
+                    })->with('position:id,name');
+                },
             ])
             ->where('manager_id', $managerId)
             ->firstOrFail();
 
         return [
-            'department_id' => $department->id,
             'department_name' => $department->name,
             'employees' => $department->employees->map(function (User $employee) {
                 $latest = $employee->latestFatigueScore;
+                $empDept = $employee->employeeDepartments->first();
 
                 return [
                     'employee_id' => $employee->id,
                     'employee_name' => $employee->full_name,
                     'is_active' => $employee->is_active,
+                    'position' => $empDept && $empDept->position ? $empDept->position->name : null,
                     'fatigue_score' => $latest ? [
                         'score_date' => $latest->score_date?->toDateString(),
                         'total_score' => $latest->total_score,
