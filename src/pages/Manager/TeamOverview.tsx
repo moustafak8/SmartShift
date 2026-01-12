@@ -123,9 +123,10 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                     <>
                         <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
                             <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-[#F9FAFB] border-b border-[#E5E7EB] text-sm font-medium text-[#6B7280]">
-                                <div className="col-span-5">NAME</div>
-                                <div className="col-span-3 text-center">FATIGUE SCORE</div>
+                                <div className="col-span-4">NAME</div>
+                                <div className="col-span-2 text-center">FATIGUE SCORE</div>
                                 <div className="col-span-2 text-center">RISK LEVEL</div>
+                                <div className="col-span-2 text-center">STATUS</div>
                                 <div className="col-span-2 text-right">ACTIONS</div>
                             </div>
                             <div className="divide-y divide-[#E5E7EB]">
@@ -134,7 +135,7 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                                         key={employee.employee_id}
                                         className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
                                     >
-                                        <div className="col-span-5 flex items-center gap-3">
+                                        <div className="col-span-4 flex items-center gap-3">
                                             <div className="w-10 h-10 bg-[#3B82F6] rounded-full flex items-center justify-center flex-shrink-0">
                                                 <User className="w-5 h-5 text-white" />
                                             </div>
@@ -147,7 +148,7 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="col-span-3 flex flex-col items-center justify-center">
+                                        <div className="col-span-2 flex flex-col items-center justify-center">
                                             <div className="text-2xl font-bold text-[#111827]">
                                                 {employee.fatigue_score.total_score}
                                             </div>
@@ -158,14 +159,27 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                                         <div className="col-span-2 flex items-center justify-center">
                                             <Badge
                                                 className={`${employee.fatigue_score.risk_level === "low"
-                                                    ? "bg-[#DCFCE7] text-[#10B981]"
-                                                    : employee.fatigue_score.risk_level === "medium"
-                                                        ? "bg-[#FEF3C7] text-[#F59E0B]"
-                                                        : "bg-[#FEE2E2] text-[#EF4444]"
+                                                        ? "bg-[#DCFCE7] text-[#10B981]"
+                                                        : employee.fatigue_score.risk_level === "medium"
+                                                            ? "bg-[#FEF3C7] text-[#F59E0B]"
+                                                            : "bg-[#FEE2E2] text-[#EF4444]"
                                                     } border-0 capitalize`}
                                             >
                                                 {employee.fatigue_score.risk_level}
                                             </Badge>
+                                        </div>
+                                        <div className="col-span-2 flex items-center justify-center">
+                                            <div className="flex items-center gap-2">
+                                                <div
+                                                    className={`w-2 h-2 rounded-full ${employee.is_active === 1
+                                                            ? "bg-[#10B981]"
+                                                            : "bg-[#6B7280]"
+                                                        }`}
+                                                />
+                                                <span className="text-sm text-[#111827]">
+                                                    {employee.is_active === 1 ? "Active" : "Inactive"}
+                                                </span>
+                                            </div>
                                         </div>
 
 
@@ -185,30 +199,32 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                             <div className="text-sm text-[#6B7280]">
                                 Showing {filteredEmployees.length} of {employees.length} employees
                             </div>
-                            <div className="flex gap-2">
-                                <Button
-                                    size="sm"
-                                    disabled
-                                    className="border-[#E5E7EB]"
-                                    variant="secondary"
-                                >
-                                    Previous
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    className="border-[#E5E7EB] bg-[#3B82F6] text-white"
-                                >
-                                    1
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    disabled
-                                    className="border-[#E5E7EB]"
-                                    variant="secondary"
-                                >
-                                    Next
-                                </Button>
-                            </div>
+                            {employees.length >= 7 && (
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        disabled
+                                        className="border-[#E5E7EB]"
+                                        variant="secondary"
+                                    >
+                                        Previous
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        className="border-[#E5E7EB] bg-[#3B82F6] text-white"
+                                    >
+                                        1
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        disabled
+                                        className="border-[#E5E7EB]"
+                                        variant="secondary"
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </>
                 )}

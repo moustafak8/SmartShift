@@ -11,7 +11,7 @@ class EmployeeDepartmentService
     {
         $department = Department::select(['id', 'name'])
             ->with([
-                'employees:id,full_name',
+                'employees:id,full_name,is_active',
                 'employees.latestFatigueScore',
             ])
             ->where('manager_id', $managerId)
@@ -26,6 +26,7 @@ class EmployeeDepartmentService
                 return [
                     'employee_id' => $employee->id,
                     'employee_name' => $employee->full_name,
+                    'is_active' => $employee->is_active,
                     'fatigue_score' => $latest ? [
                         'score_date' => $latest->score_date?->toDateString(),
                         'total_score' => $latest->total_score,

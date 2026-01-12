@@ -10,6 +10,7 @@ export interface FatigueScore {
 export interface Employee {
     employee_id: number;
     employee_name: string;
+    is_active: number;
     fatigue_score: FatigueScore;
 }
 
