@@ -5,6 +5,7 @@ use App\Http\Controllers\EmployeeAvailabilityController;
 use App\Http\Controllers\EmployeeDepartmentController;
 use App\Http\Controllers\EmployeePreferencesController;
 use App\Http\Controllers\FatigueScoreController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
 use App\Http\Controllers\ShiftTemplatesController;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
+    Route::get('employees/{departmentId}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('shifts', [ShiftsController::class, 'getShifts']);
     Route::post('shifts', [ShiftsController::class, 'createShift']);
     Route::get('shift-templates', [ShiftTemplatesController::class, 'getTemplates']);
@@ -29,7 +31,6 @@ Route::prefix('v1')->group(function () {
     Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);
     Route::post('wellness/search', [WellnessSearchController::class, 'search']);
     Route::post('wellness/search/insights', [WellnessSearchController::class, 'searchWithInsights']);
-    Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
     Route::get('/fatigue-scores/{employeeId}', [FatigueScoreController::class, 'getEmployeeScore']);
     Route::get('employee-preferences', [EmployeePreferencesController::class, 'listPreferences']);
@@ -41,12 +42,17 @@ Route::prefix('v1')->group(function () {
     Route::post('employee-availability', [EmployeeAvailabilityController::class, 'storeAvailability']);
     Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
     Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);
+    Route::get('positions', [PositionController::class, 'getAllPositions']);
+    Route::get('departments/{departmentId}/positions', [PositionController::class, 'getPositionsByDepartment']);
+    Route::get('positions/{positionId}', [PositionController::class, 'getPositionById']);
+    Route::post('positions', [PositionController::class, 'storePosition']);
+    Route::put('positions/{positionId}', [PositionController::class, 'updatePosition']);
+    Route::delete('positions/{positionId}', [PositionController::class, 'deletePosition']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
     Route::get('me', [AuthController::class, 'me'])->middleware('jwt');
 
     Route::prefix('manager')->middleware('manager')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
-        Route::get('employees/{id?}', [EmployeeDepartmentController::class, 'getemployees']);
     });
     Route::prefix('employee')->middleware('employee')->group(function () {
         // Employee-specific routes go here

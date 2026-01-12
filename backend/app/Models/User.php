@@ -37,8 +37,18 @@ class User extends Authenticatable implements JWTSubject
     public function departments()
     {
         return $this->belongsToMany(Department::class, 'employee__departments', 'employee_id', 'department_id')
-            ->withPivot(['is_primary', 'joined_at'])
+            ->withPivot(['position_id', 'is_primary', 'joined_at'])
             ->withTimestamps();
+    }
+
+    public function managedDepartments()
+    {
+        return $this->hasMany(Department::class, 'manager_id');
+    }
+
+    public function employeeDepartments()
+    {
+        return $this->hasMany(Employee_Department::class, 'employee_id');
     }
 
     public function fatigueScores()

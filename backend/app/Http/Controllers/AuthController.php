@@ -5,26 +5,51 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Services\AuthService;
+use App\Services\EmployeeDepartmentService;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
     protected AuthService $authService;
 
-    public function __construct(AuthService $authService)
+    protected EmployeeDepartmentService $employeeDepartmentService;
+
+    public function __construct(AuthService $authService, EmployeeDepartmentService $employeeDepartmentService)
     {
         $this->authService = $authService;
+        $this->employeeDepartmentService = $employeeDepartmentService;
     }
 
     public function register(RegisterRequest $request)
     {
-        $user = $this->authService->registerUser($request->validated());
+        $validated = $request->validated();
+
+        // Create the user
+        $user = $this->authService->registerUser($validated);
         if (! $user) {
             return $this->responseJSON(
                 'Registration failed. Please try again later.',
                 'error',
                 500
             );
+        }
+
+        // If registering an employee, assign to department with position
+        if ($validated['user_type_id'] == 2) {
+            try {
+                $this->employeeDepartmentService->assignEmployeeToDepartment([
+                    'employee_id' => $user->id,
+                    'department_id' => $validated['department_id'],
+                    'position_id' => $validated['position_id'],
+                    'is_primary' => true,
+                ]);
+            } catch (\Exception $e) {
+                return $this->responseJSON(
+                    'Failed to assign employee to department: '.$e->getMessage(),
+                    'error',
+                    500
+                );
+            }
         }
 
         return $this->responseJSON([
@@ -59,6 +84,7 @@ class AuthController extends Controller
         $response = $this->responseJSON([
             'message' => 'User logged in successfully',
             'user' => $result['user'],
+            'department_id' => $result['department_id'],
         ], 'success', 200);
 
         return $response->withCookie($cookie);
@@ -86,9 +112,13 @@ class AuthController extends Controller
                 );
             }
 
-            return $this->responseJSON([
-                'user' => $user,
-            ], 'success', 200);
+            $response = ['user' => $user];
+            if ($user->user_type_id == 1) {
+                $department = $user->managedDepartments()->first();
+                $response['department_id'] = $department ? $department->id : null;
+            }
+
+            return $this->responseJSON($response, 'success', 200);
         } catch (\Exception $e) {
             return $this->responseJSON(
                 'Unauthorized',

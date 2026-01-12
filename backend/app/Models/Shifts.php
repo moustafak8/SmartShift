@@ -39,4 +39,9 @@ class Shifts extends Model
             ->withPivot(['assignment_type', 'status'])
             ->withTimestamps();
     }
+
+    public function positionRequirements()
+    {
+        return $this->hasMany(Shift_Position_Requirement::class, 'shift_id');
+    }
 }

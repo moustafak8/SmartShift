@@ -22,10 +22,13 @@ type LoginResponse = {
       created_at: string;
       updated_at: string;
     };
+    department_id?: number;
   };
 };
 
-const loginRequest = async (credentials: LoginCredentials): Promise<LoginResponse> => {
+const loginRequest = async (
+  credentials: LoginCredentials
+): Promise<LoginResponse> => {
   const response = await api.post<LoginResponse>("login", credentials);
   return response.data;
 };
@@ -38,7 +41,10 @@ export const useLogin = () => {
     mutationFn: loginRequest,
     onSuccess: (data) => {
       if (data.status === "success" && data.payload?.user) {
-        loginAction({ user: data.payload.user });
+        loginAction({
+          user: data.payload.user,
+          department_id: data.payload.department_id,
+        });
         // Navigate based on user role
         const userTypeId = data.payload.user.user_type_id;
         if (userTypeId === 1) {
@@ -73,4 +79,3 @@ export const useLogin = () => {
     isError: mutation.isError,
   };
 };
-

@@ -24,7 +24,17 @@ class Department extends Model
     public function employees()
     {
         return $this->belongsToMany(User::class, 'employee__departments', 'department_id', 'employee_id')
-            ->withPivot(['is_primary', 'joined_at'])
+            ->withPivot(['position_id', 'is_primary', 'joined_at'])
             ->withTimestamps();
+    }
+
+    public function positions()
+    {
+        return $this->hasMany(Position::class);
+    }
+
+    public function employeeDepartments()
+    {
+        return $this->hasMany(Employee_Department::class);
     }
 }

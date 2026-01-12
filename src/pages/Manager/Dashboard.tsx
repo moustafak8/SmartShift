@@ -13,7 +13,7 @@ export const Dashboard = () => {
     const renderPage = () => {
         switch (activePage) {
             case "team":
-                return <TeamOverview onNavigate={handleNavigate} />;
+                return <TeamOverview />;
             case "dashboard":
                 return (
                     <div className="p-8">

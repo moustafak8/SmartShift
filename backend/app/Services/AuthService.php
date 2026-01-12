@@ -31,10 +31,15 @@ class AuthService
             return null;
         }
 
-        // Return only user data, token will be set as HTTP-only cookie in controller
+        $user = JWTAuth::user();
+
+        // Get the department managed by this user (for managers)
+        $department = $user->managedDepartments()->first();
+
         return [
-            'user' => JWTAuth::user(),
-            'token' => $token, // Return token for cookie setting in controller
+            'user' => $user,
+            'token' => $token,
+            'department_id' => $department?->id,
         ];
     }
 
