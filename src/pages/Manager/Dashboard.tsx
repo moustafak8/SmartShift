@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Layout } from "../../components/Sidebar";
 import { TeamOverview } from "./TeamOverview";
+import { RAGQuery } from "./RAGQuery";
 
 export const Dashboard = () => {
     const [activePage, setActivePage] = useState("dashboard");
@@ -14,6 +15,8 @@ export const Dashboard = () => {
         switch (activePage) {
             case "team":
                 return <TeamOverview />;
+            case "rag-query":
+                return <RAGQuery />;
             case "dashboard":
                 return (
                     <div className="p-8">
