@@ -34,7 +34,7 @@ class AuthController extends Controller
         }
 
         // If registering an employee, assign to department with position
-        if ($validated['user_type_id'] == 2) { // 2 = employee
+        if ($validated['user_type_id'] == 2) {
             try {
                 $this->employeeDepartmentService->assignEmployeeToDepartment([
                     'employee_id' => $user->id,
@@ -111,9 +111,13 @@ class AuthController extends Controller
                 );
             }
 
-            return $this->responseJSON([
-                'user' => $user,
-            ], 'success', 200);
+            $response = ['user' => $user];
+            if ($user->user_type_id == 1) {
+                $departmentId = $user->managedDepartments()->first();
+                $response['department_id'] = $departmentId;
+            }
+
+            return $this->responseJSON($response, 'success', 200);
         } catch (\Exception $e) {
             return $this->responseJSON(
                 'Unauthorized',

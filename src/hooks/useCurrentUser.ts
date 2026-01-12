@@ -17,6 +17,7 @@ type CurrentUserResponse = {
       created_at: string;
       updated_at: string;
     };
+    department_id?: number;
   };
 };
 
@@ -26,7 +27,7 @@ const fetchCurrentUser = async (): Promise<CurrentUserResponse> => {
 };
 
 export const useCurrentUser = (enabled: boolean = true) => {
-  const { setUser, setIsLoading } = useAuth();
+  const { setUser, setDepartmentId, setIsLoading } = useAuth();
 
   const query = useQuery({
     queryKey: ["currentUser"],
@@ -47,12 +48,14 @@ export const useCurrentUser = (enabled: boolean = true) => {
 
     if (query.isSuccess && query.data?.payload?.user) {
       setUser(query.data.payload.user);
+      setDepartmentId(query.data.payload.department_id ?? null);
       setIsLoading(false);
     } else if (query.isError) {
       setUser(null);
+      setDepartmentId(null);
       setIsLoading(false);
     }
-  }, [query.isSuccess, query.isError, query.isLoading, query.data, setUser, setIsLoading, enabled]);
+  }, [query.isSuccess, query.isError, query.isLoading, query.data, setUser, setDepartmentId, setIsLoading, enabled]);
 
   return {
     user: query.data?.payload?.user || null,
