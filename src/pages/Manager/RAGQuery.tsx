@@ -6,6 +6,7 @@ import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { useWellnessInsights } from "../../hooks/Manager/useQuery";
 import type { WellnessInsightPayload } from "../../hooks/types/RAG";
+import { Layout } from "../../components/Sidebar";
 
 export function RAGQuery() {
   const [query, setQuery] = useState("");
@@ -46,7 +47,8 @@ export function RAGQuery() {
   const responseData: WellnessInsightPayload | null = data?.payload || null;
 
   return (
-    <div className="bg-white min-h-screen">
+    <Layout notificationCount={8}>
+      <div className="bg-white min-h-screen">
       <div className="border-b border-[#E5E7EB] bg-white">
         <div className="px-6 py-4">
           <h1 className="text-2xl font-semibold text-[#111827] flex items-center gap-2">
@@ -231,6 +233,7 @@ export function RAGQuery() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+    </Layout>
   );
 }
