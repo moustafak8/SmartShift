@@ -12,7 +12,7 @@ export interface Employee {
     employee_name: string;
     is_active: number;
     position: string;
-    fatigue_score: FatigueScore;
+    fatigue_score?: FatigueScore;
 }
 
 export interface EmployeesPayload {

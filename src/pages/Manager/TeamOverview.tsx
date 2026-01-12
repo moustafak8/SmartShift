@@ -129,23 +129,38 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                       </div>
                     </div>
                     <div className="col-span-2 flex flex-col items-center justify-center">
-                      <div className="text-2xl font-bold text-[#111827]">
-                        {employee.fatigue_score.total_score}
-                      </div>
-                      <div className="text-xs text-[#6B7280] mt-1">Score</div>
+                      {employee.fatigue_score ? (
+                        <>
+                          <div className="text-2xl font-bold text-[#111827]">
+                            {employee.fatigue_score.total_score}
+                          </div>
+                          <div className="text-xs text-[#6B7280] mt-1">Score</div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="text-2xl font-bold text-[#9CA3AF]">-</div>
+                          <div className="text-xs text-[#6B7280] mt-1">No data</div>
+                        </>
+                      )}
                     </div>
                     <div className="col-span-2 flex items-center justify-center">
-                      <Badge
-                        className={`${
-                          employee.fatigue_score.risk_level === "low"
-                            ? "bg-[#DCFCE7] text-[#10B981]"
-                            : employee.fatigue_score.risk_level === "medium"
-                            ? "bg-[#FEF3C7] text-[#F59E0B]"
-                            : "bg-[#FEE2E2] text-[#EF4444]"
-                        } border-0 capitalize`}
-                      >
-                        {employee.fatigue_score.risk_level}
-                      </Badge>
+                      {employee.fatigue_score ? (
+                        <Badge
+                          className={`${
+                            employee.fatigue_score.risk_level === "low"
+                              ? "bg-[#DCFCE7] text-[#10B981]"
+                              : employee.fatigue_score.risk_level === "medium"
+                              ? "bg-[#FEF3C7] text-[#F59E0B]"
+                              : "bg-[#FEE2E2] text-[#EF4444]"
+                          } border-0 capitalize`}
+                        >
+                          {employee.fatigue_score.risk_level}
+                        </Badge>
+                      ) : (
+                        <Badge className="bg-[#F3F4F6] text-[#6B7280] border-0">
+                          N/A
+                        </Badge>
+                      )}
                     </div>
                     <div className="col-span-2 flex items-center justify-center">
                       <div className="flex items-center gap-2">
