@@ -3,19 +3,22 @@ import { useAuth } from "../context/AuthContext";
 import api from "../../api/axios";
 import type { EmployeesResponse } from "../types/teamOverview";
 
-const fetchEmployees = async (managerId: number): Promise<EmployeesResponse> => {
-    const response = await api.get<EmployeesResponse>(`employees/${managerId}`);
+const fetchEmployees = async (
+    departmentId: number
+): Promise<EmployeesResponse> => {
+    const response = await api.get<EmployeesResponse>(
+        `employees/${departmentId}`
+    );
     return response.data;
 };
 
 export const useEmployees = () => {
-    const { user } = useAuth();
-    const managerId = user?.id;
+    const { departmentId } = useAuth();
 
     const query = useQuery({
-        queryKey: ["employees", managerId],
-        queryFn: () => fetchEmployees(managerId!),
-        enabled: !!managerId,
+        queryKey: ["employees", departmentId],
+        queryFn: () => fetchEmployees(departmentId!),
+        enabled: !!departmentId,
         retry: 1,
         refetchOnWindowFocus: false,
     });

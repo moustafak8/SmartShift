@@ -14,12 +14,15 @@ export type User = {
 
 type LoginPayload = {
   user: User;
+  department_id?: number;
 };
 
 type AuthContextType = {
   user: User | null;
+  departmentId: number | null;
   isLoading: boolean;
   setUser: (user: User | null) => void;
+  setDepartmentId: (id: number | null) => void;
   setIsLoading: (loading: boolean) => void;
   loginAction: (data: LoginPayload) => void;
   logOut: () => void;
@@ -35,15 +38,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [departmentId, setDepartmentId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const loginAction = (data: LoginPayload) => {
     setUser(data.user);
+    setDepartmentId(data.department_id ?? null);
     setIsLoading(false);
   };
 
   const logOut = () => {
     setUser(null);
+    setDepartmentId(null);
     setIsLoading(false);
   };
 
@@ -66,8 +72,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const value: AuthContextType = {
     user,
+    departmentId,
     isLoading,
     setUser,
+    setDepartmentId,
     setIsLoading,
     loginAction,
     logOut,
