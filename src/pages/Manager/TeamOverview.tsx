@@ -12,9 +12,9 @@ import {
     Card,
 } from "../../components/ui";
 import { AddEmployeeDialog } from "../../components/Manager/AddEmployeeDialog";
+import { useEmployees } from "../../hooks/Manager/useEmployee";
 import type {
     TeamOverviewProps,
-    Employee,
     AddEmployeeFormData,
 } from "../../hooks/types/teamOverview";
 
@@ -22,9 +22,8 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
     const [searchTerm, setSearchTerm] = useState("");
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-    //  actual API call using useEmployee hook
-    const employees: Employee[] = [];
-    const isLoading = false;
+    // Fetch employees using the hook
+    const { employees, isLoading, isError, error } = useEmployees();
 
     const filteredEmployees = employees.filter(
         (emp) =>
@@ -89,6 +88,13 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                     <Card className="p-12 text-center">
                         <p className="text-[#6B7280]">Loading employees...</p>
                     </Card>
+                ) : isError ? (
+                    <Card className="p-12 text-center">
+                        <p className="text-[#EF4444] mb-2">Failed to load employees</p>
+                        <p className="text-sm text-[#6B7280]">
+                            {error?.message || "An error occurred while fetching employees"}
+                        </p>
+                    </Card>
                 ) : filteredEmployees.length === 0 ? (
                     <Card className="p-12 text-center">
                         <User className="w-12 h-12 mx-auto text-[#9CA3AF] mb-4" />
@@ -115,25 +121,20 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                     </Card>
                 ) : (
                     <>
-                        {/* Employee Table */}
-                        <Card variant="bordered" className="overflow-hidden p-0">
-                            {/* Table Header */}
+                        <div className="bg-white border border-[#E5E7EB] rounded-xl overflow-hidden">
                             <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-[#F9FAFB] border-b border-[#E5E7EB] text-sm font-medium text-[#6B7280]">
-                                <div className="col-span-4">EMPLOYEE</div>
-                                <div className="col-span-3">FATIGUE SCORE</div>
-                                <div className="col-span-3">RISK LEVEL</div>
+                                <div className="col-span-5">NAME</div>
+                                <div className="col-span-3 text-center">FATIGUE SCORE</div>
+                                <div className="col-span-2 text-center">RISK LEVEL</div>
                                 <div className="col-span-2 text-right">ACTIONS</div>
                             </div>
-
-                            {/* Table Rows */}
                             <div className="divide-y divide-[#E5E7EB]">
                                 {filteredEmployees.map((employee) => (
                                     <div
                                         key={employee.employee_id}
                                         className="grid grid-cols-12 gap-4 px-6 py-4 hover:bg-[#F9FAFB] transition-colors"
                                     >
-                                        {/* Employee Info */}
-                                        <div className="col-span-4 flex items-center gap-3">
+                                        <div className="col-span-5 flex items-center gap-3">
                                             <div className="w-10 h-10 bg-[#3B82F6] rounded-full flex items-center justify-center flex-shrink-0">
                                                 <User className="w-5 h-5 text-white" />
                                             </div>
@@ -142,26 +143,25 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                                                     {employee.employee_name}
                                                 </div>
                                                 <div className="text-sm text-[#6B7280]">
-                                                    {employee.fatigue_score.score_date}
+                                                    Last updated: {employee.fatigue_score.score_date}
                                                 </div>
                                             </div>
                                         </div>
-
-
-                                        <div className="col-span-3 flex items-center">
-                                            <span className="text-sm font-semibold text-[#111827]">
+                                        <div className="col-span-3 flex flex-col items-center justify-center">
+                                            <div className="text-2xl font-bold text-[#111827]">
                                                 {employee.fatigue_score.total_score}
-                                            </span>
+                                            </div>
+                                            <div className="text-xs text-[#6B7280] mt-1">
+                                                Score
+                                            </div>
                                         </div>
-
-
-                                        <div className="col-span-3 flex items-center">
+                                        <div className="col-span-2 flex items-center justify-center">
                                             <Badge
                                                 className={`${employee.fatigue_score.risk_level === "low"
-                                                        ? "bg-[#DCFCE7] text-[#10B981]"
-                                                        : employee.fatigue_score.risk_level === "medium"
-                                                            ? "bg-[#FEF3C7] text-[#F59E0B]"
-                                                            : "bg-[#FEE2E2] text-[#EF4444]"
+                                                    ? "bg-[#DCFCE7] text-[#10B981]"
+                                                    : employee.fatigue_score.risk_level === "medium"
+                                                        ? "bg-[#FEF3C7] text-[#F59E0B]"
+                                                        : "bg-[#FEE2E2] text-[#EF4444]"
                                                     } border-0 capitalize`}
                                             >
                                                 {employee.fatigue_score.risk_level}
@@ -173,11 +173,6 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                                             <Button
                                                 size="sm"
                                                 variant="secondary"
-                                                onClick={() =>
-                                                    onNavigate("employee-details", {
-                                                        employeeId: employee.employee_id,
-                                                    })
-                                                }
                                             >
                                                 View
                                             </Button>
@@ -185,16 +180,38 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                                     </div>
                                 ))}
                             </div>
-                        </Card>
-
-
-                        <div className="mt-4 text-sm text-[#6B7280]">
-                            Showing {filteredEmployees.length} of {employees.length}{" "}
-                            employees
+                        </div>
+                        <div className="mt-6 flex items-center justify-between">
+                            <div className="text-sm text-[#6B7280]">
+                                Showing {filteredEmployees.length} of {employees.length} employees
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    size="sm"
+                                    disabled
+                                    className="border-[#E5E7EB]"
+                                >
+                                    Previous
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    className="border-[#E5E7EB] bg-[#3B82F6] text-white"
+                                >
+                                    1
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    disabled
+                                    className="border-[#E5E7EB]"
+                                >
+                                    Next
+                                </Button>
+                            </div>
                         </div>
                     </>
                 )}
             </div>
+
 
 
             <AddEmployeeDialog
