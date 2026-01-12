@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreEmployeeAvailabilityRequest;
+use App\Http\Requests\UpdateEmployeeAvailabilityRequest;
 use App\Services\EmployeeAvailabilityService;
 
 class EmployeeAvailabilityController extends Controller
@@ -35,7 +36,7 @@ class EmployeeAvailabilityController extends Controller
         return $this->responseJSON($availability, 'Availability stored successfully', 201);
     }
 
-    public function updateAvailability($id, StoreEmployeeAvailabilityRequest $request)
+    public function updateAvailability($id, UpdateEmployeeAvailabilityRequest $request)
     {
         $availability = $this->availabilityService->updateAvailability((int) $id, $request->validated());
 
