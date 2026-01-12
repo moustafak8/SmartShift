@@ -80,7 +80,7 @@ export default function App() {
           }
         />
         <Route
-          path="/manager/Team"
+          path="/manager/team"
           element={
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={["manager"]}>
