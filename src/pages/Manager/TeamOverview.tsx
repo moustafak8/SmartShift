@@ -190,6 +190,7 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                                     size="sm"
                                     disabled
                                     className="border-[#E5E7EB]"
+                                    variant="secondary"
                                 >
                                     Previous
                                 </Button>
@@ -203,6 +204,7 @@ export function TeamOverview({ onNavigate }: TeamOverviewProps) {
                                     size="sm"
                                     disabled
                                     className="border-[#E5E7EB]"
+                                    variant="secondary"
                                 >
                                     Next
                                 </Button>
