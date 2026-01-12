@@ -7,20 +7,17 @@ use App\Models\User;
 
 class EmployeeDepartmentService
 {
-    public function getEmployeeDepartments($managerId)
+    public function getEmployeeDepartments($departmentId)
     {
         $department = Department::select(['id', 'name'])
             ->with([
                 'employees:id,full_name,is_active',
                 'employees.latestFatigueScore',
-                'employees.employeeDepartments' => function ($query) use ($managerId) {
-                    $query->whereHas('department', function ($q) use ($managerId) {
-                        $q->where('manager_id', $managerId);
-                    })->with('position:id,name');
+                'employees.employeeDepartments' => function ($query) use ($departmentId) {
+                    $query->where('department_id', $departmentId)->with('position:id,name');
                 },
             ])
-            ->where('manager_id', $managerId)
-            ->firstOrFail();
+            ->findOrFail($departmentId);
 
         return [
             'department_name' => $department->name,

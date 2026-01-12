@@ -59,6 +59,7 @@ class AuthController extends Controller
         $response = $this->responseJSON([
             'message' => 'User logged in successfully',
             'user' => $result['user'],
+            'department_id' => $result['department_id'],
         ], 'success', 200);
 
         return $response->withCookie($cookie);

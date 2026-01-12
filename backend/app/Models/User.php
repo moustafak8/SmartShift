@@ -41,6 +41,11 @@ class User extends Authenticatable implements JWTSubject
             ->withTimestamps();
     }
 
+    public function managedDepartments()
+    {
+        return $this->hasMany(Department::class, 'manager_id');
+    }
+
     public function employeeDepartments()
     {
         return $this->hasMany(Employee_Department::class, 'employee_id');

@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
-    Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
+    Route::get('employees/{departmentId}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('shifts', [ShiftsController::class, 'getShifts']);
     Route::post('shifts', [ShiftsController::class, 'createShift']);
     Route::get('shift-templates', [ShiftTemplatesController::class, 'getTemplates']);
@@ -31,7 +31,6 @@ Route::prefix('v1')->group(function () {
     Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);
     Route::post('wellness/search', [WellnessSearchController::class, 'search']);
     Route::post('wellness/search/insights', [WellnessSearchController::class, 'searchWithInsights']);
-    Route::get('employees/{id}', [EmployeeDepartmentController::class, 'getemployees']);
     Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
     Route::get('/fatigue-scores/{employeeId}', [FatigueScoreController::class, 'getEmployeeScore']);
     Route::get('employee-preferences', [EmployeePreferencesController::class, 'listPreferences']);
