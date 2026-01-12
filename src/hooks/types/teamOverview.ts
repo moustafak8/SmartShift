@@ -26,9 +26,12 @@ export interface EmployeesResponse {
 }
 
 export interface AddEmployeeFormData {
-    name: string;
+    full_name: string;
     email: string;
     password: string;
+    phone?: string;
+    user_type_id: number;
+    department_id: number;
     position_id: number | null;
 }
 

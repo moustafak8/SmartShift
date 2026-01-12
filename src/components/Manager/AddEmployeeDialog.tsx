@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Mail, Lock } from "lucide-react";
+import { Mail, Lock, Phone } from "lucide-react";
 import {
     Button,
     Input,
@@ -11,6 +11,7 @@ import {
     DialogFooter,
 } from "../ui";
 import { usePositions } from "../../hooks/Manager/usePositions";
+import { useAuth } from "../../hooks/context/AuthContext";
 import type { AddEmployeeFormData } from "../../hooks/types/teamOverview";
 
 interface AddEmployeeDialogProps {
@@ -25,10 +26,14 @@ export function AddEmployeeDialog({
     onSubmit,
 }: AddEmployeeDialogProps) {
     const { positions, isLoading: positionsLoading } = usePositions();
+    const { departmentId } = useAuth();
     const [formData, setFormData] = useState<AddEmployeeFormData>({
-        name: "",
+        full_name: "",
         email: "",
         password: "",
+        phone: "",
+        user_type_id: 2,
+        department_id: departmentId || 0,
         position_id: null,
     });
     const [formErrors, setFormErrors] = useState<Partial<AddEmployeeFormData>>({});
@@ -51,8 +56,8 @@ export function AddEmployeeDialog({
     const validateForm = (): boolean => {
         const errors: Partial<AddEmployeeFormData> = {};
 
-        if (!formData.name.trim()) {
-            errors.name = "Name is required";
+        if (!formData.full_name.trim()) {
+            errors.full_name = "Name is required" as any;
         }
 
         if (!formData.email.trim()) {
@@ -82,9 +87,12 @@ export function AddEmployeeDialog({
 
         // Reset form
         setFormData({
-            name: "",
+            full_name: "",
             email: "",
             password: "",
+            phone: "",
+            user_type_id: 2,
+            department_id: departmentId || 0,
             position_id: null,
         });
         setFormErrors({});
@@ -93,9 +101,12 @@ export function AddEmployeeDialog({
     const handleCloseModal = () => {
         onClose();
         setFormData({
-            name: "",
+            full_name: "",
             email: "",
             password: "",
+            phone: "",
+            user_type_id: 2,
+            department_id: departmentId || 0,
             position_id: null,
         });
         setFormErrors({});
@@ -114,23 +125,23 @@ export function AddEmployeeDialog({
                 <div className="space-y-4 py-4">
                     <div>
                         <label
-                            htmlFor="name"
+                            htmlFor="full_name"
                             className="block text-sm font-medium text-[#111827] mb-2"
                         >
                             Full Name <span className="text-[#EF4444]">*</span>
                         </label>
                         <Input
-                            id="name"
-                            name="name"
-                            value={formData.name}
+                            id="full_name"
+                            name="full_name"
+                            value={formData.full_name}
                             onChange={handleInputChange}
                             placeholder="John Doe"
-                            aria-invalid={!!formErrors.name}
-                            className={formErrors.name ? "border-[#EF4444]" : ""}
+                            aria-invalid={!!formErrors.full_name}
+                            className={formErrors.full_name ? "border-[#EF4444]" : ""}
                         />
-                        {formErrors.name && (
+                        {formErrors.full_name && (
                             <p className="text-xs text-[#EF4444] mt-1">
-                                {formErrors.name}
+                                {String(formErrors.full_name)}
                             </p>
                         )}
                     </div>
@@ -160,6 +171,26 @@ export function AddEmployeeDialog({
                                 {formErrors.email}
                             </p>
                         )}
+                    </div>
+                    <div>
+                        <label
+                            htmlFor="phone"
+                            className="block text-sm font-medium text-[#111827] mb-2"
+                        >
+                            Phone Number
+                        </label>
+                        <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
+                            <Input
+                                id="phone"
+                                name="phone"
+                                type="tel"
+                                value={formData.phone}
+                                onChange={handleInputChange}
+                                placeholder="81661399"
+                                className="pl-10"
+                            />
+                        </div>
                     </div>
                     <div>
                         <label
