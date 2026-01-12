@@ -1,4 +1,4 @@
-import { X, ArrowLeft, User, Calendar } from "lucide-react";
+import { X, User, Calendar, AlertCircle, AlertTriangle, CheckCircle, CalendarDays } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { useEmployeeDetails } from "../../hooks/Manager/useEmployeeDetails";
@@ -47,28 +47,28 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                     bg: "bg-[#FEE2E2]",
                     border: "border-[#EF4444]",
                     badge: "bg-[#EF4444]",
-                    emoji: "🔴",
+                    icon: AlertCircle,
                 };
             case "medium":
                 return {
                     bg: "bg-[#FEF3C7]",
                     border: "border-[#F59E0B]",
                     badge: "bg-[#F59E0B]",
-                    emoji: "🟡",
+                    icon: AlertTriangle,
                 };
             case "low":
                 return {
                     bg: "bg-[#DCFCE7]",
                     border: "border-[#10B981]",
                     badge: "bg-[#10B981]",
-                    emoji: "🟢",
+                    icon: CheckCircle,
                 };
             default:
                 return {
                     bg: "bg-[#F3F4F6]",
                     border: "border-[#9CA3AF]",
                     badge: "bg-[#6B7280]",
-                    emoji: "⚪",
+                    icon: User,
                 };
         }
     };
@@ -80,24 +80,16 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50">
             <div className="w-[600px] h-full bg-white shadow-2xl overflow-y-auto animate-in slide-in-from-right">
-                {/* Header */}
                 <div className="sticky top-0 bg-white border-b border-[#E5E7EB] px-6 py-4 flex items-center justify-between z-10">
                     <div className="flex items-center gap-3">
-                        <Button size="sm" onClick={onClose} className="p-0 hover:bg-transparent">
-                            <ArrowLeft className="w-5 h-5" />
-                        </Button>
-                        <h2 className="text-xl font-semibold text-[#111827]">
-                            {employeeDetails.employee_name}
-                        </h2>
                     </div>
-                    <Button size="sm" onClick={onClose} className="p-0 hover:bg-transparent">
+                    <Button size="sm" onClick={onClose} className="p-0 hover:bg-transparent" variant="secondary">
                         <X className="w-5 h-5" />
                     </Button>
                 </div>
 
-                {/* Content */}
+
                 <div className="p-6 space-y-6">
-                    {/* Profile Section */}
                     <div className="text-center">
                         <div className="w-32 h-32 bg-[#3B82F6] rounded-full flex items-center justify-center mx-auto mb-4">
                             <User className="w-16 h-16 text-white" />
@@ -112,13 +104,14 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                         )}
                     </div>
 
-                    {/* Fatigue Section */}
+
                     <div className="border-t border-[#E5E7EB] pt-6">
                         {hasFatigueScore ? (
                             <div className={`p-4 rounded-lg ${riskColors.bg} border-2 ${riskColors.border}`}>
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="font-medium text-[#111827]">
-                                        {riskColors.emoji} Fatigue Score
+                                    <span className="font-medium text-[#111827] flex items-center gap-2">
+                                        {riskColors.icon && <riskColors.icon className="w-5 h-5" />}
+                                        Fatigue Score
                                     </span>
                                     <Badge className={`${riskColors.badge} text-white`}>
                                         {fatigueScore.risk_level.toUpperCase()} RISK
@@ -128,7 +121,7 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                                     {fatigueScore.total_score}/100
                                 </div>
 
-                                {/* Breakdown */}
+
                                 <div className="mt-4 space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-[#6B7280]">Quantitative</span>
@@ -159,7 +152,7 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                         )}
                     </div>
 
-                    {/* Stats Section */}
+
                     <div className="border-t border-[#E5E7EB] pt-6">
                         <h4 className="font-semibold text-[#111827] mb-4 flex items-center gap-2">
                             <Calendar className="w-5 h-5" />
@@ -193,10 +186,11 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                         </div>
                     </div>
 
-                    {/* Upcoming Shifts */}
+
                     <div className="border-t border-[#E5E7EB] pt-6">
-                        <h4 className="font-semibold text-[#111827] mb-4">
-                            🗓️ Upcoming Shifts ({employeeDetails.upcoming_shifts.length})
+                        <h4 className="font-semibold text-[#111827] mb-4 flex items-center gap-2">
+                            <CalendarDays className="w-5 h-5" />
+                            Upcoming Shifts ({employeeDetails.upcoming_shifts.length})
                         </h4>
                         {employeeDetails.upcoming_shifts.length > 0 ? (
                             <div className="space-y-3">
@@ -219,8 +213,8 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                                             </p>
                                             <Badge
                                                 className={`mt-1 ${shift.status === "assigned"
-                                                        ? "bg-[#10B981]"
-                                                        : "bg-[#6B7280]"
+                                                    ? "bg-[#10B981]"
+                                                    : "bg-[#6B7280]"
                                                     } text-white text-xs`}
                                             >
                                                 {shift.status}
