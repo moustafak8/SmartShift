@@ -122,77 +122,111 @@ export function AddEmployeeDialog({
                         The Department.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div>
-                        <label
-                            htmlFor="full_name"
-                            className="block text-sm font-medium text-[#111827] mb-2"
-                        >
-                            Full Name <span className="text-[#EF4444]">*</span>
-                        </label>
-                        <Input
-                            id="full_name"
-                            name="full_name"
-                            value={formData.full_name}
-                            onChange={handleInputChange}
-                            placeholder="John Doe"
-                            aria-invalid={!!formErrors.full_name}
-                            className={formErrors.full_name ? "border-[#EF4444]" : ""}
-                        />
-                        {formErrors.full_name && (
-                            <p className="text-xs text-[#EF4444] mt-1">
-                                {String(formErrors.full_name)}
-                            </p>
-                        )}
-                    </div>
-                    <div>
-                        <label
-                            htmlFor="email"
-                            className="block text-sm font-medium text-[#111827] mb-2"
-                        >
-                            Email Address <span className="text-[#EF4444]">*</span>
-                        </label>
-                        <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
+                <div className="py-4">
+                    {/* Row 1: Full Name + Email */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label
+                                htmlFor="full_name"
+                                className="block text-sm font-medium text-[#111827] mb-2"
+                            >
+                                Full Name <span className="text-[#EF4444]">*</span>
+                            </label>
                             <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                value={formData.email}
+                                id="full_name"
+                                name="full_name"
+                                value={formData.full_name}
                                 onChange={handleInputChange}
-                                placeholder="john.doe@example.com"
-                                className={`pl-10 ${formErrors.email ? "border-[#EF4444]" : ""
-                                    }`}
-                                aria-invalid={!!formErrors.email}
+                                placeholder="John Doe"
+                                aria-invalid={!!formErrors.full_name}
+                                className={formErrors.full_name ? "border-[#EF4444]" : ""}
                             />
+                            {formErrors.full_name && (
+                                <p className="text-xs text-[#EF4444] mt-1">
+                                    {String(formErrors.full_name)}
+                                </p>
+                            )}
                         </div>
-                        {formErrors.email && (
-                            <p className="text-xs text-[#EF4444] mt-1">
-                                {formErrors.email}
-                            </p>
-                        )}
-                    </div>
-                    <div>
-                        <label
-                            htmlFor="phone"
-                            className="block text-sm font-medium text-[#111827] mb-2"
-                        >
-                            Phone Number
-                        </label>
-                        <div className="relative">
-                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
-                            <Input
-                                id="phone"
-                                name="phone"
-                                type="tel"
-                                value={formData.phone}
-                                onChange={handleInputChange}
-                                placeholder="81661399"
-                                className="pl-10"
-                            />
+                        <div>
+                            <label
+                                htmlFor="email"
+                                className="block text-sm font-medium text-[#111827] mb-2"
+                            >
+                                Email Address <span className="text-[#EF4444]">*</span>
+                            </label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
+                                <Input
+                                    id="email"
+                                    name="email"
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    placeholder="john.doe@example.com"
+                                    className={`pl-10 ${formErrors.email ? "border-[#EF4444]" : ""}`}
+                                    aria-invalid={!!formErrors.email}
+                                />
+                            </div>
+                            {formErrors.email && (
+                                <p className="text-xs text-[#EF4444] mt-1">
+                                    {formErrors.email}
+                                </p>
+                            )}
                         </div>
                     </div>
-                    <div>
+
+                    {/* Row 2: Phone + Password */}
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label
+                                htmlFor="phone"
+                                className="block text-sm font-medium text-[#111827] mb-2"
+                            >
+                                Phone Number
+                            </label>
+                            <div className="relative">
+                                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
+                                <Input
+                                    id="phone"
+                                    name="phone"
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={handleInputChange}
+                                    placeholder="81661399"
+                                    className="pl-10"
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label
+                                htmlFor="password"
+                                className="block text-sm font-medium text-[#111827] mb-2"
+                            >
+                                Password <span className="text-[#EF4444]">*</span>
+                            </label>
+                            <div className="relative">
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    value={formData.password}
+                                    onChange={handleInputChange}
+                                    placeholder="********"
+                                    className={`pl-10 ${formErrors.password ? "border-[#EF4444]" : ""}`}
+                                    aria-invalid={!!formErrors.password}
+                                />
+                            </div>
+                            {formErrors.password && (
+                                <p className="text-xs text-[#EF4444] mt-1">
+                                    {formErrors.password}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Row 3: Position (full width) */}
+                    <div className="mb-4">
                         <label
                             htmlFor="position_id"
                             className="block text-sm font-medium text-[#111827] mb-2"
@@ -219,33 +253,6 @@ export function AddEmployeeDialog({
                         {formErrors.position_id && (
                             <p className="text-xs text-[#EF4444] mt-1">
                                 {String(formErrors.position_id)}
-                            </p>
-                        )}
-                    </div>
-                    <div>
-                        <label
-                            htmlFor="password"
-                            className="block text-sm font-medium text-[#111827] mb-2"
-                        >
-                            Password <span className="text-[#EF4444]">*</span>
-                        </label>
-                        <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
-                            <Input
-                                id="password"
-                                name="password"
-                                type="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                placeholder="********"
-                                className={`pl-10 ${formErrors.password ? "border-[#EF4444]" : ""
-                                    }`}
-                                aria-invalid={!!formErrors.password}
-                            />
-                        </div>
-                        {formErrors.password && (
-                            <p className="text-xs text-[#EF4444] mt-1">
-                                {formErrors.password}
                             </p>
                         )}
                     </div>
