@@ -35,6 +35,7 @@ export function AddShiftDialog({
   const { mutate: createShift, isPending } = useCreateShift();
 
   const [positionRequirements, setPositionRequirements] = useState<PositionRequirement[]>([]);
+  const [isTemplateLoaded, setIsTemplateLoaded] = useState(false);
 
   const [formData, setFormData] = useState<ShiftFormData>({
     department_id: departmentId || 0,
@@ -65,8 +66,10 @@ export function AddShiftDialog({
           0
         );
         setPositionRequirements(template.position_requirements);
+        setIsTemplateLoaded(true); // Mark as loaded from template
       } else {
         setPositionRequirements([]);
+        setIsTemplateLoaded(false);
       }
 
       setFormData((prev) => ({
@@ -83,6 +86,7 @@ export function AddShiftDialog({
         shift_template_id: null,
       }));
       setPositionRequirements([]);
+      setIsTemplateLoaded(false);
     }
   };
 
@@ -459,9 +463,10 @@ export function AddShiftDialog({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handlePositionToggle(position.id)}
-                        className="w-4 h-4 text-[#3B82F6] border-[#E5E7EB] rounded focus:ring-[#3B82F6]"
+                        disabled={isTemplateLoaded}
+                        className="w-4 h-4 text-[#3B82F6] border-[#E5E7EB] rounded focus:ring-[#3B82F6] disabled:opacity-50 disabled:cursor-not-allowed"
                       />
-                      <span className="flex-1 text-sm text-[#111827]">{position.name}</span>
+                      <span className={`flex-1 text-sm ${isTemplateLoaded ? 'text-[#9CA3AF]' : 'text-[#111827]'}`}>{position.name}</span>
                       {isSelected && (
                         <div className="flex items-center gap-2">
                           <Input
@@ -469,7 +474,9 @@ export function AddShiftDialog({
                             min="1"
                             value={requirement.required_count}
                             onChange={(e) => handleRequiredCountChange(position.id, Number(e.target.value))}
-                            className="w-20 text-center"
+                            readOnly={isTemplateLoaded}
+                            className={`w-20 text-center ${isTemplateLoaded ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+                            title={isTemplateLoaded ? "From template - cannot edit" : ""}
                           />
                           <span className="text-xs text-[#6B7280]">required</span>
                         </div>
