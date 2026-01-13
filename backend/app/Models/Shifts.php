@@ -24,8 +24,6 @@ class Shifts extends Model
 
     protected $casts = [
         'shift_date' => 'date',
-        'start_time' => 'datetime:H:i',
-        'end_time' => 'datetime:H:i',
     ];
 
     public function department()
