@@ -5,7 +5,7 @@ import { Textarea } from "../../components/ui/Textarea";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui/Badge";
 import { useWellnessInsights } from "../../hooks/Manager/useQuery";
-import type { WellnessInsightPayload } from "../../hooks/types/RAG";
+import type { WellnessInsightPayload } from "../../hooks/types/rag";
 import { Layout } from "../../components/Sidebar";
 
 export function RAGQuery() {
@@ -77,7 +77,7 @@ export function RAGQuery() {
                   handleAsk();
                 }
               }}
-              className="min-h-[100px] pr-24 border-[#E5E7EB]"
+              className="min-h-[100px] pr-24 border-[#b9b9b9]"
               disabled={isPending}
             />
             <Button
@@ -88,8 +88,7 @@ export function RAGQuery() {
             >
               {isPending ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Searching...
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Searching...
                 </>
               ) : (
                 "Ask AI →"
@@ -165,7 +164,7 @@ export function RAGQuery() {
                 </p>
               </div>
 
-              {responseData.sources.length > 0 && (
+              {responseData.sources && responseData.sources.length > 0 && (
                 <div>
                   <h3 className="font-semibold text-[#111827] mb-4 flex items-center gap-2">
                     <CheckCircle className="w-5 h-5 text-[#10B981]" />
