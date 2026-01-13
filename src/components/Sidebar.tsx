@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
     LayoutDashboard,
     Brain,
@@ -24,11 +25,7 @@ import { cn } from "./ui/utils";
 
 interface LayoutProps {
     children: React.ReactNode;
-    activePage: string;
-    onNavigate: (page: string) => void;
     notificationCount?: number;
-    pageTitle?: string;
-    pageDescription?: string;
 }
 
 interface NavigationItem {
@@ -36,38 +33,38 @@ interface NavigationItem {
     icon: React.ComponentType<{ className?: string }>;
     label: string;
     badge?: number | null;
+    path: string;
 }
 
 const ManagerNavigationItems: NavigationItem[] = [
-    { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", badge: null },
-    { id: "team", icon: Users, label: "Team", badge: null },
-    { id: "schedule", icon: Calendar, label: "Schedule", badge: null },
-    { id: "wellness", icon: Heart, label: "Wellness", badge: null },
-    { id: "rag-query", icon: MessageSquare, label: "AI Query", badge: null },
-    { id: "swaps", icon: RefreshCw, label: "Shift Swaps", badge: 5 },
-    { id: "insights", icon: Lightbulb, label: "AI Insights", badge: 2 },
-    { id: "reports", icon: FileText, label: "Reports", badge: null },
-    { id: "settings", icon: Settings, label: "Settings", badge: null },
+    { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", badge: null, path: "/manager/dashboard" },
+    { id: "team", icon: Users, label: "Team", badge: null, path: "/manager/team" },
+    { id: "schedule", icon: Calendar, label: "Schedule", badge: null, path: "/manager/schedule" },
+    { id: "wellness", icon: Heart, label: "Wellness", badge: null, path: "/manager/wellness" },
+    { id: "rag-query", icon: MessageSquare, label: "AI Query", badge: null, path: "/manager/query" },
+    { id: "swaps", icon: RefreshCw, label: "Shift Swaps", badge: 5, path: "/manager/swaps" },
+    { id: "insights", icon: Lightbulb, label: "AI Insights", badge: 2, path: "/manager/insights" },
+    { id: "reports", icon: FileText, label: "Reports", badge: null, path: "/manager/reports" },
+    { id: "settings", icon: Settings, label: "Settings", badge: null, path: "/manager/settings" },
 ];
 
 const EmployeeNavigationItems: NavigationItem[] = [
-    { id: 'dashboard', icon: Home, label: 'Dashboard', badge: null },
-    { id: 'schedule', icon: Calendar, label: 'Schedule', badge: null },
-    { id: 'swaps', icon: RefreshCw, label: 'Shift Swaps', badge: null },
-    { id: 'wellness', icon: Heart, label: 'Wellness', badge: null },
-    { id: 'fatigue', icon: Heart, label: 'Wellness Score', badge: null },
-    { id: 'profile', icon: User, label: 'Profile', badge: null },
+    { id: 'dashboard', icon: Home, label: 'Dashboard', badge: null, path: '/employee/dashboard' },
+    { id: 'schedule', icon: Calendar, label: 'Schedule', badge: null, path: '/employee/schedule' },
+    { id: 'swaps', icon: RefreshCw, label: 'Shift Swaps', badge: null, path: '/employee/swaps' },
+    { id: 'wellness', icon: Heart, label: 'Wellness', badge: null, path: '/employee/wellness' },
+    { id: 'fatigue', icon: Heart, label: 'Wellness Score', badge: null, path: '/employee/fatigue' },
+    { id: 'profile', icon: User, label: 'Profile', badge: null, path: '/employee/profile' },
 ];
 
 export function Layout({
     children,
-    activePage,
-    onNavigate,
     notificationCount = 8,
 }: LayoutProps) {
     const [isOpen, setIsOpen] = useState(true);
     const { isManager, user } = useAuth();
     const { logout, loading: logoutLoading } = useLogout();
+    const location = useLocation();
 
     const navigationItems = isManager() ? ManagerNavigationItems : EmployeeNavigationItems;
     const getUserInitials = () => {
@@ -143,12 +140,12 @@ export function Layout({
                         <div className="space-y-1">
                             {navigationItems.map((item) => {
                                 const Icon = item.icon;
-                                const isActive = activePage === item.id;
+                                const isActive = location.pathname === item.path;
                                 return (
-                                    <button
+                                    <Link
                                         key={item.id}
+                                        to={item.path}
                                         onClick={() => {
-                                            onNavigate(item.id);
                                             if (window.innerWidth < 1024) {
                                                 handleToggle();
                                             }
@@ -169,7 +166,7 @@ export function Layout({
                                                 {item.badge}
                                             </Badge>
                                         )}
-                                    </button>
+                                    </Link>
                                 );
                             })}
                         </div>
@@ -209,7 +206,6 @@ export function Layout({
                     <div className="flex items-center gap-4 ml-auto">
 
                         <button
-                            onClick={() => onNavigate("notifications")}
                             className="relative p-2 hover:bg-[#F0F9FF] rounded-lg transition-colors"
                         >
                             <Bell className="w-5 h-5 text-[#6B7280]" />
@@ -221,7 +217,7 @@ export function Layout({
                         </button>
 
 
-                        <button className="w-10 h-10 bg-[#6366F1] rounded-full flex items-center justify-center text-white font-medium hover:bg-[#4F46E5] transition-colors" onClick={() => onNavigate("profile")}>
+                        <button className="w-10 h-10 bg-[#6366F1] rounded-full flex items-center justify-center text-white font-medium hover:bg-[#4F46E5] transition-colors">
                             {getUserInitials()}
                         </button>
                     </div>

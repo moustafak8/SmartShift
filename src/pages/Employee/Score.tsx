@@ -1,32 +1,14 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { Calendar as CalendarIcon, Activity, Brain, TrendingUp, BarChart, Lightbulb } from 'lucide-react';
 import { Layout } from '../../components/Sidebar';
 import { Card } from '../../components/ui/Card';
 import { useScoreDetails } from '../../hooks/Employee/useScoreDetails';
 
 export function Score() {
-    const [activePage, setActivePage] = useState('fatigue');
-    const navigate = useNavigate();
+
     const { scoreData, isLoading, isError } = useScoreDetails();
 
-    const handleNavigate = (page: string) => {
-        setActivePage(page);
 
-        switch (page) {
-            case "wellness":
-                navigate("/employee/wellness");
-                break;
-            case "dashboard":
-                navigate("/employee/dashboard");
-                break;
-            case "fatigue":
-                navigate("/employee/score");
-                break;
-            default:
-                console.log("Navigating to:", page);
-        }
-    };
 
     const getRiskLevel = (score: number) => {
         if (score < 30) return { level: 'LOW', color: 'text-green-600', bg: 'bg-green-600' };
@@ -35,11 +17,7 @@ export function Score() {
     };
 
     return (
-        <Layout
-            activePage={activePage}
-            onNavigate={handleNavigate}
-            notificationCount={3}
-        >
+        <Layout notificationCount={3}>
             <div className="bg-white">
                 <div className="px-7 py-4 border-b border-gray-200">
                     <h1 className="text-2xl font-semibold text-gray-900 mb-1">

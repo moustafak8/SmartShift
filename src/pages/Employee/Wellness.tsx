@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/Sidebar';
 import { Card } from '../../components/ui/Card';
 import { Textarea } from '../../components/ui/Textarea';
@@ -8,28 +7,14 @@ import { useWellnessEntries } from '../../hooks/Employee/useWellnessEntries';
 import { useSubmitWellnessEntry } from '../../hooks/Employee/useSubmitWellnessEntry';
 
 export function Wellness() {
-    const [activePage, setActivePage] = useState('wellness');
+
     const [entryText, setEntryText] = useState('');
     const [submitted, setSubmitted] = useState(false);
-    const navigate = useNavigate();
+
     const { entries, isLoading, isError } = useWellnessEntries();
     const { submit, isLoading: isSubmitting, isError: isSubmitError } = useSubmitWellnessEntry();
 
-    const handleNavigate = (page: string) => {
-        setActivePage(page);
 
-        // Route to appropriate pages
-        switch (page) {
-            case "wellness":
-                navigate("/employee/wellness");
-                break;
-            case "dashboard":
-                navigate("/employee/dashboard");
-                break;
-            default:
-                console.log("Navigating to:", page);
-        }
-    };
 
     const handleSubmit = () => {
         if (!entryText.trim()) return;
@@ -54,11 +39,7 @@ export function Wellness() {
     };
 
     return (
-        <Layout
-            activePage={activePage}
-            onNavigate={handleNavigate}
-            notificationCount={3}
-        >
+        <Layout notificationCount={3}>
             <div className="bg-white">
                 <div className="px-7 py-4 border-b border-gray-200">
                     <h1 className="text-2xl font-semibold text-gray-900 mb-1">

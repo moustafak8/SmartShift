@@ -5,6 +5,7 @@ import { AddEmployeeDialog } from "../../components/Manager/AddEmployeeDialog";
 import { EmployeeDetail } from "../../components/Manager/EmployeeDetails";
 import { EmployeeFilter } from "../../components/Manager/EmployeeFilter";
 import { useEmployees } from "../../hooks/Manager/useEmployee";
+import { Layout } from "../../components/Sidebar";
 
 export function TeamOverview() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,7 +37,8 @@ export function TeamOverview() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <Layout notificationCount={8}>
+      <div className="bg-white min-h-screen">
       <div className="border-b border-[#E5E7EB] bg-white">
         <div className="px-6 py-4">
           <h1 className="text-2xl font-semibold text-[#111827]">
@@ -256,5 +258,6 @@ export function TeamOverview() {
         />
       )}
     </div>
+    </Layout>
   );
 }

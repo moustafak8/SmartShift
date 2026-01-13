@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { User, Settings, Calendar, Clock, Briefcase, Trash2, Pencil, ChevronDown, ChevronUp } from 'lucide-react';
 import { Layout } from '../../components/Sidebar';
 import { Button } from '../../components/ui/Button';
@@ -13,13 +12,13 @@ import { useToast } from '../../components/ui/Toast';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 
 export function Profile() {
-    const [activePage, setActivePage] = useState('profile');
+
     const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
     const [availabilityToDelete, setAvailabilityToDelete] = useState<number | null>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [availabilityToEdit, setAvailabilityToEdit] = useState<any>(null);
     const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-    const navigate = useNavigate();
+
     const { user } = useAuth();
     const toast = useToast();
     const { data: preferencesData, isLoading: preferencesLoading } = useEmployeePreferences(user?.id);
@@ -29,26 +28,7 @@ export function Profile() {
     const preferences = preferencesData?.payload;
     const availability = availabilityData?.payload;
 
-    const handleNavigate = (page: string) => {
-        setActivePage(page);
 
-        switch (page) {
-            case "wellness":
-                navigate("/employee/wellness");
-                break;
-            case "fatigue":
-                navigate("/employee/score");
-                break;
-            case "dashboard":
-                navigate("/employee/dashboard");
-                break;
-            case "profile":
-                navigate("/employee/profile");
-                break;
-            default:
-                console.log("Navigating to:", page);
-        }
-    };
 
     const handleDeleteAvailability = (id: number) => {
         setAvailabilityToDelete(id);
@@ -88,11 +68,7 @@ export function Profile() {
     };
 
     return (
-        <Layout
-            activePage={activePage}
-            onNavigate={handleNavigate}
-            notificationCount={3}
-        >
+        <Layout notificationCount={3}>
             <div className="bg-white">
                 <div className="px-7 py-4 border-b border-gray-200">
                     <h1 className="text-2xl font-semibold text-gray-900 mb-1">
