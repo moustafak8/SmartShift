@@ -11,6 +11,7 @@ import { Profile } from "./pages/Employee/Profile";
 import { ToastProvider } from "./components/ui/Toast";
 import { RAGQuery } from "./pages/Manager/RAGQuery";
 import { TeamOverview } from "./pages/Manager/TeamOverview";
+import { Shifts } from "./pages/Manager/Shifts";
 import { Roles } from "./hooks/types/Roles";
 
 export default function App() {
@@ -85,6 +86,16 @@ export default function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
                 <TeamOverview />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/schedule"  
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
+                <Shifts />
               </RoleBasedRoute>
             </ProtectedRoute>
           }
