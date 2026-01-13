@@ -23,4 +23,14 @@ class Shift_Templates extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    public function positionRequirements()
+    {
+        return $this->hasMany(Shift_Position_Requirement::class, 'shift_template_id');
+    }
+
+    public function shifts()
+    {
+        return $this->hasMany(Shifts::class, 'shift_template_id');
+    }
 }

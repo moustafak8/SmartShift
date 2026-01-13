@@ -1,12 +1,17 @@
+import { useState } from "react";
 import { Calendar, Plus } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Layout } from "../../components/Sidebar";
+import { AddShiftDialog } from "../../components/Manager/AddShiftDialog";
+import { useShiftTemplates } from "../../hooks/Manager/useShifts";
 
 export function Shifts() {
+  const [isAddShiftOpen, setIsAddShiftOpen] = useState(false);
+  const { refetch } = useShiftTemplates();
+
   return (
     <Layout notificationCount={8}>
       <div className="bg-white min-h-screen">
-        {/* Page Title */}
         <div className="border-b border-[#E5E7EB] bg-white">
           <div className="px-6 py-4">
             <h1 className="text-2xl font-semibold text-[#111827]">
@@ -28,6 +33,7 @@ export function Shifts() {
               Generate Schedule
             </Button>
             <Button
+              onClick={() => setIsAddShiftOpen(true)}
               className="bg-[#10B981] hover:bg-[#059669] text-white flex items-center"
               size="sm"
             >
@@ -42,6 +48,12 @@ export function Shifts() {
           {/* Shift schedule content will go here */}
         </div>
       </div>
+
+      <AddShiftDialog
+        isOpen={isAddShiftOpen}
+        onClose={() => setIsAddShiftOpen(false)}
+        onRefresh={refetch}
+      />
     </Layout>
   );
 }

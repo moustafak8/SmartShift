@@ -25,9 +25,9 @@ class ShiftsController extends Controller
         return $this->responseJSON($data, 'success', 200);
     }
 
-    public function getShifts()
+    public function getShifts($departmentId)
     {
-        $data = $this->shiftService->listShifts();
+        $data = $this->shiftService->listShifts($departmentId);
 
         return $this->responseJSON($data, 'success', 200);
     }
