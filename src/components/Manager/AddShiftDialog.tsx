@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock, Users, FileText, Repeat, Briefcase } from "lucide-react";
+import { Calendar, Clock, FileText, Repeat, Briefcase } from "lucide-react";
 import {
   Button,
   Input,
@@ -57,19 +57,26 @@ export function AddShiftDialog({
   const handleTemplateChange = (templateId: string) => {
     const template = shiftTemplates.find((t) => t.id === Number(templateId));
     if (template) {
+      // Calculate total staff count from position requirements
+      let totalStaffCount = 1;
+      if (template.position_requirements && template.position_requirements.length > 0) {
+        totalStaffCount = template.position_requirements.reduce(
+          (sum, req) => sum + req.required_count,
+          0
+        );
+        setPositionRequirements(template.position_requirements);
+      } else {
+        setPositionRequirements([]);
+      }
+
       setFormData((prev) => ({
         ...prev,
         shift_template_id: template.id,
         start_time: template.start_time.substring(0, 5), // HH:MM format
         end_time: template.end_time.substring(0, 5),
         shift_type: template.shift_type,
+        required_staff_count: totalStaffCount,
       }));
-      
-      if (template.position_requirements && template.position_requirements.length > 0) {
-        setPositionRequirements(template.position_requirements);
-      } else {
-        setPositionRequirements([]);
-      }
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -79,19 +86,57 @@ export function AddShiftDialog({
     }
   };
 
+  const handlePositionToggle = (positionId: number) => {
+    setPositionRequirements((prev) => {
+      const exists = prev.find((req) => req.position_id === positionId);
+      let newRequirements;
+      if (exists) {
+        newRequirements = prev.filter((req) => req.position_id !== positionId);
+      } else {
+        newRequirements = [...prev, { position_id: positionId, required_count: 1 }];
+      }
+
+      // Update staff count
+      const totalStaffCount = newRequirements.reduce((sum, req) => sum + req.required_count, 0);
+      setFormData((prevForm) => ({
+        ...prevForm,
+        required_staff_count: totalStaffCount || 1,
+      }));
+
+      return newRequirements;
+    });
+  };
+
+  const handleRequiredCountChange = (positionId: number, count: number) => {
+    setPositionRequirements((prev) => {
+      const newRequirements = prev.map((req) =>
+        req.position_id === positionId ? { ...req, required_count: count } : req
+      );
+
+      // Update staff count
+      const totalStaffCount = newRequirements.reduce((sum, req) => sum + req.required_count, 0);
+      setFormData((prevForm) => ({
+        ...prevForm,
+        required_staff_count: totalStaffCount || 1,
+      }));
+
+      return newRequirements;
+    });
+  };
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]:
         type === "number"
           ? Number(value)
           : type === "checkbox"
-          ? (e.target as HTMLInputElement).checked
-          : value,
+            ? (e.target as HTMLInputElement).checked
+            : value,
     }));
 
     // Clear error for this field
@@ -111,7 +156,7 @@ export function AddShiftDialog({
       shiftDate.setDate(shiftDate.getDate() + 7);
       endDate = shiftDate.toISOString().split("T")[0];
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       is_recurring: isRecurring,
@@ -219,7 +264,7 @@ export function AddShiftDialog({
         </DialogHeader>
 
         <div className="py-4 space-y-4">
-          
+
           <div>
             <label
               htmlFor="shift_template_id"
@@ -245,7 +290,7 @@ export function AddShiftDialog({
             </select>
           </div>
 
-         
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label
@@ -340,34 +385,34 @@ export function AddShiftDialog({
             </div>
           </div>
 
-          
+
           <div>
             <label
               htmlFor="required_staff_count"
-              className="block text-sm font-medium text-[#111827] mb-2"
+              className="block text-sm font-medium text-[#111827] mb-1"
             >
-              Required Staff Count <span className="text-[#EF4444]">*</span>
+              Required Staff Count <span className="text-red-500">*</span>
             </label>
-            <div className="relative">
-              <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
-              <Input
-                id="required_staff_count"
-                name="required_staff_count"
-                type="number"
-                min="1"
-                value={formData.required_staff_count}
-                onChange={handleInputChange}
-                className={`pl-10 ${formErrors.required_staff_count ? "border-[#EF4444]" : ""}`}
-              />
-            </div>
+            <Input
+              type="number"
+              id="required_staff_count"
+              name="required_staff_count"
+              value={formData.required_staff_count}
+              readOnly
+              className="bg-gray-50 cursor-not-allowed"
+              title="Auto-calculated from position requirements"
+            />
+            <p className="text-xs text-[#6B7280] mt-1">
+              Auto-calculated from position requirements
+            </p>
             {formErrors.required_staff_count && (
-              <p className="text-xs text-[#EF4444] mt-1">
+              <p className="text-red-500 text-xs mt-1">
                 {formErrors.required_staff_count}
               </p>
             )}
           </div>
 
-         
+
           <div>
             <label
               htmlFor="notes"
@@ -388,7 +433,7 @@ export function AddShiftDialog({
             </div>
           </div>
 
-          
+
           <div className="border-t border-[#E5E7EB] pt-4">
             <label className="block text-sm font-medium text-[#111827] mb-2 flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
@@ -399,7 +444,7 @@ export function AddShiftDialog({
                 </span>
               )}
             </label>
-            
+
             {positionsLoading ? (
               <p className="text-sm text-[#6B7280]">Loading positions...</p>
             ) : (
@@ -407,24 +452,13 @@ export function AddShiftDialog({
                 {positions.map((position) => {
                   const requirement = positionRequirements.find(r => r.position_id === position.id);
                   const isSelected = !!requirement;
-                  
+
                   return (
                     <div key={position.id} className="flex items-center gap-3 p-2 rounded hover:bg-[#F9FAFB] transition-colors">
                       <input
                         type="checkbox"
                         checked={isSelected}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setPositionRequirements([...positionRequirements, {
-                              position_id: position.id,
-                              required_count: 1
-                            }]);
-                          } else {
-                            setPositionRequirements(positionRequirements.filter(
-                              r => r.position_id !== position.id
-                            ));
-                          }
-                        }}
+                        onChange={() => handlePositionToggle(position.id)}
                         className="w-4 h-4 text-[#3B82F6] border-[#E5E7EB] rounded focus:ring-[#3B82F6]"
                       />
                       <span className="flex-1 text-sm text-[#111827]">{position.name}</span>
@@ -434,13 +468,7 @@ export function AddShiftDialog({
                             type="number"
                             min="1"
                             value={requirement.required_count}
-                            onChange={(e) => {
-                              setPositionRequirements(positionRequirements.map(r =>
-                                r.position_id === position.id
-                                  ? { ...r, required_count: Number(e.target.value) }
-                                  : r
-                              ));
-                            }}
+                            onChange={(e) => handleRequiredCountChange(position.id, Number(e.target.value))}
                             className="w-20 text-center"
                           />
                           <span className="text-xs text-[#6B7280]">required</span>
@@ -451,7 +479,7 @@ export function AddShiftDialog({
                 })}
               </div>
             )}
-            
+
             {positionRequirements.length === 0 && !positionsLoading && (
               <p className="text-xs text-[#EF4444] mt-2">
                 At least one position is required
@@ -459,7 +487,7 @@ export function AddShiftDialog({
             )}
           </div>
 
-         
+
           <div className="border-t border-[#E5E7EB] pt-4">
             <div className="flex items-center gap-2 mb-4">
               <input
@@ -549,8 +577,8 @@ export function AddShiftDialog({
             {isPending
               ? "Creating..."
               : formData.is_recurring
-              ? "Create Recurring Shifts"
-              : "Create Shift"}
+                ? "Create Recurring Shifts"
+                : "Create Shift"}
           </Button>
         </DialogFooter>
       </DialogContent>

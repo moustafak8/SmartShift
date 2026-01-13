@@ -76,12 +76,14 @@ export function ShiftCalendar({ shifts, isLoading }: ShiftCalendarProps) {
   };
 
   const getUniqueShiftTimes = () => {
-    const timesSet = new Set<string>();
+    const timesMap = new Map<string, string>();
     shifts.forEach((shift) => {
       const timeKey = `${shift.start_time} - ${shift.end_time}`;
-      timesSet.add(timeKey);
+      if (!timesMap.has(timeKey)) {
+        timesMap.set(timeKey, shift.shift_type);
+      }
     });
-    return Array.from(timesSet).sort();
+    return Array.from(timesMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
   };
 
   const shiftTimes = getUniqueShiftTimes();
@@ -175,15 +177,18 @@ export function ShiftCalendar({ shifts, isLoading }: ShiftCalendarProps) {
           </div>
 
           {shiftTimes.length > 0 ? (
-            shiftTimes.map((timeRange) => (
+            shiftTimes.map(([timeRange, shiftType]) => (
               <div
                 key={timeRange}
                 className="grid grid-cols-8 border-b border-[#E5E7EB]"
               >
-                <div className="p-4 border-r border-[#E5E7EB] flex items-start">
-                  <span className="text-sm font-medium text-[#111827]">
+                <div className="p-4 border-r border-[#E5E7EB]">
+                  <div className="text-sm font-medium text-[#111827]">
                     {timeRange}
-                  </span>
+                  </div>
+                  <div className="text-xs text-[#6B7280] mt-1 capitalize">
+                    {shiftType}
+                  </div>
                 </div>
 
                 {weekDays.map((day, dayIndex) => {
