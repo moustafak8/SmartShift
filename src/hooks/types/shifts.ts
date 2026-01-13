@@ -18,6 +18,39 @@ export interface PositionRequirement {
   required_count: number;
 }
 
+export interface ShiftTemplate {
+  id: number;
+  name: string;
+  shift_type: "day" | "evening" | "night";
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+  position_requirements?: PositionRequirement[];
+}
+
+export interface ShiftTemplatesResponse {
+  status: string;
+  payload: ShiftTemplate[];
+}
+
+export interface Shift {
+  id: number;
+  department_id: number;
+  shift_template_id: number | null;
+  shift_date: string;
+  start_time: string;
+  end_time: string;
+  shift_type: "day" | "evening" | "night" | "rotating";
+  required_staff_count: number;
+  notes: string | null;
+  status: "open" | "filled" | "understaffed" | "cancelled";
+}
+
+export interface ShiftsResponse {
+  status: string;
+  payload: Shift[];
+}
+
 export interface ShiftFormData {
   department_id: number;
   shift_template_id: number | null;

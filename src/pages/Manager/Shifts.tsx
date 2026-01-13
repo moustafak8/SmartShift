@@ -3,11 +3,20 @@ import { Calendar, Plus } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Layout } from "../../components/Sidebar";
 import { AddShiftDialog } from "../../components/Manager/AddShiftDialog";
-import { useShiftTemplates } from "../../hooks/Manager/useShifts";
+import { ShiftCalendar } from "../../components/Manager/ShiftCalendar";
+import { useShiftTemplates, useShifts } from "../../hooks/Manager/useShifts";
+import { useAuth } from "../../hooks/context/AuthContext";
 
 export function Shifts() {
   const [isAddShiftOpen, setIsAddShiftOpen] = useState(false);
   const { refetch } = useShiftTemplates();
+  const { departmentId } = useAuth();
+  const { shifts, isLoading, refetch: refetchShifts } = useShifts(departmentId || 0);
+
+  const handleRefresh = () => {
+    refetch();
+    refetchShifts();
+  };
 
   return (
     <Layout notificationCount={8}>
@@ -43,16 +52,14 @@ export function Shifts() {
           </div>
         </div>
 
-        {/* Content Area - To be implemented */}
-        <div className="p-6">
-          {/* Shift schedule content will go here */}
-        </div>
+        {/* Shift Calendar */}
+        <ShiftCalendar shifts={shifts} isLoading={isLoading} />
       </div>
 
       <AddShiftDialog
         isOpen={isAddShiftOpen}
         onClose={() => setIsAddShiftOpen(false)}
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
       />
     </Layout>
   );

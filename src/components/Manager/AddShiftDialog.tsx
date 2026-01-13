@@ -65,7 +65,6 @@ export function AddShiftDialog({
         shift_type: template.shift_type,
       }));
       
-      // Load template's position requirements
       if (template.position_requirements && template.position_requirements.length > 0) {
         setPositionRequirements(template.position_requirements);
       } else {
@@ -136,10 +135,6 @@ export function AddShiftDialog({
       errors.end_time = "End time is required";
     }
 
-    if (formData.start_time >= formData.end_time) {
-      errors.end_time = "End time must be after start time";
-    }
-
     if (formData.required_staff_count < 1) {
       errors.required_staff_count = "At least 1 staff member is required";
     }
@@ -156,7 +151,6 @@ export function AddShiftDialog({
       errors.recurrence_end_date = "End date must be after start date";
     }
 
-    // Validate position requirements
     if (positionRequirements.length === 0) {
       toast.error("Please select at least one position");
       return false;
@@ -225,7 +219,7 @@ export function AddShiftDialog({
         </DialogHeader>
 
         <div className="py-4 space-y-4">
-          {/* Template Selection */}
+          
           <div>
             <label
               htmlFor="shift_template_id"
@@ -251,7 +245,7 @@ export function AddShiftDialog({
             </select>
           </div>
 
-          {/* Date and Times */}
+         
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label
@@ -346,7 +340,7 @@ export function AddShiftDialog({
             </div>
           </div>
 
-          {/* Required Staff Count */}
+          
           <div>
             <label
               htmlFor="required_staff_count"
@@ -373,7 +367,7 @@ export function AddShiftDialog({
             )}
           </div>
 
-          {/* Notes */}
+         
           <div>
             <label
               htmlFor="notes"
@@ -394,7 +388,7 @@ export function AddShiftDialog({
             </div>
           </div>
 
-          {/* Position Requirements */}
+          
           <div className="border-t border-[#E5E7EB] pt-4">
             <label className="block text-sm font-medium text-[#111827] mb-2 flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
@@ -465,7 +459,7 @@ export function AddShiftDialog({
             )}
           </div>
 
-          {/* Recurrence Section */}
+         
           <div className="border-t border-[#E5E7EB] pt-4">
             <div className="flex items-center gap-2 mb-4">
               <input
