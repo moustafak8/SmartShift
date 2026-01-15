@@ -132,4 +132,31 @@ class ShiftService
     {
         return $endTime <= $startTime;
     }
+
+
+    public function updateShiftStatusesByAssignments(array $shiftIds): void
+    {
+        if (empty($shiftIds)) {
+            return;
+        }
+
+        $shifts = Shifts::whereIn('id', $shiftIds)->get();
+
+        foreach ($shifts as $shift) {
+            $assignedCount = \App\Models\Shift_Assigments::where('shift_id', $shift->id)->count();
+            $requiredCount = $shift->required_staff_count ?? 0;
+
+            if ($requiredCount === 0) {
+                $status = 'open';
+            } elseif ($assignedCount >= $requiredCount) {
+                $status = 'filled';
+            } elseif ($assignedCount > 0 && $assignedCount < $requiredCount) {
+                $status = 'understaffed';
+            } else {
+                $status = 'open';
+            }
+
+            $shift->update(['status' => $status]);
+        }
+    }
 }

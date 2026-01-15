@@ -91,6 +91,9 @@ class GenerateScheduleService
 
             $normalized = array_map([$this, 'normalizeAssignmentPayload'], $assignments);
             $this->assignmentsService->createBulkAssignments($normalized);
+            $shiftIds = array_unique(array_column($assignments, 'shift_id'));
+            $this->shiftService->updateShiftStatusesByAssignments($shiftIds);
+
             DB::commit();
 
             return [
@@ -227,13 +230,13 @@ class GenerateScheduleService
         $filledCounts = [];
         $assignedInShift = [];
 
-        // Build candidate pool based on hard constraints so AI only sees valid options
+
         $candidatePool = $this->buildCandidatePool($scheduleRequirements, $employeeData, $assignments, $assignedInShift);
 
-        // Ask AI to pick the best mapping from candidates to positions
+
         $aiSuggestions = $this->requestAiAssignments($scheduleRequirements, $candidatePool, $employeeData);
 
-        // Apply AI suggestions first (validated)
+
         $this->applyAiAssignments(
             $aiSuggestions,
             $scheduleRequirements,
@@ -244,7 +247,6 @@ class GenerateScheduleService
             $candidatePool
         );
 
-        // Fill any remaining gaps with a greedy fallback using the same candidate pool
         $this->fillRemainingWithGreedy(
             $scheduleRequirements,
             $employeeData,
@@ -441,7 +443,7 @@ class GenerateScheduleService
                 false,  // lenient mode
                 $scheduleRequirements
             )) {
-                // Persist using enum-safe values expected by the DB
+
                 $assignments[] = [
                     'shift_id' => $shiftId,
                     'employee_id' => $employeeId,
