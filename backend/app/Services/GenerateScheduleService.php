@@ -57,6 +57,7 @@ class GenerateScheduleService
             $assignments = $this->assignEmployeesToShifts($scheduleRequirements, $employeeData);
 
             $enrichedAssignments = $this->enrichAssignmentsWithNames($assignments, $employeeData);
+            $shiftDetails = $this->buildShiftDetails($scheduleRequirements, $assignments);
 
             return [
                 'success' => true,
@@ -66,6 +67,7 @@ class GenerateScheduleService
                 'end_date' => $endDate,
                 'department_id' => $departmentId,
                 'assignments' => $enrichedAssignments,
+                'shift_details' => $shiftDetails,
             ];
         } catch (\Exception $e) {
             return [
@@ -659,5 +661,47 @@ class GenerateScheduleService
                 'status' => $assignment['status'],
             ];
         }, $assignments);
+    }
+
+    private function buildShiftDetails(array $scheduleRequirements, array $assignments): array
+    {
+        $shiftDetails = [];
+
+        foreach ($scheduleRequirements as $shiftId => $requirement) {
+            $positionDetails = [];
+            $assignmentsByPosition = [];
+
+
+            foreach ($assignments as $assignment) {
+                if ($assignment['shift_id'] === $shiftId) {
+                    $posId = $assignment['position_id'];
+                    if (!isset($assignmentsByPosition[$posId])) {
+                        $assignmentsByPosition[$posId] = 0;
+                    }
+                    $assignmentsByPosition[$posId]++;
+                }
+            }
+
+
+            foreach ($requirement['position_requirements'] as $positionId => $posReq) {
+                $positionDetails[] = [
+                    'position_id' => $positionId,
+                    'position_name' => $posReq['position_name'],
+                    'required_count' => $posReq['required_count'],
+                    'eligible_candidates' => count($posReq['assigned_employees'] ?? []),
+                ];
+            }
+
+            $shiftDetails[] = [
+                'shift_id' => $shiftId,
+                'date' => $requirement['shift_date'],
+                'start_time' => $requirement['start_time'],
+                'end_time' => $requirement['end_time'],
+                'shift_type' => $requirement['shift_type'],
+                'positions' => $positionDetails,
+            ];
+        }
+
+        return $shiftDetails;
     }
 }
