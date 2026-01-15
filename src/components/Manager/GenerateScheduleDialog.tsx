@@ -17,7 +17,10 @@ import {
 } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
-import { useGenerateSchedule } from "../../hooks/Manager/useSchedule";
+import {
+  useGenerateSchedule,
+  useSaveReviewedSchedule,
+} from "../../hooks/Manager/useSchedule";
 import { useAuth } from "../../hooks/context/AuthContext";
 import type {
   GenerateScheduleResponse,
@@ -39,12 +42,13 @@ export function GenerateScheduleDialog({
   const { departmentId } = useAuth();
   const toast = useToast();
   const { mutate: generateSchedule, isPending } = useGenerateSchedule();
+  const { mutate: saveReviewedSchedule, isPending: isSaving } =
+    useSaveReviewedSchedule();
 
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [scheduleData, setScheduleData] =
     useState<GenerateScheduleResponse | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
       
   const today = new Date().toISOString().split("T")[0];
@@ -120,20 +124,35 @@ export function GenerateScheduleDialog({
     );
   };
 
-  const handleConfirm = async () => {
-    setIsSaving(true);
-    try {
-      
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success("Schedule confirmed and saved!");
-      onSuccess();
-      handleClose();
-    } catch (error) {
-      toast.error("Failed to save schedule");
-    } finally {
-      setIsSaving(false);
-    }
+  const handleConfirm = () => {
+    if (!scheduleData) return;
+
+    // Transform assignments to match API expectations
+    const assignmentsToSave = scheduleData.assignments.map((assignment) => ({
+      shift_id: assignment.shift_id,
+      employee_id: assignment.employee_id,
+      position_id: assignment.position_id,
+      assignment_type: assignment.assignment_type,
+      status: assignment.status,
+    }));
+
+    saveReviewedSchedule(
+      { assignments: assignmentsToSave },
+      {
+        onSuccess: (response) => {
+          toast.success(
+            response.payload.message || "Schedule confirmed and saved!"
+          );
+          onSuccess();
+          handleClose();
+        },
+        onError: (error: any) => {
+          toast.error(
+            error.response?.data?.message || "Failed to save schedule"
+          );
+        },
+      }
+    );
   };
 
   const handleClose = () => {
