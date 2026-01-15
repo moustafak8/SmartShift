@@ -61,17 +61,12 @@ class AssigmentsService
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
 
-        $labels = [
-            'day' => '7-3pm',
-            'evening' => '3-11pm',
-            'night' => '11-7am',
-        ];
+
 
         $days = [];
         for ($i = 0; $i < 7; $i++) {
             $dateKey = $start->copy()->addDays($i)->toDateString();
             $days[$dateKey] = [
-                'labels' => $labels,
                 'day' => [],
                 'evening' => [],
                 'night' => [],
@@ -88,7 +83,6 @@ class AssigmentsService
             $type = $a->shift->shift_type ?? 'day';
             if (! isset($days[$date])) {
                 $days[$date] = [
-                    'labels' => $labels,
                     'day' => [],
                     'evening' => [],
                     'night' => [],
@@ -113,7 +107,7 @@ class AssigmentsService
         ];
     }
 
-    public function getWeeklyScheduleByEmployee(string $startDate, int $employeeId): array
+    public function getWeeklyScheduleByEmployee(string $startDate, int $employeeId, ?int $departmentId = null): array
     {
         $normalizedStart = trim($startDate, "\"' ");
         $start = Carbon::parse($normalizedStart)->startOfDay();

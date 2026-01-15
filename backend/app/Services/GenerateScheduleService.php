@@ -89,7 +89,8 @@ class GenerateScheduleService
                 ];
             }
 
-            $this->assignmentsService->createBulkAssignments($assignments);
+            $normalized = array_map([$this, 'normalizeAssignmentPayload'], $assignments);
+            $this->assignmentsService->createBulkAssignments($normalized);
             DB::commit();
 
             return [
@@ -110,6 +111,23 @@ class GenerateScheduleService
                 'error' => $e,
             ];
         }
+    }
+
+
+    private function normalizeAssignmentPayload(array $assignment): array
+    {
+        $assignmentTypes = ['regular', 'overtime', 'swap', 'cover'];
+        $statuses = ['assigned', 'confirmed', 'completed', 'no_show', 'cancelled'];
+
+        $assignment['assignment_type'] = in_array($assignment['assignment_type'] ?? null, $assignmentTypes, true)
+            ? $assignment['assignment_type']
+            : 'regular';
+
+        $assignment['status'] = in_array($assignment['status'] ?? null, $statuses, true)
+            ? $assignment['status']
+            : 'assigned';
+
+        return $assignment;
     }
 
     private function fetchScheduleRequirements(int $departmentId, string $startDate, string $endDate): array
@@ -423,12 +441,13 @@ class GenerateScheduleService
                 false,  // lenient mode
                 $scheduleRequirements
             )) {
+                // Persist using enum-safe values expected by the DB
                 $assignments[] = [
                     'shift_id' => $shiftId,
                     'employee_id' => $employeeId,
                     'position_id' => $positionId,
-                    'assignment_type' => 'scheduled',
-                    'status' => 'active',
+                    'assignment_type' => 'regular',
+                    'status' => 'assigned',
                 ];
 
                 $this->markAssignment($shiftId, $positionId, $employeeId, $filledCounts, $assignedInShift);
@@ -478,8 +497,8 @@ class GenerateScheduleService
                             'shift_id' => $shiftId,
                             'employee_id' => $employeeId,
                             'position_id' => $positionId,
-                            'assignment_type' => 'scheduled',
-                            'status' => 'active',
+                            'assignment_type' => 'regular',
+                            'status' => 'assigned',
                         ];
 
                         $this->markAssignment($shiftId, $positionId, $employeeId, $filledCounts, $assignedInShift);

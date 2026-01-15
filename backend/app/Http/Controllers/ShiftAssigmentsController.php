@@ -57,7 +57,7 @@ class ShiftAssigmentsController extends Controller
     {
         $data = $request->validated();
 
-        $schedule = $this->assigmentsService->getWeeklyScheduleByEmployee($data['start_date'], (int) $employeeId);
+        $schedule = $this->assigmentsService->getWeeklyScheduleByEmployee($data['start_date'], (int) $employeeId, $data['department_id'] ?? null);
 
         return $this->responseJSON($schedule, 'success', 200);
     }

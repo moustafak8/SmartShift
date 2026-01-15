@@ -38,18 +38,6 @@ export interface UnfilledPosition {
   missing: number;
 }
 
-export interface ScheduleDebugInfo {
-  total_shifts_considered: number;
-  total_employees_active: number;
-  shifts_with_no_candidates: any[];
-  shifts_with_no_candidates_count: number;
-  total_position_slots: number;
-  assignments_by_shift: Record<string, number>;
-  unfilled_positions: UnfilledPosition[];
-  unfilled_count: number;
-  shift_details: ShiftDetail[];
-}
-
 export interface GenerateScheduleResponse {
   success: boolean;
   message: string;
@@ -59,7 +47,7 @@ export interface GenerateScheduleResponse {
   department_id: number;
   persisted: boolean;
   assignments: ShiftAssignment[];
-  debug: ScheduleDebugInfo;
+  shift_details: ShiftDetail[];
 }
 
 export interface GenerateScheduleApiResponse {

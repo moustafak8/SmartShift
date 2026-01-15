@@ -11,6 +11,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -50,7 +51,7 @@ export function GenerateScheduleDialog({
   const [scheduleData, setScheduleData] =
     useState<GenerateScheduleResponse | null>(null);
 
-      
+
   const today = new Date().toISOString().split("T")[0];
 
   const setDatePreset = (preset: "week" | "2weeks" | "month") => {
@@ -73,11 +74,12 @@ export function GenerateScheduleDialog({
     setEndDate(end.toISOString().split("T")[0]);
   };
 
+  // Group shifts by date
   const shiftsByDate = useMemo(() => {
-    if (!scheduleData) return {};
+    if (!scheduleData?.shift_details) return {};
 
     const grouped: Record<string, ShiftDetail[]> = {};
-    scheduleData.debug.shift_details.forEach((shift) => {
+    scheduleData.shift_details.forEach((shift) => {
       const date = shift.date;
       if (!grouped[date]) {
         grouped[date] = [];
@@ -85,13 +87,42 @@ export function GenerateScheduleDialog({
       grouped[date].push(shift);
     });
 
-    
     Object.keys(grouped).forEach((date) => {
       grouped[date].sort((a, b) => a.start_time.localeCompare(b.start_time));
     });
 
     return grouped;
   }, [scheduleData]);
+  const assignmentsByShift = useMemo(() => {
+    if (!scheduleData) return {};
+
+    const grouped: Record<number, typeof scheduleData.assignments> = {};
+    scheduleData.assignments.forEach((assignment) => {
+      if (!grouped[assignment.shift_id]) {
+        grouped[assignment.shift_id] = [];
+      }
+      grouped[assignment.shift_id].push(assignment);
+    });
+
+    return grouped;
+  }, [scheduleData]);
+
+  // Calculate statistics
+  const stats = useMemo(() => {
+    if (!scheduleData?.shift_details)
+      return { totalSlots: 0, shiftsCovered: 0, unfilledCount: 0 };
+
+    const totalSlots = scheduleData.shift_details.reduce(
+      (sum, shift) =>
+        sum + shift.positions.reduce((pSum, p) => pSum + p.required_count, 0),
+      0
+    );
+
+    const shiftsCovered = Object.keys(assignmentsByShift).length;
+    const unfilledCount = totalSlots - scheduleData.assignments_count;
+
+    return { totalSlots, shiftsCovered, unfilledCount };
+  }, [scheduleData, assignmentsByShift]);
 
   const handleGenerate = () => {
     if (!startDate || !endDate) {
@@ -126,8 +157,6 @@ export function GenerateScheduleDialog({
 
   const handleConfirm = () => {
     if (!scheduleData) return;
-
-    // Transform assignments to match API expectations
     const assignmentsToSave = scheduleData.assignments.map((assignment) => ({
       shift_id: assignment.shift_id,
       employee_id: assignment.employee_id,
@@ -183,13 +212,17 @@ export function GenerateScheduleDialog({
             <Calendar className="w-5 h-5 text-[#3B82F6]" />
             Generate Schedule
           </DialogTitle>
+          <DialogDescription>
+            Seamlessly create optimal schedules for your team. Select a date range
+            and let AI handle the rest.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-            
+
           {!scheduleData && (
             <div className="space-y-4">
-                
+
               <div>
                 <label className="block text-sm font-medium text-[#111827] mb-2">
                   Quick Select
@@ -222,7 +255,7 @@ export function GenerateScheduleDialog({
                 </div>
               </div>
 
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-[#111827] mb-2">
@@ -274,10 +307,10 @@ export function GenerateScheduleDialog({
             </div>
           )}
 
-            
+
           {scheduleData && (
             <div className="space-y-4">
-              
+
               <div className="grid grid-cols-3 gap-4">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-1">
@@ -298,10 +331,7 @@ export function GenerateScheduleDialog({
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-blue-700">
-                    {
-                      Object.keys(scheduleData.debug.assignments_by_shift)
-                        .length
-                    }
+                    {stats.shiftsCovered}
                   </p>
                 </div>
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
@@ -312,26 +342,25 @@ export function GenerateScheduleDialog({
                     </span>
                   </div>
                   <p className="text-2xl font-bold text-purple-700">
-                    {Math.round(
-                      (scheduleData.assignments_count /
-                        scheduleData.debug.total_position_slots) *
+                    {stats.totalSlots > 0
+                      ? Math.round(
+                        (scheduleData.assignments_count / stats.totalSlots) *
                         100
-                    )}
+                      )
+                      : 0}
                     %
                   </p>
                 </div>
               </div>
 
-                  
-              {scheduleData.debug.unfilled_count > 0 && (
+              {stats.unfilledCount > 0 && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <div className="flex items-start gap-3">
                     <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium text-amber-900 mb-1">
-                        {scheduleData.debug.unfilled_count} Position
-                        {scheduleData.debug.unfilled_count > 1 ? "s" : ""}{" "}
-                        Unfilled
+                        {stats.unfilledCount} Position
+                        {stats.unfilledCount > 1 ? "s" : ""} Unfilled
                       </p>
                       <p className="text-xs text-amber-700">
                         Some shifts don't have enough employees assigned. Review
@@ -347,11 +376,10 @@ export function GenerateScheduleDialog({
                   Schedule Preview
                 </h3>
                 <div
-                  className={`grid gap-4 max-h-[500px] overflow-y-auto pr-2 ${
-                    Object.keys(shiftsByDate).length === 1
+                  className={`grid gap-4 max-h-[500px] overflow-y-auto pr-2 ${Object.keys(shiftsByDate).length === 1
                       ? "grid-cols-1"
                       : "grid-cols-1 md:grid-cols-2"
-                  }`}
+                    }`}
                 >
                   {Object.entries(shiftsByDate).map(([date, shifts]) => {
                     const totalAssignments = shifts.reduce((sum, shift) => {
@@ -393,13 +421,12 @@ export function GenerateScheduleDialog({
                               })}
                             </p>
                             <span
-                              className={`px-2 py-1 rounded text-xs font-medium ${
-                                coveragePercent === 100
+                              className={`px-2 py-1 rounded text-xs font-medium ${coveragePercent === 100
                                   ? "bg-green-500"
                                   : coveragePercent >= 80
-                                  ? "bg-yellow-500"
-                                  : "bg-red-500"
-                              }`}
+                                    ? "bg-yellow-500"
+                                    : "bg-red-500"
+                                }`}
                             >
                               {coveragePercent}%
                             </span>

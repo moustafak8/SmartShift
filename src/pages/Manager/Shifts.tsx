@@ -3,7 +3,7 @@ import { Calendar, Plus } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Layout } from "../../components/Sidebar";
 import { AddShiftDialog } from "../../components/Manager/AddShiftDialog";
-import { GenerateScheduleDialog } from "../../components/Manager/GenerateScheduleDialog";
+import {GenerateScheduleDialog} from "../../components/Manager/GenerateScheduleDialog";
 import { ShiftCalendar } from "../../components/Manager/ShiftCalendar";
 import { useShiftTemplates, useShifts } from "../../hooks/Manager/useShifts";
 import { useAuth } from "../../hooks/context/AuthContext";
