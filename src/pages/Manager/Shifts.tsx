@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Calendar, Plus } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Layout } from "../../components/Sidebar";
 import { AddShiftDialog } from "../../components/Manager/AddShiftDialog";
 import {GenerateScheduleDialog} from "../../components/Manager/GenerateScheduleDialog";
 import { ShiftCalendar } from "../../components/Manager/ShiftCalendar";
-import { useShiftTemplates, useShifts } from "../../hooks/Manager/useShifts";
+import { useShiftTemplates, useShifts, useShiftAssignments } from "../../hooks/Manager/useShifts";
 import { useAuth } from "../../hooks/context/AuthContext";
 
 export function Shifts() {
@@ -14,10 +14,26 @@ export function Shifts() {
   const { refetch } = useShiftTemplates();
   const { departmentId } = useAuth();
   const { shifts, isLoading, refetch: refetchShifts } = useShifts(departmentId || 0);
+  
+  // Calculate the start date for the current week (Monday)
+  const startDate = useMemo(() => {
+    // Use Jan 12, 2026 as the base date (Monday)
+    const baseDate = new Date(2026, 0, 12); // January 12, 2026
+    const year = baseDate.getFullYear();
+    const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+    const day = String(baseDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+  
+  const { assignments, isLoading: assignmentsLoading, refetch: refetchAssignments } = useShiftAssignments(
+    startDate,
+    departmentId || 0
+  );
 
   const handleRefresh = () => {
     refetch();
     refetchShifts();
+    refetchAssignments();
   };
 
   return (
@@ -55,8 +71,12 @@ export function Shifts() {
           </div>
         </div>
 
-        {/* Shift Calendar */}
-        <ShiftCalendar shifts={shifts} isLoading={isLoading} />
+       
+        <ShiftCalendar 
+          shifts={shifts} 
+          isLoading={isLoading || assignmentsLoading} 
+          assignments={assignments}
+        />
       </div>
 
       <AddShiftDialog

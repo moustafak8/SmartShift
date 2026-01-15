@@ -67,7 +67,6 @@ export interface ShiftFormData {
   position_requirements?: PositionRequirement[];
 }
 
-// Shift Assignments Types
 export interface ShiftAssignment {
   assignment_id: number;
   employee_id: number;

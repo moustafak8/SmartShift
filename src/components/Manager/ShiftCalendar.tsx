@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../ui/Button";
-import type { Shift } from "../../hooks/types/shifts";
+import type { Shift, ShiftAssignmentsPayload } from "../../hooks/types/shifts";
 
 interface ShiftCalendarProps {
   shifts: Shift[];
   isLoading: boolean;
+  assignments: ShiftAssignmentsPayload | null;
 }
 
-export function ShiftCalendar({ shifts, isLoading }: ShiftCalendarProps) {
+export function ShiftCalendar({ shifts, isLoading, assignments }: ShiftCalendarProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const dayOfWeek = today.getDay();
@@ -205,21 +206,50 @@ export function ShiftCalendar({ shifts, isLoading }: ShiftCalendarProps) {
                     >
                       {shiftsForTime.length > 0 ? (
                         <div className="space-y-2">
-                          {shiftsForTime.map((shift) => (
-                            <div
-                              key={shift.id}
-                              className={`p-3 rounded-lg border-2 ${getShiftColor(
-                                shift.shift_type
-                              )} cursor-pointer hover:shadow-md transition-shadow`}
-                            >
-                              <div className="text-xs text-[#6B7280]">
-                                {shift.required_staff_count} staff needed
+                          {shiftsForTime.map((shift) => {
+                            const year = day.getFullYear();
+                            const month = String(day.getMonth() + 1).padStart(2, '0');
+                            const dayNum = String(day.getDate()).padStart(2, '0');
+                            const dateStr = `${year}-${month}-${dayNum}`;
+                            const dayAssignments = assignments?.days[dateStr];
+                            
+                            const shiftType = shift.shift_type as "day" | "evening" | "night";
+                            const shiftTypeAssignments = (shift.shift_type !== "rotating" && dayAssignments) 
+                              ? dayAssignments[shiftType] || [] 
+                              : [];
+                            
+                            const isFilled = shiftTypeAssignments.length >= shift.required_staff_count;
+
+                            return (
+                              <div
+                                key={shift.id}
+                                className={`p-3 rounded-lg border-2 ${getShiftColor(
+                                  shift.shift_type
+                                )} cursor-pointer hover:shadow-md transition-shadow`}
+                              >
+                                <div className="text-xs text-[#6B7280]">
+                                  {shift.required_staff_count} staff needed
+                                </div>
+                                {!isFilled && (
+                                  <div className="text-xs text-[#6B7280] mt-1">
+                                    Status: {shift.status}
+                                  </div>
+                                )}
+                                {shiftTypeAssignments.length > 0 && (
+                                  <div className="mt-2 space-y-1">
+                                    {shiftTypeAssignments.map((assignment) => (
+                                      <div
+                                        key={assignment.assignment_id}
+                                        className="text-xs font-medium text-[#111827]"
+                                      >
+                                        {assignment.full_name}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
-                              <div className="text-xs text-[#6B7280] mt-1">
-                                Status: {shift.status}
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="p-3 rounded-lg border-2 border-gray-200 bg-white min-h-[60px]"></div>
