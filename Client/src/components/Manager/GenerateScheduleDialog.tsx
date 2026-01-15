@@ -147,9 +147,11 @@ export function GenerateScheduleDialog({
           toast.success("Schedule generated successfully!");
         },
         onError: (error: any) => {
-          toast.error(
-            error.response?.data?.message || "Failed to generate schedule"
-          );
+          const errorMessage = 
+            error.response?.data?.payload?.message || 
+            error.response?.data?.message || 
+            "Failed to generate schedule";
+          toast.error(errorMessage);
         },
       }
     );
@@ -176,9 +178,11 @@ export function GenerateScheduleDialog({
           handleClose();
         },
         onError: (error: any) => {
-          toast.error(
-            error.response?.data?.message || "Failed to save schedule"
-          );
+          const errorMessage = 
+            error.response?.data?.payload?.message || 
+            error.response?.data?.message || 
+            "Failed to save schedule";
+          toast.error(errorMessage);
         },
       }
     );
