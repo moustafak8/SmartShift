@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\Shift_Assigments;
 use App\Models\Shifts;
 use App\Models\User;
-use App\Models\Shift_Assigments;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -14,23 +14,35 @@ use OpenAI\Laravel\Facades\OpenAI;
 class GenerateScheduleService
 {
     private const OPENAI_CHAT_MODEL = 'gpt-4.1';
+
     private const OPENAI_TEMPERATURE = 0.3;
+
     private const OPENAI_MAX_TOKENS = 1200;
 
     private const FATIGUE_HIGH_THRESHOLD = 70;
+
     private const FATIGUE_MEDIUM_THRESHOLD = 40;
+
     private const FATIGUE_DEFAULT_SCORE = 50;
+
     private const FATIGUE_SCORE_WEIGHT = 0.1;
 
     private const DEFAULT_MAX_SHIFTS_PER_WEEK = 5;
+
     private const DEFAULT_MAX_HOURS_PER_WEEK = 40;
+
     private const DEFAULT_MAX_CONSECUTIVE_DAYS = 5;
 
     private EmployeeAvailabilityService $availabilityService;
+
     private EmployeePrefrenceService $preferenceService;
+
     private ScoreService $scoreService;
+
     private ShiftService $shiftService;
+
     private AssigmentsService $assignmentsService;
+
     private EmployeeWeeklyStatsCache $statsCache;
 
     public function __construct(
@@ -72,7 +84,7 @@ class GenerateScheduleService
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Schedule generation failed: ' . $e->getMessage(),
+                'message' => 'Schedule generation failed: '.$e->getMessage(),
                 'error' => $e,
             ];
         }
@@ -114,12 +126,11 @@ class GenerateScheduleService
 
             return [
                 'success' => false,
-                'message' => 'Failed to save schedule: ' . $e->getMessage(),
+                'message' => 'Failed to save schedule: '.$e->getMessage(),
                 'error' => $e,
             ];
         }
     }
-
 
     private function normalizeAssignmentPayload(array $assignment): array
     {
@@ -138,10 +149,10 @@ class GenerateScheduleService
         return $assignment;
     }
 
-
     private function getShiftDateById(int $shiftId): string
     {
         $shift = Shifts::find($shiftId);
+
         return $shift ? $shift->shift_date : Carbon::today()->toDateString();
     }
 
@@ -242,12 +253,9 @@ class GenerateScheduleService
         $filledCounts = [];
         $assignedInShift = [];
 
-
         $candidatePool = $this->buildCandidatePool($scheduleRequirements, $employeeData, $assignments, $assignedInShift);
 
-
         $aiSuggestions = $this->requestAiAssignments($scheduleRequirements, $candidatePool, $employeeData);
-
 
         $this->applyAiAssignments(
             $aiSuggestions,
@@ -289,7 +297,7 @@ class GenerateScheduleService
                 ];
 
                 foreach ($employeeData as $employeeId => $empData) {
-                    if (!in_array($positionId, $empData['positions'])) {
+                    if (! in_array($positionId, $empData['positions'])) {
                         continue;
                     }
 
@@ -320,9 +328,11 @@ class GenerateScheduleService
         try {
             $prompt = $this->buildAiPrompt($scheduleRequirements, $candidatePool, $employeeData);
             $raw = $this->callOpenAi($prompt);
+
             return $this->parseAiAssignments($raw);
         } catch (\Throwable $e) {
             Log::warning('AI scheduling failed, falling back to greedy', ['error' => $e->getMessage()]);
+
             return [];
         }
     }
@@ -343,7 +353,7 @@ class GenerateScheduleService
 
                     return [
                         'id' => $empId,
-                        'name' => $empData['full_name'] ?? 'Employee ' . $empId,
+                        'name' => $empData['full_name'] ?? 'Employee '.$empId,
                         'fatigue_level' => $fatigueLevel,
                         'hours_this_schedule' => $empData['hours_assigned'] ?? 0,
                     ];
@@ -373,17 +383,17 @@ class GenerateScheduleService
         }
 
         $instructions = 'You are an intelligent shift scheduling assistant for a restaurant business. '
-            . 'Your task: Assign employees to positions for each shift based on the provided eligible candidates. '
-            . 'CRITICAL RULES: '
-            . '1. Each position has a required_count - you MUST  fill ALL slots with different employees. '
-            . '2. An employee can work MULTIPLE different shifts throughout the week if they appear in multiple candidate lists. '
-            . '3. An employee can only be assigned to ONE position per shift (no duplicate assignments within the same shift_id). '
-            . '4. FAIR DISTRIBUTION - Distribute hours fairly across employees. Check hours_this_schedule for each candidate. '
-            . '5. FATIGUE AWARENESS - Avoid assigning high-fatigue employees to consecutive shifts. Prioritize low/medium fatigue when possible. '
-            . '6. WEEKEND BALANCE - Distribute weekend shifts fairly. Don\'t give all weekends to the same employees. '
-            . '7. EXPERIENCE - For peak shifts (weekends, busy times), try to have a good mix if possible. '
-            . '8. All candidates provided have already been validated for availability and position qualifications. '
-            . 'Output: Return ONLY valid JSON with an "assignments" array containing objects: {"shift_id": number, "position_id": number, "employee_id": number}.';
+            .'Your task: Assign employees to positions for each shift based on the provided eligible candidates. '
+            .'CRITICAL RULES: '
+            .'1. Each position has a required_count - you MUST  fill ALL slots with different employees. '
+            .'2. An employee can work MULTIPLE different shifts throughout the week if they appear in multiple candidate lists. '
+            .'3. An employee can only be assigned to ONE position per shift (no duplicate assignments within the same shift_id). '
+            .'4. FAIR DISTRIBUTION - Distribute hours fairly across employees. Check hours_this_schedule for each candidate. '
+            .'5. FATIGUE AWARENESS - Avoid assigning high-fatigue employees to consecutive shifts. Prioritize low/medium fatigue when possible. '
+            .'6. WEEKEND BALANCE - Distribute weekend shifts fairly. Don\'t give all weekends to the same employees. '
+            .'7. EXPERIENCE - For peak shifts (weekends, busy times), try to have a good mix if possible. '
+            .'8. All candidates provided have already been validated for availability and position qualifications. '
+            .'Output: Return ONLY valid JSON with an "assignments" array containing objects: {"shift_id": number, "position_id": number, "employee_id": number}.';
 
         return json_encode([
             'instructions' => $instructions,
@@ -537,10 +547,12 @@ class GenerateScheduleService
             $empData = $employeeData[$employeeId];
             $hours = $empData['hours_assigned'] ?? 0;
             $fatigue = $empData['fatigue_score']['fatigue_score'] ?? self::FATIGUE_DEFAULT_SCORE;
+
             return ['id' => $employeeId, 'score' => $hours + ($fatigue * self::FATIGUE_SCORE_WEIGHT)];
         }, $candidates);
 
-        usort($scored, fn($a, $b) => $a['score'] <=> $b['score']);
+        usort($scored, fn ($a, $b) => $a['score'] <=> $b['score']);
+
         return array_column($scored, 'id');
     }
 
@@ -583,11 +595,11 @@ class GenerateScheduleService
         }
 
         $availability = $this->availabilityService->getAvailabilityForDate($employeeId, $shiftDate);
-        if ($availability && !$availability['is_available']) {
+        if ($availability && ! $availability['is_available']) {
             return false;
         }
 
-        return !$this->employeeAlreadyAssignedOnDate($employeeId, $shiftDate, $pendingAssignments, $scheduleRequirements);
+        return ! $this->employeeAlreadyAssignedOnDate($employeeId, $shiftDate, $pendingAssignments, $scheduleRequirements);
     }
 
     private function checkSoftConstraints(
@@ -597,13 +609,13 @@ class GenerateScheduleService
         array $employeeData
     ): bool {
         $empData = $employeeData[$employeeId];
-        if (!$empData['preferences']) {
+        if (! $empData['preferences']) {
             return true;
         }
 
         $prefs = $empData['preferences'];
 
-        if ($prefs->preferred_shift_types && !in_array($shiftData['shift_type'], $prefs->preferred_shift_types)) {
+        if ($prefs->preferred_shift_types && ! in_array($shiftData['shift_type'], $prefs->preferred_shift_types)) {
             return false;
         }
 
@@ -676,6 +688,7 @@ class GenerateScheduleService
     {
         if (empty($assignments)) {
             Log::warning('No assignments to persist');
+
             return;
         }
 
@@ -704,17 +717,15 @@ class GenerateScheduleService
             $positionDetails = [];
             $assignmentsByPosition = [];
 
-
             foreach ($assignments as $assignment) {
                 if ($assignment['shift_id'] === $shiftId) {
                     $posId = $assignment['position_id'];
-                    if (!isset($assignmentsByPosition[$posId])) {
+                    if (! isset($assignmentsByPosition[$posId])) {
                         $assignmentsByPosition[$posId] = 0;
                     }
                     $assignmentsByPosition[$posId]++;
                 }
             }
-
 
             foreach ($requirement['position_requirements'] as $positionId => $posReq) {
                 $positionDetails[] = [

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 class EmployeeWeeklyStatsCache
 {
     private const CACHE_TTL_MINUTES = 5;
+
     private const CACHE_PREFIX = 'employee_weekly_stats';
 
     public function __construct(
@@ -28,11 +29,11 @@ class EmployeeWeeklyStatsCache
             $assignments = $this->assignmentsModel
                 ->with('shift')
                 ->where('employee_id', $employeeId)
-                ->whereHas('shift', fn($q) => $q->whereBetween('shift_date', [$weekStart->toDateString(), $weekEnd->toDateString()]))
+                ->whereHas('shift', fn ($q) => $q->whereBetween('shift_date', [$weekStart->toDateString(), $weekEnd->toDateString()]))
                 ->get();
 
             $shiftsCount = count($assignments);
-            $hoursTotal = $assignments->sum(fn($a) => $this->shiftService->calculateShiftDuration(
+            $hoursTotal = $assignments->sum(fn ($a) => $this->shiftService->calculateShiftDuration(
                 $a->shift->start_time,
                 $a->shift->end_time
             ));
@@ -57,7 +58,7 @@ class EmployeeWeeklyStatsCache
 
     public function countConsecutiveDays(int $employeeId, string $date): int
     {
-        $cacheKey = 'employee_consecutive_days:' . $employeeId . ':' . $date;
+        $cacheKey = 'employee_consecutive_days:'.$employeeId.':'.$date;
 
         return Cache::remember($cacheKey, self::CACHE_TTL_MINUTES * 60, function () use ($employeeId, $date) {
             $carbon = Carbon::parse($date);
@@ -68,7 +69,7 @@ class EmployeeWeeklyStatsCache
                 $hasShift = $this->assignmentsModel
                     ->with('shift')
                     ->where('employee_id', $employeeId)
-                    ->whereHas('shift', fn($q) => $q->where('shift_date', $checkDate->toDateString()))
+                    ->whereHas('shift', fn ($q) => $q->where('shift_date', $checkDate->toDateString()))
                     ->exists();
 
                 if ($hasShift) {
@@ -91,6 +92,7 @@ class EmployeeWeeklyStatsCache
     private function getCacheKey(int $employeeId, string $date): string
     {
         $weekStart = Carbon::parse($date)->startOfWeek()->toDateString();
-        return self::CACHE_PREFIX . ":{$employeeId}:{$weekStart}";
+
+        return self::CACHE_PREFIX.":{$employeeId}:{$weekStart}";
     }
 }

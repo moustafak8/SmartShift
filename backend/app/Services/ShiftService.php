@@ -86,7 +86,7 @@ class ShiftService
 
     private function copyTemplateRequirements(Shifts $shift): void
     {
-        if (!$shift->shift_template_id) {
+        if (! $shift->shift_template_id) {
             return;
         }
 
@@ -116,6 +116,7 @@ class ShiftService
             ]);
         }
     }
+
     public function calculateShiftDuration(string $startTime, string $endTime): float
     {
         $start = new \DateTime($startTime);
@@ -126,13 +127,14 @@ class ShiftService
         }
 
         $interval = $start->diff($end);
+
         return $interval->h + ($interval->i / 60);
     }
+
     public function isOvernightShift(string $startTime, string $endTime): bool
     {
         return $endTime <= $startTime;
     }
-
 
     public function updateShiftStatusesByAssignments(array $shiftIds): void
     {

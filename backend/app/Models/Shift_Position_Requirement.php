@@ -33,5 +33,4 @@ class Shift_Position_Requirement extends Model
     {
         return $this->belongsTo(Position::class, 'position_id');
     }
-
 }

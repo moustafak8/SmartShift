@@ -17,7 +17,7 @@ return new class extends Migration
                 ->after('id')
                 ->constrained('shift__templates')
                 ->onDelete('cascade');
-            
+
             $table->foreignId('shift_id')->nullable()->change();
             $table->index('shift_template_id');
             $table->dropUnique(['shift_id', 'position_id']);

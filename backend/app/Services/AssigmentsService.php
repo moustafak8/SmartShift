@@ -56,17 +56,14 @@ class AssigmentsService
         if ($weeklyAssignments >= 6) {
             return 'overtime';
         }
+
         return 'regular';
     }
-
-
 
     public function determineAssignmentStatus(int $shiftId, string $shiftDate): string
     {
         return 'confirmed';
     }
-
-
 
     public function updateAssignmentStatuses(array $assignmentIds): void
     {
@@ -81,12 +78,11 @@ class AssigmentsService
             ->get();
 
         foreach ($assignments as $assignment) {
-            if (!$assignment->shift) {
+            if (! $assignment->shift) {
                 continue;
             }
 
             $shiftDate = Carbon::parse($assignment->shift->shift_date);
-
 
             if ($shiftDate->lt($today)) {
                 $assignment->update(['status' => 'completed']);
@@ -112,8 +108,6 @@ class AssigmentsService
             })
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
-
-
 
         $days = [];
         for ($i = 0; $i < 7; $i++) {

@@ -28,6 +28,7 @@ class ShiftTemplateService
                     ];
                 });
                 unset($template->positionRequirements);
+
                 return $template;
             });
     }
