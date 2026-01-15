@@ -92,6 +92,7 @@ export function FeaturesSection() {
                   <img
                     src={feature.imageUrl}
                     alt={feature.title}
+                    loading="lazy"
                     className="w-full h-[350px] object-cover"
                   />
                 </div>

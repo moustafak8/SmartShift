@@ -3,12 +3,14 @@ import { Calendar, Plus } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Layout } from "../../components/Sidebar";
 import { AddShiftDialog } from "../../components/Manager/AddShiftDialog";
+import { GenerateScheduleDialog } from "../../components/Manager/GenerateScheduleDialog";
 import { ShiftCalendar } from "../../components/Manager/ShiftCalendar";
 import { useShiftTemplates, useShifts } from "../../hooks/Manager/useShifts";
 import { useAuth } from "../../hooks/context/AuthContext";
 
 export function Shifts() {
   const [isAddShiftOpen, setIsAddShiftOpen] = useState(false);
+  const [isGenerateScheduleOpen, setIsGenerateScheduleOpen] = useState(false);
   const { refetch } = useShiftTemplates();
   const { departmentId } = useAuth();
   const { shifts, isLoading, refetch: refetchShifts } = useShifts(departmentId || 0);
@@ -35,6 +37,7 @@ export function Shifts() {
           <div />
           <div className="flex gap-2">
             <Button
+              onClick={() => setIsGenerateScheduleOpen(true)}
               className="bg-[#3B82F6] hover:bg-[#2563EB] text-white flex items-center"
               size="sm"
             >
@@ -60,6 +63,12 @@ export function Shifts() {
         isOpen={isAddShiftOpen}
         onClose={() => setIsAddShiftOpen(false)}
         onRefresh={handleRefresh}
+      />
+
+      <GenerateScheduleDialog
+        isOpen={isGenerateScheduleOpen}
+        onClose={() => setIsGenerateScheduleOpen(false)}
+        onSuccess={handleRefresh}
       />
     </Layout>
   );

@@ -12,3 +12,13 @@
   --color-gray-50: #f9fafb;
   --color-blue-50: #dbeafe;
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  right: 8px;
+  cursor: pointer;
+}
+
+input[type="date"] {
+  position: relative;
+}
