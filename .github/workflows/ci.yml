@@ -20,11 +20,14 @@ jobs:
         with:
           node-version: 20
           cache: "npm"
+          cache-dependency-path: "Client/package-lock.json"
 
       - name: Install Frontend Dependencies
+        working-directory: ./Client
         run: npm ci
 
       - name: Frontend Build Test
+        working-directory: ./Client
         run: npm run build
 
   backend-tests:
@@ -56,18 +59,22 @@ jobs:
           extensions: mbstring, xml, bcmath, curl, pdo_mysql
 
       - name: Copy .env
-        run: cp backend/.env.example backend/.env
+        run: cp Server/.env.example Server/.env
 
       - name: Install Composer Dependencies
-        run: cd backend && composer install --prefer-dist --no-progress --no-interaction --no-suggest
+        working-directory: ./Server
+        run: composer install --prefer-dist --no-progress --no-interaction --no-suggest
 
       - name: Generate Application Key
-        run: cd backend && php artisan key:generate
+        working-directory: ./Server
+        run: php artisan key:generate
 
       - name: Generate JWT Secret
-        run: cd backend && php artisan jwt:secret --force
+        working-directory: ./Server
+        run: php artisan jwt:secret --force
 
       - name: Run Migrations
+        working-directory: ./Server
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -75,9 +82,10 @@ jobs:
           DB_DATABASE: laravel_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: cd backend && php artisan migrate --force
+        run: php artisan migrate --force
 
       - name: Run Tests
+        working-directory: ./Server
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -85,7 +93,8 @@ jobs:
           DB_DATABASE: laravel_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: cd backend && php artisan test
+        run: php artisan test
 
       - name: Run Code Style Check (Pint)
-        run: cd backend && vendor/bin/pint --test
+        working-directory: ./Server
+        run: vendor/bin/pint --test
