@@ -42,6 +42,54 @@ class AssigmentsService
         return Shift_Assigments::whereIn('id', $ids)->get();
     }
 
+    public function determineAssignmentType(int $employeeId, int $shiftId, string $shiftDate): string
+    {
+
+        $weekStart = Carbon::parse($shiftDate)->startOfWeek();
+        $weekEnd = Carbon::parse($shiftDate)->endOfWeek();
+
+        $weeklyAssignments = Shift_Assigments::where('employee_id', $employeeId)
+            ->whereHas('shift', function ($q) use ($weekStart, $weekEnd) {
+                $q->whereBetween('shift_date', [$weekStart->toDateString(), $weekEnd->toDateString()]);
+            })
+            ->count();
+        if ($weeklyAssignments >= 6) {
+            return 'overtime';
+        }
+
+        return 'regular';
+    }
+
+    public function determineAssignmentStatus(int $shiftId, string $shiftDate): string
+    {
+        return 'confirmed';
+    }
+
+    public function updateAssignmentStatuses(array $assignmentIds): void
+    {
+        if (empty($assignmentIds)) {
+            return;
+        }
+
+        $today = Carbon::today();
+
+        $assignments = Shift_Assigments::with('shift:id,shift_date')
+            ->whereIn('id', $assignmentIds)
+            ->get();
+
+        foreach ($assignments as $assignment) {
+            if (! $assignment->shift) {
+                continue;
+            }
+
+            $shiftDate = Carbon::parse($assignment->shift->shift_date);
+
+            if ($shiftDate->lt($today)) {
+                $assignment->update(['status' => 'completed']);
+            }
+        }
+    }
+
     public function getWeeklySchedule(string $startDate, ?int $departmentId = null): array
     {
         $normalizedStart = trim($startDate, "\"' ");
@@ -61,17 +109,10 @@ class AssigmentsService
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
 
-        $labels = [
-            'day' => '7-3pm',
-            'evening' => '3-11pm',
-            'night' => '11-7am',
-        ];
-
         $days = [];
         for ($i = 0; $i < 7; $i++) {
             $dateKey = $start->copy()->addDays($i)->toDateString();
             $days[$dateKey] = [
-                'labels' => $labels,
                 'day' => [],
                 'evening' => [],
                 'night' => [],
@@ -88,19 +129,16 @@ class AssigmentsService
             $type = $a->shift->shift_type ?? 'day';
             if (! isset($days[$date])) {
                 $days[$date] = [
-                    'labels' => $labels,
                     'day' => [],
                     'evening' => [],
                     'night' => [],
                 ];
             }
             $fullName = optional($a->employee)->full_name ?? '';
-            $initials = $this->toInitials($fullName);
             $days[$date][$type][] = [
                 'assignment_id' => $a->id,
                 'employee_id' => $a->employee_id,
                 'full_name' => $fullName,
-                'initials' => $initials,
                 'assignment_type' => $a->assignment_type,
                 'status' => $a->status,
             ];
@@ -113,7 +151,7 @@ class AssigmentsService
         ];
     }
 
-    public function getWeeklyScheduleByEmployee(string $startDate, int $employeeId): array
+    public function getWeeklyScheduleByEmployee(string $startDate, int $employeeId, ?int $departmentId = null): array
     {
         $normalizedStart = trim($startDate, "\"' ");
         $start = Carbon::parse($normalizedStart)->startOfDay();
@@ -164,12 +202,10 @@ class AssigmentsService
                 ];
             }
             $fullName = optional($a->employee)->full_name ?? '';
-            $initials = $this->toInitials($fullName);
             $days[$date][$type][] = [
                 'assignment_id' => $a->id,
                 'employee_id' => $a->employee_id,
                 'full_name' => $fullName,
-                'initials' => $initials,
                 'assignment_type' => $a->assignment_type,
                 'status' => $a->status,
             ];
@@ -180,21 +216,5 @@ class AssigmentsService
             'end_date' => $end->toDateString(),
             'days' => $days,
         ];
-    }
-
-    private function toInitials(string $fullName): string
-    {
-        $parts = preg_split('/\s+/', trim($fullName));
-        $letters = [];
-        foreach ($parts as $p) {
-            if ($p !== '') {
-                $letters[] = mb_strtoupper(mb_substr($p, 0, 1));
-            }
-            if (count($letters) === 2) {
-                break;
-            }
-        }
-
-        return implode('.', $letters);
     }
 }

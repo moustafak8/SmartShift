@@ -5,6 +5,7 @@ use App\Http\Controllers\EmployeeAvailabilityController;
 use App\Http\Controllers\EmployeeDepartmentController;
 use App\Http\Controllers\EmployeePreferencesController;
 use App\Http\Controllers\FatigueScoreController;
+use App\Http\Controllers\GenerateScheduleController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
     Route::get('employees/{departmentId}', [EmployeeDepartmentController::class, 'getemployees']);
-    Route::get('shifts', [ShiftsController::class, 'getShifts']);
+    Route::get('shifts/{departmentId}', [ShiftsController::class, 'getShifts']);
     Route::post('shifts', [ShiftsController::class, 'createShift']);
     Route::get('shift-templates', [ShiftTemplatesController::class, 'getTemplates']);
     Route::post('shift-templates', [ShiftTemplatesController::class, 'createTemplate']);
@@ -42,6 +43,8 @@ Route::prefix('v1')->group(function () {
     Route::post('employee-availability', [EmployeeAvailabilityController::class, 'storeAvailability']);
     Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
     Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);
+    Route::post('schedules/generate', [GenerateScheduleController::class, 'generate']);
+    Route::post('schedules/save-reviewed', [GenerateScheduleController::class, 'saveReviewed']);
     Route::get('positions', [PositionController::class, 'getAllPositions']);
     Route::get('departments/{departmentId}/positions', [PositionController::class, 'getPositionsByDepartment']);
     Route::get('positions/{positionId}', [PositionController::class, 'getPositionById']);

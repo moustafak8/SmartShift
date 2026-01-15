@@ -7,13 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Shift_Position_Requirement extends Model
 {
-    /** @use HasFactory<\Database\Factories\ShiftPositionRequirementFactory> */
     use HasFactory;
 
     protected $table = 'shift__position_requirements';
 
     protected $fillable = [
         'shift_id',
+        'shift_template_id',
         'position_id',
         'required_count',
         'filled_count',
@@ -22,6 +22,11 @@ class Shift_Position_Requirement extends Model
     public function shift()
     {
         return $this->belongsTo(Shifts::class, 'shift_id');
+    }
+
+    public function template()
+    {
+        return $this->belongsTo(Shift_Templates::class, 'shift_template_id');
     }
 
     public function position()

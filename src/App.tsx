@@ -8,10 +8,11 @@ import { Dashboard as ManagerDashboard } from "./pages/Manager/Dashboard";
 import { Wellness } from "./pages/Employee/Wellness";
 import { Score } from "./pages/Employee/Score";
 import { Profile } from "./pages/Employee/Profile";
-
 import { ToastProvider } from "./components/ui/Toast";
 import { RAGQuery } from "./pages/Manager/RAGQuery";
 import { TeamOverview } from "./pages/Manager/TeamOverview";
+import { Shifts } from "./pages/Manager/Shifts";
+import { Roles } from "./hooks/types/Roles";
 
 export default function App() {
   return (
@@ -23,7 +24,7 @@ export default function App() {
           path="/employee/dashboard"
           element={
             <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["employee"]}>
+              <RoleBasedRoute allowedRoles={[Roles.EMPLOYEE]}>
                 <EmployeeDashboard />
               </RoleBasedRoute>
             </ProtectedRoute>
@@ -33,7 +34,7 @@ export default function App() {
           path="/employee/wellness"
           element={
             <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["employee"]}>
+              <RoleBasedRoute allowedRoles={[Roles.EMPLOYEE]}>
                 <Wellness />
               </RoleBasedRoute>
             </ProtectedRoute>
@@ -43,7 +44,7 @@ export default function App() {
           path="/employee/score"
           element={
             <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["employee"]}>
+              <RoleBasedRoute allowedRoles={[Roles.EMPLOYEE]}>
                 <Score />
               </RoleBasedRoute>
             </ProtectedRoute>
@@ -53,7 +54,7 @@ export default function App() {
           path="/employee/profile"
           element={
             <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["employee"]}>
+              <RoleBasedRoute allowedRoles={[Roles.EMPLOYEE]}>
                 <Profile />
               </RoleBasedRoute>
             </ProtectedRoute>
@@ -63,7 +64,7 @@ export default function App() {
           path="/manager/dashboard"
           element={
             <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["manager"]}>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
                 <ManagerDashboard />
               </RoleBasedRoute>
             </ProtectedRoute>
@@ -73,7 +74,7 @@ export default function App() {
           path="/manager/query"
           element={
             <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["manager"]}>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
                 <RAGQuery />
               </RoleBasedRoute>
             </ProtectedRoute>
@@ -83,8 +84,18 @@ export default function App() {
           path="/manager/team"
           element={
             <ProtectedRoute>
-              <RoleBasedRoute allowedRoles={["manager"]}>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
                 <TeamOverview />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/schedule"  
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
+                <Shifts />
               </RoleBasedRoute>
             </ProtectedRoute>
           }
