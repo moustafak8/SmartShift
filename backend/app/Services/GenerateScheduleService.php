@@ -90,7 +90,11 @@ class GenerateScheduleService
             }
 
             $normalized = array_map([$this, 'normalizeAssignmentPayload'], $assignments);
-            $this->assignmentsService->createBulkAssignments($normalized);
+            $createdAssignments = $this->assignmentsService->createBulkAssignments($normalized);
+
+            $assignmentIds = $createdAssignments->pluck('id')->toArray();
+            $this->assignmentsService->updateAssignmentStatuses($assignmentIds);
+
             $shiftIds = array_unique(array_column($assignments, 'shift_id'));
             $this->shiftService->updateShiftStatusesByAssignments($shiftIds);
 
@@ -119,18 +123,26 @@ class GenerateScheduleService
 
     private function normalizeAssignmentPayload(array $assignment): array
     {
-        $assignmentTypes = ['regular', 'overtime', 'swap', 'cover'];
-        $statuses = ['assigned', 'confirmed', 'completed', 'no_show', 'cancelled'];
 
-        $assignment['assignment_type'] = in_array($assignment['assignment_type'] ?? null, $assignmentTypes, true)
-            ? $assignment['assignment_type']
-            : 'regular';
+        $assignment['assignment_type'] = $this->assignmentsService->determineAssignmentType(
+            $assignment['employee_id'],
+            $assignment['shift_id'],
+            $this->getShiftDateById($assignment['shift_id'])
+        );
 
-        $assignment['status'] = in_array($assignment['status'] ?? null, $statuses, true)
-            ? $assignment['status']
-            : 'assigned';
+        $assignment['status'] = $this->assignmentsService->determineAssignmentStatus(
+            $assignment['shift_id'],
+            $this->getShiftDateById($assignment['shift_id'])
+        );
 
         return $assignment;
+    }
+
+
+    private function getShiftDateById(int $shiftId): string
+    {
+        $shift = Shifts::find($shiftId);
+        return $shift ? $shift->shift_date : Carbon::today()->toDateString();
     }
 
     private function fetchScheduleRequirements(int $departmentId, string $startDate, string $endDate): array

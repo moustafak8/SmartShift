@@ -42,6 +42,58 @@ class AssigmentsService
         return Shift_Assigments::whereIn('id', $ids)->get();
     }
 
+    public function determineAssignmentType(int $employeeId, int $shiftId, string $shiftDate): string
+    {
+
+        $weekStart = Carbon::parse($shiftDate)->startOfWeek();
+        $weekEnd = Carbon::parse($shiftDate)->endOfWeek();
+
+        $weeklyAssignments = Shift_Assigments::where('employee_id', $employeeId)
+            ->whereHas('shift', function ($q) use ($weekStart, $weekEnd) {
+                $q->whereBetween('shift_date', [$weekStart->toDateString(), $weekEnd->toDateString()]);
+            })
+            ->count();
+        if ($weeklyAssignments >= 6) {
+            return 'overtime';
+        }
+        return 'regular';
+    }
+
+
+
+    public function determineAssignmentStatus(int $shiftId, string $shiftDate): string
+    {
+        return 'confirmed';
+    }
+
+
+
+    public function updateAssignmentStatuses(array $assignmentIds): void
+    {
+        if (empty($assignmentIds)) {
+            return;
+        }
+
+        $today = Carbon::today();
+
+        $assignments = Shift_Assigments::with('shift:id,shift_date')
+            ->whereIn('id', $assignmentIds)
+            ->get();
+
+        foreach ($assignments as $assignment) {
+            if (!$assignment->shift) {
+                continue;
+            }
+
+            $shiftDate = Carbon::parse($assignment->shift->shift_date);
+
+
+            if ($shiftDate->lt($today)) {
+                $assignment->update(['status' => 'completed']);
+            }
+        }
+    }
+
     public function getWeeklySchedule(string $startDate, ?int $departmentId = null): array
     {
         $normalizedStart = trim($startDate, "\"' ");
