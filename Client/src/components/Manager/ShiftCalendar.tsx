@@ -228,7 +228,10 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
                               ? dayAssignments[shiftType] || [] 
                               : [];
                             
-                            const isFilled = shiftTypeAssignments.length >= shift.required_staff_count;
+                            const assignedCount = shiftTypeAssignments.length;
+                            const requiredCount = shift.required_staff_count;
+                            const isFilled = assignedCount >= requiredCount;
+                            const fillPercentage = requiredCount > 0 ? (assignedCount / requiredCount) * 100 : 0;
 
                             return (
                               <div
@@ -237,16 +240,41 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
                                   shift.shift_type
                                 )} cursor-pointer hover:shadow-md transition-shadow`}
                               >
-                                <div className="text-xs text-[#6B7280]">
-                                  {shift.required_staff_count} staff needed
-                                </div>
-                                {!isFilled && (
-                                  <div className="text-xs text-[#6B7280] mt-1">
-                                    Status: {shift.status}
+                                
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="text-xs font-semibold text-[#111827]">
+                                    <span className={isFilled ? "text-green-600" : "text-amber-600"}>
+                                      {assignedCount}/{requiredCount}
+                                    </span>
+                                    <span className="text-[#6B7280] ml-1">filled</span>
                                   </div>
-                                )}
-                                {shiftTypeAssignments.length > 0 && (
-                                  <div className="mt-2 space-y-1">
+                                  
+                                
+                                  {!isFilled && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                      {shift.status}
+                                    </span>
+                                  )}
+                                  {isFilled && (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                      filled
+                                    </span>
+                                  )}
+                                </div>
+
+                               
+                                <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
+                                  <div
+                                    className={`h-1.5 rounded-full transition-all ${
+                                      isFilled ? "bg-green-500" : fillPercentage >= 50 ? "bg-amber-500" : "bg-red-500"
+                                    }`}
+                                    style={{ width: `${Math.min(fillPercentage, 100)}%` }}
+                                  ></div>
+                                </div>
+
+                                
+                                {shiftTypeAssignments.length > 0 ? (
+                                  <div className="space-y-1">
                                     {shiftTypeAssignments.map((assignment) => (
                                       <div
                                         key={assignment.assignment_id}
@@ -256,13 +284,19 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
                                       </div>
                                     ))}
                                   </div>
+                                ) : (
+                                  <div className="flex items-center justify-center py-2 border border-dashed border-gray-300 rounded bg-gray-50/50">
+                                    <p className="text-xs text-gray-400 italic">No assignments</p>
+                                  </div>
                                 )}
                               </div>
                             );
                           })}
                         </div>
                       ) : (
-                        <div className="p-3 rounded-lg border-2 border-gray-200 bg-white min-h-[60px]"></div>
+                        <div className="flex items-center justify-center h-full">
+                          <p className="text-xs text-gray-400 italic">No shift</p>
+                        </div>
                       )}
                     </div>
                   );
