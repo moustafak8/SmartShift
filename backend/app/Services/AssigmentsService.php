@@ -89,12 +89,10 @@ class AssigmentsService
                 ];
             }
             $fullName = optional($a->employee)->full_name ?? '';
-            $initials = $this->toInitials($fullName);
             $days[$date][$type][] = [
                 'assignment_id' => $a->id,
                 'employee_id' => $a->employee_id,
                 'full_name' => $fullName,
-                'initials' => $initials,
                 'assignment_type' => $a->assignment_type,
                 'status' => $a->status,
             ];
@@ -158,12 +156,10 @@ class AssigmentsService
                 ];
             }
             $fullName = optional($a->employee)->full_name ?? '';
-            $initials = $this->toInitials($fullName);
             $days[$date][$type][] = [
                 'assignment_id' => $a->id,
                 'employee_id' => $a->employee_id,
                 'full_name' => $fullName,
-                'initials' => $initials,
                 'assignment_type' => $a->assignment_type,
                 'status' => $a->status,
             ];
@@ -174,21 +170,5 @@ class AssigmentsService
             'end_date' => $end->toDateString(),
             'days' => $days,
         ];
-    }
-
-    private function toInitials(string $fullName): string
-    {
-        $parts = preg_split('/\s+/', trim($fullName));
-        $letters = [];
-        foreach ($parts as $p) {
-            if ($p !== '') {
-                $letters[] = mb_strtoupper(mb_substr($p, 0, 1));
-            }
-            if (count($letters) === 2) {
-                break;
-            }
-        }
-
-        return implode('.', $letters);
     }
 }
