@@ -49,21 +49,12 @@ class GenerateScheduleService
         $this->statsCache = $statsCache;
     }
 
-    public function generateSchedule(int $departmentId, string $startDate, string $endDate, bool $persist = false): array
+    public function generateSchedule(int $departmentId, string $startDate, string $endDate): array
     {
         try {
-            if ($persist) {
-                DB::beginTransaction();
-            }
-
             $scheduleRequirements = $this->fetchScheduleRequirements($departmentId, $startDate, $endDate);
             $employeeData = $this->fetchEmployeeData($departmentId);
             $assignments = $this->assignEmployeesToShifts($scheduleRequirements, $employeeData);
-
-            if ($persist) {
-                $this->persistAssignments($assignments);
-                DB::commit();
-            }
 
             $enrichedAssignments = $this->enrichAssignmentsWithNames($assignments, $employeeData);
 
@@ -74,16 +65,46 @@ class GenerateScheduleService
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'department_id' => $departmentId,
-                'persisted' => $persist,
                 'assignments' => $enrichedAssignments,
             ];
         } catch (\Exception $e) {
-            if ($persist) {
-                DB::rollBack();
-            }
             return [
                 'success' => false,
                 'message' => 'Schedule generation failed: ' . $e->getMessage(),
+                'error' => $e,
+            ];
+        }
+    }
+
+    public function saveReviewedSchedule(array $assignments): array
+    {
+        DB::beginTransaction();
+        try {
+            if (empty($assignments)) {
+                return [
+                    'success' => false,
+                    'message' => 'No assignments provided to save',
+                ];
+            }
+
+            $this->assignmentsService->createBulkAssignments($assignments);
+            DB::commit();
+
+            return [
+                'success' => true,
+                'message' => 'Schedule saved successfully',
+                'assignments_count' => count($assignments),
+            ];
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to save reviewed schedule', [
+                'error' => $e->getMessage(),
+                'assignments_count' => count($assignments),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Failed to save schedule: ' . $e->getMessage(),
                 'error' => $e,
             ];
         }

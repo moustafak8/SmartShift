@@ -66,3 +66,26 @@ export interface GenerateScheduleApiResponse {
   status: string;
   payload: GenerateScheduleResponse;
 }
+
+export interface SaveReviewedScheduleAssignment {
+  shift_id: number;
+  employee_id: number;
+  position_id: number;
+  assignment_type: string;
+  status: string;
+}
+
+export interface SaveReviewedScheduleRequest {
+  assignments: SaveReviewedScheduleAssignment[];
+}
+
+export interface SaveReviewedScheduleResponse {
+  success: boolean;
+  message: string;
+  saved_count: number;
+}
+
+export interface SaveReviewedScheduleApiResponse {
+  status: string;
+  payload: SaveReviewedScheduleResponse;
+}

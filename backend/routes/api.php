@@ -44,6 +44,7 @@ Route::prefix('v1')->group(function () {
     Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
     Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);
     Route::post('schedules/generate', [GenerateScheduleController::class, 'generate']);
+    Route::post('schedules/save-reviewed', [GenerateScheduleController::class, 'saveReviewed']);
     Route::get('positions', [PositionController::class, 'getAllPositions']);
     Route::get('departments/{departmentId}/positions', [PositionController::class, 'getPositionsByDepartment']);
     Route::get('positions/{positionId}', [PositionController::class, 'getPositionById']);
