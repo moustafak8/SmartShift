@@ -1,0 +1,642 @@
+<?php
+
+namespace App\Services;
+
+use App\Models\Shifts;
+use App\Models\User;
+use App\Models\Shift_Assigments;
+use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use OpenAI\Laravel\Facades\OpenAI;
+
+class GenerateScheduleService
+{
+    private const OPENAI_CHAT_MODEL = 'gpt-4.1';
+    private const OPENAI_TEMPERATURE = 0.3;
+    private const OPENAI_MAX_TOKENS = 1200;
+
+    private const FATIGUE_HIGH_THRESHOLD = 70;
+    private const FATIGUE_MEDIUM_THRESHOLD = 40;
+    private const FATIGUE_DEFAULT_SCORE = 50;
+    private const FATIGUE_SCORE_WEIGHT = 0.1;
+
+    private const DEFAULT_MAX_SHIFTS_PER_WEEK = 5;
+    private const DEFAULT_MAX_HOURS_PER_WEEK = 40;
+    private const DEFAULT_MAX_CONSECUTIVE_DAYS = 5;
+
+    private EmployeeAvailabilityService $availabilityService;
+    private EmployeePrefrenceService $preferenceService;
+    private ScoreService $scoreService;
+    private ShiftService $shiftService;
+    private AssigmentsService $assignmentsService;
+    private EmployeeWeeklyStatsCache $statsCache;
+
+    public function __construct(
+        EmployeeAvailabilityService $availabilityService,
+        EmployeePrefrenceService $preferenceService,
+        ScoreService $scoreService,
+        ShiftService $shiftService,
+        AssigmentsService $assignmentsService,
+        EmployeeWeeklyStatsCache $statsCache
+    ) {
+        $this->availabilityService = $availabilityService;
+        $this->preferenceService = $preferenceService;
+        $this->scoreService = $scoreService;
+        $this->shiftService = $shiftService;
+        $this->assignmentsService = $assignmentsService;
+        $this->statsCache = $statsCache;
+    }
+
+    public function generateSchedule(int $departmentId, string $startDate, string $endDate, bool $persist = false): array
+    {
+        try {
+            if ($persist) {
+                DB::beginTransaction();
+            }
+
+            $scheduleRequirements = $this->fetchScheduleRequirements($departmentId, $startDate, $endDate);
+            $employeeData = $this->fetchEmployeeData($departmentId);
+            $assignments = $this->assignEmployeesToShifts($scheduleRequirements, $employeeData);
+
+            if ($persist) {
+                $this->persistAssignments($assignments);
+                DB::commit();
+            }
+
+            $enrichedAssignments = $this->enrichAssignmentsWithNames($assignments, $employeeData);
+
+            return [
+                'success' => true,
+                'message' => 'Schedule generated successfully',
+                'assignments_count' => count($assignments),
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'department_id' => $departmentId,
+                'persisted' => $persist,
+                'assignments' => $enrichedAssignments,
+            ];
+        } catch (\Exception $e) {
+            if ($persist) {
+                DB::rollBack();
+            }
+            return [
+                'success' => false,
+                'message' => 'Schedule generation failed: ' . $e->getMessage(),
+                'error' => $e,
+            ];
+        }
+    }
+
+    private function fetchScheduleRequirements(int $departmentId, string $startDate, string $endDate): array
+    {
+        $start = Carbon::parse($startDate);
+        $end = Carbon::parse($endDate);
+
+        $shifts = Shifts::with('positionRequirements.position')
+            ->where('department_id', $departmentId)
+            ->whereBetween('shift_date', [$start->toDateString(), $end->toDateString()])
+            ->orderBy('shift_date')
+            ->orderBy('start_time')
+            ->get();
+
+        $requirements = [];
+
+        foreach ($shifts as $shift) {
+            $requirements[$shift->id] = [
+                'shift' => $shift,
+                'shift_id' => $shift->id,
+                'shift_date' => $shift->shift_date,
+                'start_time' => $shift->start_time,
+                'end_time' => $shift->end_time,
+                'shift_type' => $shift->shift_type,
+                'department_id' => $shift->department_id,
+                'position_requirements' => $this->formatPositionRequirements($shift->positionRequirements),
+            ];
+        }
+
+        return $requirements;
+    }
+
+    private function formatPositionRequirements(Collection $requirements): array
+    {
+        $formatted = [];
+
+        foreach ($requirements as $req) {
+            $formatted[$req->position_id] = [
+                'position_id' => $req->position_id,
+                'position_name' => $req->position->name ?? 'Unknown',
+                'required_count' => $req->required_count,
+                'filled_count' => 0,
+                'assigned_employees' => [],
+            ];
+        }
+
+        return $formatted;
+    }
+
+    private function fetchEmployeeData(int $departmentId): array
+    {
+        $employees = User::with(['employeeDepartments.position'])
+            ->whereHas('employeeDepartments', function ($query) use ($departmentId) {
+                $query->where('department_id', $departmentId);
+            })
+            ->where('is_active', true)
+            ->get();
+
+        $employeeData = [];
+
+        foreach ($employees as $employee) {
+            $employeeData[$employee->id] = [
+                'user' => $employee,
+                'employee_id' => $employee->id,
+                'full_name' => $employee->full_name,
+                'positions' => $this->getEmployeePositions($employee),
+                'availability' => null, // Will be fetched per-shift
+                'preferences' => $this->preferenceService->getByEmployee($employee->id),
+                'fatigue_score' => $this->getFatigueScore($employee->id),
+                'hours_assigned' => 0, // Track hours for this schedule
+                'consecutive_days' => [], // Track consecutive working days
+            ];
+        }
+
+        return $employeeData;
+    }
+
+    private function getEmployeePositions(User $employee): array
+    {
+        return $employee->employeeDepartments()
+            ->pluck('position_id')
+            ->toArray();
+    }
+
+    private function getFatigueScore(int $employeeId): ?array
+    {
+        try {
+            return $this->scoreService->getLatestScoreForEmployee($employeeId);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    private function assignEmployeesToShifts(array $scheduleRequirements, array $employeeData): array
+    {
+        $assignments = [];
+        $filledCounts = [];
+        $assignedInShift = [];
+
+        // Build candidate pool based on hard constraints so AI only sees valid options
+        $candidatePool = $this->buildCandidatePool($scheduleRequirements, $employeeData, $assignments, $assignedInShift);
+
+        // Ask AI to pick the best mapping from candidates to positions
+        $aiSuggestions = $this->requestAiAssignments($scheduleRequirements, $candidatePool, $employeeData);
+
+        // Apply AI suggestions first (validated)
+        $this->applyAiAssignments(
+            $aiSuggestions,
+            $scheduleRequirements,
+            $employeeData,
+            $assignments,
+            $filledCounts,
+            $assignedInShift,
+            $candidatePool
+        );
+
+        // Fill any remaining gaps with a greedy fallback using the same candidate pool
+        $this->fillRemainingWithGreedy(
+            $scheduleRequirements,
+            $employeeData,
+            $assignments,
+            $filledCounts,
+            $assignedInShift,
+            $candidatePool
+        );
+
+        return $assignments;
+    }
+
+    private function buildCandidatePool(
+        array $scheduleRequirements,
+        array $employeeData,
+        array $assignments,
+        array $assignedInShift
+    ): array {
+        $pool = [];
+
+        foreach ($scheduleRequirements as $shiftId => $requirement) {
+            $shiftDate = $requirement['shift_date'];
+            foreach ($requirement['position_requirements'] as $positionId => $posReq) {
+                $pool[$shiftId][$positionId] = [
+                    'position_name' => $posReq['position_name'],
+                    'required_count' => $posReq['required_count'],
+                    'candidates' => [],
+                ];
+
+                foreach ($employeeData as $employeeId => $empData) {
+                    if (!in_array($positionId, $empData['positions'])) {
+                        continue;
+                    }
+
+                    if ($this->canEmployeeWorkShift(
+                        $employeeId,
+                        $shiftDate,
+                        $requirement,
+                        $employeeData,
+                        $assignments,
+                        $assignedInShift,
+                        false,
+                        $scheduleRequirements
+                    )) {
+                        $pool[$shiftId][$positionId]['candidates'][] = $employeeId;
+                    }
+                }
+            }
+        }
+
+        return $pool;
+    }
+
+    private function requestAiAssignments(
+        array $scheduleRequirements,
+        array $candidatePool,
+        array $employeeData
+    ): array {
+        try {
+            $prompt = $this->buildAiPrompt($scheduleRequirements, $candidatePool, $employeeData);
+            $raw = $this->callOpenAi($prompt);
+            return $this->parseAiAssignments($raw);
+        } catch (\Throwable $e) {
+            Log::warning('AI scheduling failed, falling back to greedy', ['error' => $e->getMessage()]);
+            return [];
+        }
+    }
+
+    private function buildAiPrompt(array $scheduleRequirements, array $candidatePool, array $employeeData): string
+    {
+        $shiftBlocks = [];
+        foreach ($scheduleRequirements as $shiftId => $req) {
+            $positions = [];
+            foreach ($candidatePool[$shiftId] ?? [] as $posId => $pos) {
+                $candidateNames = array_map(function ($empId) use ($employeeData) {
+                    $empData = $employeeData[$empId];
+                    $fatigueLevel = 'unknown';
+                    if ($empData['fatigue_score']) {
+                        $score = $empData['fatigue_score']['fatigue_score'] ?? 0;
+                        $fatigueLevel = $score > self::FATIGUE_HIGH_THRESHOLD ? 'high' : ($score > self::FATIGUE_MEDIUM_THRESHOLD ? 'medium' : 'low');
+                    }
+
+                    return [
+                        'id' => $empId,
+                        'name' => $empData['full_name'] ?? 'Employee ' . $empId,
+                        'fatigue_level' => $fatigueLevel,
+                        'hours_this_schedule' => $empData['hours_assigned'] ?? 0,
+                    ];
+                }, $pos['candidates']);
+
+                $positions[] = [
+                    'position_id' => $posId,
+                    'position_name' => $pos['position_name'],
+                    'required_count' => $pos['required_count'],
+                    'candidates' => $candidateNames,
+                ];
+            }
+
+            // Determine if this is a peak shift (weekend or specific hours)
+            $date = Carbon::parse($req['shift_date']);
+            $isWeekend = $date->isWeekend();
+            $shiftBlocks[] = [
+                'shift_id' => $shiftId,
+                'date' => (string) $req['shift_date'],
+                'day_of_week' => $date->format('l'),
+                'is_weekend' => $isWeekend,
+                'start_time' => $req['start_time'],
+                'end_time' => $req['end_time'],
+                'shift_type' => $req['shift_type'],
+                'positions' => $positions,
+            ];
+        }
+
+        $instructions = 'You are an intelligent shift scheduling assistant for a restaurant business. '
+            . 'Your task: Assign employees to positions for each shift based on the provided eligible candidates. '
+            . 'CRITICAL RULES: '
+            . '1. Each position has a required_count - you MUST  fill ALL slots with different employees. '
+            . '2. An employee can work MULTIPLE different shifts throughout the week if they appear in multiple candidate lists. '
+            . '3. An employee can only be assigned to ONE position per shift (no duplicate assignments within the same shift_id). '
+            . '4. FAIR DISTRIBUTION - Distribute hours fairly across employees. Check hours_this_schedule for each candidate. '
+            . '5. FATIGUE AWARENESS - Avoid assigning high-fatigue employees to consecutive shifts. Prioritize low/medium fatigue when possible. '
+            . '6. WEEKEND BALANCE - Distribute weekend shifts fairly. Don\'t give all weekends to the same employees. '
+            . '7. EXPERIENCE - For peak shifts (weekends, busy times), try to have a good mix if possible. '
+            . '8. All candidates provided have already been validated for availability and position qualifications. '
+            . 'Output: Return ONLY valid JSON with an "assignments" array containing objects: {"shift_id": number, "position_id": number, "employee_id": number}.';
+
+        return json_encode([
+            'instructions' => $instructions,
+            'shifts' => $shiftBlocks,
+        ], JSON_PRETTY_PRINT);
+    }
+
+    private function callOpenAi(string $prompt): string
+    {
+        $response = OpenAI::chat()->create([
+            'model' => self::OPENAI_CHAT_MODEL,
+            'messages' => [
+                ['role' => 'system', 'content' => 'You return pure JSON only.'],
+                ['role' => 'user', 'content' => $prompt],
+            ],
+            'temperature' => self::OPENAI_TEMPERATURE,
+            'max_tokens' => self::OPENAI_MAX_TOKENS,
+        ]);
+
+        return $response->choices[0]->message->content ?? '';
+    }
+
+    private function parseAiAssignments(string $raw): array
+    {
+        $decoded = json_decode($raw, true);
+        if (! is_array($decoded) || ! isset($decoded['assignments']) || ! is_array($decoded['assignments'])) {
+            throw new \RuntimeException('AI response was not valid JSON assignments.');
+        }
+
+        return $decoded['assignments'];
+    }
+
+    private function applyAiAssignments(
+        array $aiAssignments,
+        array $scheduleRequirements,
+        array &$employeeData,
+        array &$assignments,
+        array &$filledCounts,
+        array &$assignedInShift,
+        array $candidatePool
+    ): void {
+        foreach ($aiAssignments as $item) {
+            $shiftId = $item['shift_id'] ?? null;
+            $positionId = $item['position_id'] ?? null;
+            $employeeId = $item['employee_id'] ?? null;
+
+            if (! $shiftId || ! $positionId || ! $employeeId) {
+                continue;
+            }
+
+            if (! isset($scheduleRequirements[$shiftId]['position_requirements'][$positionId])) {
+                continue; // invalid position or shift
+            }
+
+            if (! in_array($employeeId, $candidatePool[$shiftId][$positionId]['candidates'] ?? [], true)) {
+                continue; // not an eligible candidate
+            }
+
+            $shiftData = $scheduleRequirements[$shiftId];
+
+            // Check constraint before assigning
+            if ($this->canEmployeeWorkShift(
+                $employeeId,
+                $shiftData['shift_date'],
+                $shiftData,  // Pass full shift data, not position requirements
+                $employeeData,
+                $assignments,
+                $assignedInShift,
+                false,  // lenient mode
+                $scheduleRequirements
+            )) {
+                $assignments[] = [
+                    'shift_id' => $shiftId,
+                    'employee_id' => $employeeId,
+                    'position_id' => $positionId,
+                    'assignment_type' => 'scheduled',
+                    'status' => 'active',
+                ];
+
+                $this->markAssignment($shiftId, $positionId, $employeeId, $filledCounts, $assignedInShift);
+                $this->updateEmployeeTracking($employeeId, $shiftData, $employeeData);
+            }
+        }
+    }
+
+    private function fillRemainingWithGreedy(
+        array $scheduleRequirements,
+        array &$employeeData,
+        array &$assignments,
+        array &$filledCounts,
+        array &$assignedInShift,
+        array $candidatePool
+    ): void {
+        foreach ($scheduleRequirements as $shiftId => $req) {
+            $shiftDate = $req['shift_date'];
+            foreach ($req['position_requirements'] as $positionId => $posReq) {
+                $required = $posReq['required_count'];
+                $already = $filledCounts[$shiftId][$positionId] ?? 0;
+                $remaining = $required - $already;
+
+                if ($remaining <= 0) {
+                    continue;
+                }
+
+                $shiftData = $scheduleRequirements[$shiftId];
+                $sortedCandidates = $this->sortCandidatesByFairness($candidatePool[$shiftId][$positionId]['candidates'] ?? [], $employeeData);
+
+                foreach ($sortedCandidates as $employeeId) {
+                    if ($remaining <= 0) {
+                        break;
+                    }
+
+                    if ($this->canEmployeeWorkShift(
+                        $employeeId,
+                        $shiftDate,
+                        $shiftData,
+                        $employeeData,
+                        $assignments,
+                        $assignedInShift,
+                        false,
+                        $scheduleRequirements
+                    )) {
+                        $assignments[] = [
+                            'shift_id' => $shiftId,
+                            'employee_id' => $employeeId,
+                            'position_id' => $positionId,
+                            'assignment_type' => 'scheduled',
+                            'status' => 'active',
+                        ];
+
+                        $this->markAssignment($shiftId, $positionId, $employeeId, $filledCounts, $assignedInShift);
+                        $this->updateEmployeeTracking($employeeId, $shiftData, $employeeData);
+                        $remaining--;
+                    }
+                }
+
+                if ($remaining > 0) {
+                    Log::warning(
+                        "Understaffed position {$posReq['position_name']} shift {$shiftId}",
+                        ['required' => $required, 'assigned' => $required - $remaining]
+                    );
+                }
+            }
+        }
+    }
+
+    private function sortCandidatesByFairness(array $candidates, array $employeeData): array
+    {
+        $scored = array_map(function ($employeeId) use ($employeeData) {
+            $empData = $employeeData[$employeeId];
+            $hours = $empData['hours_assigned'] ?? 0;
+            $fatigue = $empData['fatigue_score']['fatigue_score'] ?? self::FATIGUE_DEFAULT_SCORE;
+            return ['id' => $employeeId, 'score' => $hours + ($fatigue * self::FATIGUE_SCORE_WEIGHT)];
+        }, $candidates);
+
+        usort($scored, fn($a, $b) => $a['score'] <=> $b['score']);
+        return array_column($scored, 'id');
+    }
+
+    private function markAssignment(
+        int $shiftId,
+        int $positionId,
+        int $employeeId,
+        array &$filledCounts,
+        array &$assignedInShift
+    ): void {
+        $filledCounts[$shiftId][$positionId] = ($filledCounts[$shiftId][$positionId] ?? 0) + 1;
+        $assignedInShift[$shiftId][$employeeId] = true;
+    }
+
+    private function canEmployeeWorkShift(
+        int $employeeId,
+        string $shiftDate,
+        array $shiftData,
+        array $employeeData,
+        array $pendingAssignments = [],
+        array $assignedInShift = [],
+        bool $strictMode = false,
+        array $scheduleRequirements = []
+    ): bool {
+        return $this->checkHardConstraints($employeeId, $shiftDate, $shiftData, $employeeData, $pendingAssignments, $assignedInShift, $scheduleRequirements)
+            && ($strictMode ? $this->checkSoftConstraints($employeeId, $shiftDate, $shiftData, $employeeData) : true);
+    }
+
+    private function checkHardConstraints(
+        int $employeeId,
+        string $shiftDate,
+        array $shiftData,
+        array $employeeData,
+        array $pendingAssignments,
+        array $assignedInShift,
+        array $scheduleRequirements
+    ): bool {
+        if (isset($assignedInShift[$shiftData['shift_id']][$employeeId])) {
+            return false;
+        }
+
+        $availability = $this->availabilityService->getAvailabilityForDate($employeeId, $shiftDate);
+        if ($availability && !$availability['is_available']) {
+            return false;
+        }
+
+        return !$this->employeeAlreadyAssignedOnDate($employeeId, $shiftDate, $pendingAssignments, $scheduleRequirements);
+    }
+
+    private function checkSoftConstraints(
+        int $employeeId,
+        string $shiftDate,
+        array $shiftData,
+        array $employeeData
+    ): bool {
+        $empData = $employeeData[$employeeId];
+        if (!$empData['preferences']) {
+            return true;
+        }
+
+        $prefs = $empData['preferences'];
+
+        if ($prefs->preferred_shift_types && !in_array($shiftData['shift_type'], $prefs->preferred_shift_types)) {
+            return false;
+        }
+
+        $maxShiftsPerWeek = $prefs->max_shifts_per_week ?? self::DEFAULT_MAX_SHIFTS_PER_WEEK;
+        if ($this->getShiftsInWeek($employeeId, $shiftDate) >= $maxShiftsPerWeek) {
+            return false;
+        }
+
+        $maxHoursPerWeek = $prefs->max_hours_per_week ?? self::DEFAULT_MAX_HOURS_PER_WEEK;
+        $hoursThisWeek = $this->getHoursInWeek($employeeId, $shiftDate);
+        $shiftHours = $this->shiftService->calculateShiftDuration($shiftData['start_time'], $shiftData['end_time']);
+        if (($hoursThisWeek + $shiftHours) > $maxHoursPerWeek) {
+            return false;
+        }
+
+        $maxConsecutiveDays = $prefs->max_consecutive_days ?? self::DEFAULT_MAX_CONSECUTIVE_DAYS;
+        if ($this->countConsecutiveDays($employeeId, $shiftDate) >= $maxConsecutiveDays) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function getShiftsInWeek(int $employeeId, string $date): int
+    {
+        return $this->statsCache->getShiftsInWeek($employeeId, $date);
+    }
+
+    private function getHoursInWeek(int $employeeId, string $date): float
+    {
+        return $this->statsCache->getHoursInWeek($employeeId, $date);
+    }
+
+    private function countConsecutiveDays(int $employeeId, string $date): int
+    {
+        return $this->statsCache->countConsecutiveDays($employeeId, $date);
+    }
+
+    private function employeeAlreadyAssignedOnDate(
+        int $employeeId,
+        string $date,
+        array $pendingAssignments = [],
+        array $scheduleRequirements = []
+    ): bool {
+        foreach ($pendingAssignments as $assignment) {
+            if ($assignment['employee_id'] === $employeeId) {
+                $shiftId = $assignment['shift_id'];
+                if (isset($scheduleRequirements[$shiftId]) && $scheduleRequirements[$shiftId]['shift_date'] === $date) {
+                    return true;
+                }
+            }
+        }
+
+        return Shift_Assigments::with('shift')
+            ->where('employee_id', $employeeId)
+            ->whereHas('shift', function ($q) use ($date) {
+                $q->where('shift_date', $date);
+            })
+            ->exists();
+    }
+
+    private function updateEmployeeTracking(int $employeeId, array $shiftData, array &$employeeData): void
+    {
+        $shiftHours = $this->shiftService->calculateShiftDuration($shiftData['start_time'], $shiftData['end_time']);
+        $employeeData[$employeeId]['hours_assigned'] += $shiftHours;
+        $employeeData[$employeeId]['consecutive_days'][] = $shiftData['shift_date'];
+    }
+
+    private function persistAssignments(array $assignments): void
+    {
+        if (empty($assignments)) {
+            Log::warning('No assignments to persist');
+            return;
+        }
+
+        $this->assignmentsService->createBulkAssignments($assignments);
+    }
+
+    private function enrichAssignmentsWithNames(array $assignments, array $employeeData): array
+    {
+        return array_map(function ($assignment) use ($employeeData) {
+            return [
+                'shift_id' => $assignment['shift_id'],
+                'employee_id' => $assignment['employee_id'],
+                'employee_name' => $employeeData[$assignment['employee_id']]['full_name'] ?? 'Unknown',
+                'position_id' => $assignment['position_id'],
+                'assignment_type' => $assignment['assignment_type'],
+                'status' => $assignment['status'],
+            ];
+        }, $assignments);
+    }
+}

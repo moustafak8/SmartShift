@@ -5,6 +5,7 @@ use App\Http\Controllers\EmployeeAvailabilityController;
 use App\Http\Controllers\EmployeeDepartmentController;
 use App\Http\Controllers\EmployeePreferencesController;
 use App\Http\Controllers\FatigueScoreController;
+use App\Http\Controllers\GenerateScheduleController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
@@ -42,6 +43,7 @@ Route::prefix('v1')->group(function () {
     Route::post('employee-availability', [EmployeeAvailabilityController::class, 'storeAvailability']);
     Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
     Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);
+    Route::post('schedules/generate', [GenerateScheduleController::class, 'generate']);
     Route::get('positions', [PositionController::class, 'getAllPositions']);
     Route::get('departments/{departmentId}/positions', [PositionController::class, 'getPositionsByDepartment']);
     Route::get('positions/{positionId}', [PositionController::class, 'getPositionById']);
