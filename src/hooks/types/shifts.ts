@@ -67,3 +67,29 @@ export interface ShiftFormData {
   position_requirements?: PositionRequirement[];
 }
 
+// Shift Assignments Types
+export interface ShiftAssignment {
+  assignment_id: number;
+  employee_id: number;
+  full_name: string;
+  initials: string;
+  assignment_type: "regular" | "overtime" | "on_call";
+  status: "assigned" | "pending" | "confirmed" | "cancelled";
+}
+
+export interface DayAssignments {
+  day: ShiftAssignment[];
+  evening: ShiftAssignment[];
+  night: ShiftAssignment[];
+}
+
+export interface ShiftAssignmentsPayload {
+  start_date: string;
+  end_date: string;
+  days: Record<string, DayAssignments>;
+}
+
+export interface ShiftAssignmentsResponse {
+  status: string;
+  payload: ShiftAssignmentsPayload;
+}
