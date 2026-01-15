@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../ui/Button";
 import type { Shift, ShiftAssignmentsPayload } from "../../hooks/types/shifts";
@@ -7,9 +7,10 @@ interface ShiftCalendarProps {
   shifts: Shift[];
   isLoading: boolean;
   assignments: ShiftAssignmentsPayload | null;
+  onWeekChange?: (startDate: string) => void;
 }
 
-export function ShiftCalendar({ shifts, isLoading, assignments }: ShiftCalendarProps) {
+export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: ShiftCalendarProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const dayOfWeek = today.getDay();
@@ -18,6 +19,15 @@ export function ShiftCalendar({ shifts, isLoading, assignments }: ShiftCalendarP
     monday.setHours(0, 0, 0, 0);
     return monday;
   });
+
+
+  useEffect(() => {
+    const year = currentWeekStart.getFullYear();
+    const month = String(currentWeekStart.getMonth() + 1).padStart(2, '0');
+    const day = String(currentWeekStart.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+    onWeekChange?.(dateStr);
+  }, [currentWeekStart, onWeekChange]);
 
   const getWeekDays = (startDate: Date) => {
     const days = [];

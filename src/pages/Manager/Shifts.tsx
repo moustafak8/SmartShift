@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Calendar, Plus } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Layout } from "../../components/Sidebar";
@@ -14,16 +14,17 @@ export function Shifts() {
   const { refetch } = useShiftTemplates();
   const { departmentId } = useAuth();
   const { shifts, isLoading, refetch: refetchShifts } = useShifts(departmentId || 0);
-  
-  // Calculate the start date for the current week (Monday)
-  const startDate = useMemo(() => {
-    // Use Jan 12, 2026 as the base date (Monday)
-    const baseDate = new Date(2026, 0, 12); // January 12, 2026
-    const year = baseDate.getFullYear();
-    const month = String(baseDate.getMonth() + 1).padStart(2, '0');
-    const day = String(baseDate.getDate()).padStart(2, '0');
+
+  const [startDate, setStartDate] = useState(() => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const year = monday.getFullYear();
+    const month = String(monday.getMonth() + 1).padStart(2, '0');
+    const day = String(monday.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  }, []);
+  });
   
   const { assignments, isLoading: assignmentsLoading, refetch: refetchAssignments } = useShiftAssignments(
     startDate,
@@ -76,6 +77,7 @@ export function Shifts() {
           shifts={shifts} 
           isLoading={isLoading || assignmentsLoading} 
           assignments={assignments}
+          onWeekChange={setStartDate}
         />
       </div>
 
