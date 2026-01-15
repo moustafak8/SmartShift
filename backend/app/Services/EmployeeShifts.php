@@ -22,7 +22,7 @@ class EmployeeShifts
             ])
             ->findOrFail($id);
 
-        // Get upcoming 3 shifts (status = 'assigned' or 'confirmed')
+        // Get upcoming 3 shifts 
         $upcomingShifts = $employee
             ->shift_assigments()
             ->join('shifts', 'shift__assigments.shift_id', '=', 'shifts.id')
@@ -51,11 +51,15 @@ class EmployeeShifts
             ->whereBetween('shifts.shift_date', [$monthStart, $monthEnd])
             ->whereIn('shift__assigments.status', ['assigned', 'confirmed', 'completed'])
             ->selectRaw('COUNT(*) as total_shifts')
-            ->selectRaw('SUM(TIME_TO_SEC(TIMEDIFF(shifts.end_time, shifts.start_time)) / 3600) as total_hours')
+            ->selectRaw("SUM(CASE 
+                WHEN TIME(shifts.end_time) <= TIME(shifts.start_time) 
+                THEN (TIME_TO_SEC(shifts.end_time) + 86400 - TIME_TO_SEC(shifts.start_time)) / 3600
+                ELSE (TIME_TO_SEC(shifts.end_time) - TIME_TO_SEC(shifts.start_time)) / 3600
+            END) as total_hours")
             ->selectRaw("SUM(CASE WHEN shifts.shift_type = 'night' THEN 1 ELSE 0 END) as night_shifts")
             ->first();
 
-        // Calculate consecutive days
+
         $consecutiveDays = $this->calculateConsecutiveDays($employee, $monthStart, $monthEnd);
 
         $latestFatigue = $employee->latestFatigueScore;
