@@ -25,6 +25,8 @@ Route::prefix('v1')->group(function () {
     Route::get('shifts/{id}/assignments', [ShiftAssigmentsController::class, 'getShiftAssignments']);
     Route::post('shift-assignments', [ShiftAssigmentsController::class, 'createAssignment']);
     Route::post('shift-assignments/bulk', [ShiftAssigmentsController::class, 'createBulkAssignments']);
+    Route::put('shift-assignments/{assignmentId}', [ShiftAssigmentsController::class, 'updateAssignment']);
+    Route::delete('shift-assignments/{assignmentId}', [ShiftAssigmentsController::class, 'deleteAssignment']);
     Route::get('shift-assignments/week', [ShiftAssigmentsController::class, 'getWeeklyAssignments']);
     Route::get('employees/{employeeId}/shift-assignments/week', [ShiftAssigmentsController::class, 'getWeeklyAssignmentsByEmployee']);
     Route::get('wellness-entries/{departmentId}', [WellnessEntriesController::class, 'getEntries']);
@@ -38,8 +40,8 @@ Route::prefix('v1')->group(function () {
     Route::get('employees/{employeeId}/preferences', [EmployeePreferencesController::class, 'getPreference']);
     Route::post('employee-preferences', [EmployeePreferencesController::class, 'storePreference']);
     Route::delete('employees/{employeeId}/preferences', [EmployeePreferencesController::class, 'deletePreference']);
-    Route::get('employee-availability', [EmployeeAvailabilityController::class, 'listAvailability']);
     Route::get('employees/{employeeId}/availability', [EmployeeAvailabilityController::class, 'getAvailability']);
+    Route::get('departments/{departmentId}/available-employees', [EmployeeAvailabilityController::class, 'getAvailableEmployeesForDate']);
     Route::post('employee-availability', [EmployeeAvailabilityController::class, 'storeAvailability']);
     Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
     Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);

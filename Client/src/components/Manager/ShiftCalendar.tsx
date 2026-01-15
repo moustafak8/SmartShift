@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../ui/Button";
+import { ManageAssignmentsDialog } from "./ManageAssignmentsDialog";
 import type { Shift, ShiftAssignmentsPayload } from "../../hooks/types/shifts";
 
 interface ShiftCalendarProps {
@@ -8,9 +9,10 @@ interface ShiftCalendarProps {
   isLoading: boolean;
   assignments: ShiftAssignmentsPayload | null;
   onWeekChange?: (startDate: string) => void;
+  onAssignmentChange?: () => void;
 }
 
-export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: ShiftCalendarProps) {
+export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange, onAssignmentChange }: ShiftCalendarProps) {
   const [currentWeekStart, setCurrentWeekStart] = useState(() => {
     const today = new Date();
     const dayOfWeek = today.getDay();
@@ -19,6 +21,12 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
     monday.setHours(0, 0, 0, 0);
     return monday;
   });
+
+
+  const [selectedShift, setSelectedShift] = useState<Shift | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>("");
+  const [selectedAssignments, setSelectedAssignments] = useState<any[]>([]);
+  const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
 
 
   useEffect(() => {
@@ -119,6 +127,29 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
     );
   };
 
+  const handleShiftClick = (shift: Shift, day: Date, shiftTypeAssignments: any[]) => {
+    const year = day.getFullYear();
+    const month = String(day.getMonth() + 1).padStart(2, '0');
+    const dayNum = String(day.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${dayNum}`;
+
+    setSelectedShift(shift);
+    setSelectedDate(dateStr);
+    setSelectedAssignments(shiftTypeAssignments);
+    setIsManageDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setIsManageDialogOpen(false);
+    setSelectedShift(null);
+    setSelectedDate("");
+    setSelectedAssignments([]);
+  };
+
+  const handleAssignmentChange = () => {
+    onAssignmentChange?.();
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -168,17 +199,15 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
               return (
                 <div
                   key={index}
-                  className={`p-4 text-center border-r border-[#E5E7EB] last:border-r-0 ${
-                    isToday ? "bg-blue-50" : ""
-                  }`}
+                  className={`p-4 text-center border-r border-[#E5E7EB] last:border-r-0 ${isToday ? "bg-blue-50" : ""
+                    }`}
                 >
                   <div className="text-xs font-medium text-[#6B7280] uppercase">
                     {day.toLocaleDateString("en-US", { weekday: "short" })}
                   </div>
                   <div
-                    className={`text-lg font-semibold mt-1 ${
-                      isToday ? "text-[#3B82F6]" : "text-[#111827]"
-                    }`}
+                    className={`text-lg font-semibold mt-1 ${isToday ? "text-[#3B82F6]" : "text-[#111827]"
+                      }`}
                   >
                     {day.getDate()}
                   </div>
@@ -210,9 +239,8 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
                   return (
                     <div
                       key={dayIndex}
-                      className={`p-2 border-r border-[#E5E7EB] last:border-r-0 min-h-[100px] ${
-                        isToday ? "bg-blue-50/30" : ""
-                      }`}
+                      className={`p-2 border-r border-[#E5E7EB] last:border-r-0 min-h-[100px] ${isToday ? "bg-blue-50/30" : ""
+                        }`}
                     >
                       {shiftsForTime.length > 0 ? (
                         <div className="space-y-2">
@@ -222,12 +250,12 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
                             const dayNum = String(day.getDate()).padStart(2, '0');
                             const dateStr = `${year}-${month}-${dayNum}`;
                             const dayAssignments = assignments?.days[dateStr];
-                            
+
                             const shiftType = shift.shift_type as "day" | "evening" | "night";
-                            const shiftTypeAssignments = (shift.shift_type !== "rotating" && dayAssignments) 
-                              ? dayAssignments[shiftType] || [] 
+                            const shiftTypeAssignments = (shift.shift_type !== "rotating" && dayAssignments)
+                              ? dayAssignments[shiftType] || []
                               : [];
-                            
+
                             const assignedCount = shiftTypeAssignments.length;
                             const requiredCount = shift.required_staff_count;
                             const isFilled = assignedCount >= requiredCount;
@@ -236,11 +264,12 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
                             return (
                               <div
                                 key={shift.id}
+                                onClick={() => handleShiftClick(shift, day, shiftTypeAssignments)}
                                 className={`p-3 rounded-lg border-2 ${getShiftColor(
                                   shift.shift_type
-                                )} cursor-pointer hover:shadow-md transition-shadow`}
+                                )} cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200`}
                               >
-                                
+
                                 <div className="flex items-center justify-between mb-2">
                                   <div className="text-xs font-semibold text-[#111827]">
                                     <span className={isFilled ? "text-green-600" : "text-amber-600"}>
@@ -248,8 +277,8 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
                                     </span>
                                     <span className="text-[#6B7280] ml-1">filled</span>
                                   </div>
-                                  
-                                
+
+
                                   {!isFilled && (
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
                                       {shift.status}
@@ -262,17 +291,16 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
                                   )}
                                 </div>
 
-                               
+
                                 <div className="w-full bg-gray-200 rounded-full h-1.5 mb-2">
                                   <div
-                                    className={`h-1.5 rounded-full transition-all ${
-                                      isFilled ? "bg-green-500" : fillPercentage >= 50 ? "bg-amber-500" : "bg-red-500"
-                                    }`}
+                                    className={`h-1.5 rounded-full transition-all ${isFilled ? "bg-green-500" : fillPercentage >= 50 ? "bg-amber-500" : "bg-red-500"
+                                      }`}
                                     style={{ width: `${Math.min(fillPercentage, 100)}%` }}
                                   ></div>
                                 </div>
 
-                                
+
                                 {shiftTypeAssignments.length > 0 ? (
                                   <div className="space-y-1">
                                     {shiftTypeAssignments.map((assignment) => (
@@ -310,6 +338,16 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange }: 
           )}
         </div>
       </div>
+
+
+      <ManageAssignmentsDialog
+        isOpen={isManageDialogOpen}
+        onClose={handleDialogClose}
+        shift={selectedShift}
+        assignments={selectedAssignments}
+        date={selectedDate}
+        onAssignmentChange={handleAssignmentChange}
+      />
     </div>
   );
 }

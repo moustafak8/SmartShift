@@ -61,4 +61,26 @@ class ShiftAssigmentsController extends Controller
 
         return $this->responseJSON($schedule, 'success', 200);
     }
+
+    public function updateAssignment($assignmentId, StoreShiftAssignmentRequest $request)
+    {
+        $assignment = $this->assigmentsService->updateAssignment((int) $assignmentId, $request->validated());
+
+        if (!$assignment) {
+            return $this->responseJSON(null, 'Assignment not found', 404);
+        }
+
+        return $this->responseJSON($assignment, 'Assignment updated successfully', 200);
+    }
+
+    public function deleteAssignment($assignmentId)
+    {
+        $deleted = $this->assigmentsService->deleteAssignment((int) $assignmentId);
+
+        if (!$deleted) {
+            return $this->responseJSON(null, 'Assignment not found', 404);
+        }
+
+        return $this->responseJSON(null, 'Assignment deleted successfully', 200);
+    }
 }

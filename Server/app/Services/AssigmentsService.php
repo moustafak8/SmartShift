@@ -42,6 +42,30 @@ class AssigmentsService
         return Shift_Assigments::whereIn('id', $ids)->get();
     }
 
+    public function updateAssignment(int $assignmentId, array $data): ?Shift_Assigments
+    {
+        $assignment = Shift_Assigments::find($assignmentId);
+
+        if (!$assignment) {
+            return null;
+        }
+
+        $assignment->update($data);
+
+        return $assignment->fresh();
+    }
+
+    public function deleteAssignment(int $assignmentId): bool
+    {
+        $assignment = Shift_Assigments::find($assignmentId);
+
+        if (!$assignment) {
+            return false;
+        }
+
+        return $assignment->delete();
+    }
+
     public function determineAssignmentType(int $employeeId, int $shiftId, string $shiftDate): string
     {
 
