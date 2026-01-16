@@ -78,6 +78,7 @@ export function Shifts() {
           isLoading={isLoading || assignmentsLoading} 
           assignments={assignments}
           onWeekChange={setStartDate}
+          onAssignmentChange={refetchAssignments}
         />
       </div>
 

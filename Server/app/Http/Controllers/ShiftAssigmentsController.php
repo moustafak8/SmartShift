@@ -32,9 +32,13 @@ class ShiftAssigmentsController extends Controller
 
     public function createAssignment(StoreShiftAssignmentRequest $request)
     {
-        $assignment = $this->assigmentsService->createAssignment($request->validated());
+        try {
+            $assignment = $this->assigmentsService->createAssignment($request->validated());
 
-        return $this->responseJSON($assignment, 'success', 201);
+            return $this->responseJSON($assignment, 'Assignment created successfully', 201);
+        } catch (\Exception $e) {
+            return $this->responseJSON(null, $e->getMessage(), 400);
+        }
     }
 
     public function createBulkAssignments(BulkAssignmentsRequest $request)
@@ -60,5 +64,27 @@ class ShiftAssigmentsController extends Controller
         $schedule = $this->assigmentsService->getWeeklyScheduleByEmployee($data['start_date'], (int) $employeeId, $data['department_id'] ?? null);
 
         return $this->responseJSON($schedule, 'success', 200);
+    }
+
+    public function updateAssignment($assignmentId, StoreShiftAssignmentRequest $request)
+    {
+        $assignment = $this->assigmentsService->updateAssignment((int) $assignmentId, $request->validated());
+
+        if (! $assignment) {
+            return $this->responseJSON(null, 'Assignment not found', 404);
+        }
+
+        return $this->responseJSON($assignment, 'Assignment updated successfully', 200);
+    }
+
+    public function deleteAssignment($assignmentId)
+    {
+        $deleted = $this->assigmentsService->deleteAssignment((int) $assignmentId);
+
+        if (! $deleted) {
+            return $this->responseJSON(null, 'Assignment not found', 404);
+        }
+
+        return $this->responseJSON(null, 'Assignment deleted successfully', 200);
     }
 }

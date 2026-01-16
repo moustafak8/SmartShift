@@ -24,4 +24,9 @@ class Employee_Availability extends Model
         'is_available' => 'boolean',
         'specific_date' => 'date',
     ];
+
+    public function employee()
+    {
+        return $this->belongsTo(User::class, 'employee_id');
+    }
 }

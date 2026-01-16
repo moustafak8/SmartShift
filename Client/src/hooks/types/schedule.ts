@@ -77,3 +77,33 @@ export interface SaveReviewedScheduleApiResponse {
   status: string;
   payload: SaveReviewedScheduleResponse;
 }
+export interface CreateAssignmentRequest {
+  shift_id: number;
+  employee_id: number;
+  position_id: number;
+  assignment_type: "regular" | "overtime" | "cover";
+  status: "assigned" | "confirmed";
+}
+
+export interface UpdateAssignmentRequest {
+  shift_id: number;
+  employee_id: number;
+  position_id: number;
+  assignment_type: "regular" | "overtime" | "cover";
+  status: "assigned" | "confirmed";
+}
+
+export interface AvailableEmployee {
+  id: number;
+  employee_id: number;
+  employee_name: string;
+  position_id: number;
+  position_name: string;
+  is_available: boolean;
+  preferred_shift_type: string;
+}
+
+export interface AvailableEmployeesResponse {
+  status: string;
+  payload: AvailableEmployee[];
+}

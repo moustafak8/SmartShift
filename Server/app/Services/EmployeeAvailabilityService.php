@@ -8,23 +8,60 @@ use Illuminate\Support\Collection;
 
 class EmployeeAvailabilityService
 {
-    public function listAvailability(): Collection
+    public function getAvailableEmployeesForDate(int $departmentId, string $date): Collection
     {
-        return Employee_Availability::select([
-            'id',
-            'employee_id',
-            'day_of_week',
-            'specific_date',
-            'is_available',
-            'preferred_shift_type',
-            'reason',
-            'notes',
-        ])->orderByDesc('id')->get();
+        $carbon = Carbon::parse($date);
+        $dayOfWeek = $carbon->dayOfWeek;
+        $dateString = $carbon->toDateString();
+
+        return Employee_Availability::with([
+            'employee:id,full_name',
+            'employee.employeeDepartments.position',
+        ])
+            ->whereHas('employee.employeeDepartments', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            })
+            ->where('is_available', true)
+            ->where(function ($query) use ($dateString, $dayOfWeek) {
+                $query->where('specific_date', $dateString)
+                    ->orWhere(function ($q) use ($dayOfWeek) {
+                        $q->where('day_of_week', $dayOfWeek)
+                            ->whereNull('specific_date');
+                    });
+            })
+            ->select([
+                'id',
+                'employee_id',
+                'is_available',
+                'preferred_shift_type',
+                'reason',
+                'notes',
+            ])
+            ->orderBy('employee_id')
+            ->get()
+            ->map(function ($availability) use ($departmentId) {
+                $position = $availability->employee
+                    ->employeeDepartments
+                    ->where('department_id', $departmentId)
+                    ->first()
+                    ?->position;
+
+                return [
+                    'id' => $availability->id,
+                    'employee_id' => $availability->employee_id,
+                    'employee_name' => $availability->employee->full_name,
+                    'position_id' => $position?->id,
+                    'position_name' => $position?->name,
+                    'is_available' => $availability->is_available,
+                    'preferred_shift_type' => $availability->preferred_shift_type,
+                ];
+            });
     }
 
     public function getByEmployee(int $employeeId): Collection
     {
-        return Employee_Availability::where('employee_id', $employeeId)
+        return Employee_Availability::with('employee:id,full_name')
+            ->where('employee_id', $employeeId)
             ->select([
                 'id',
                 'employee_id',
@@ -55,12 +92,11 @@ class EmployeeAvailabilityService
                 'preferred_shift_type' => $specificDateRecord->preferred_shift_type,
                 'reason' => $specificDateRecord->reason,
                 'notes' => $specificDateRecord->notes,
-                'type' => 'specific_date', // indicates this is an exception
+                'type' => 'specific_date',
                 'id' => $specificDateRecord->id,
             ];
         }
 
-        // Fall back to recurring day_of_week pattern
         $recurringRecord = Employee_Availability::where('employee_id', $employeeId)
             ->where('day_of_week', $dayOfWeek)
             ->whereNull('specific_date')
@@ -72,7 +108,7 @@ class EmployeeAvailabilityService
                 'preferred_shift_type' => $recurringRecord->preferred_shift_type,
                 'reason' => $recurringRecord->reason,
                 'notes' => $recurringRecord->notes,
-                'type' => 'recurring', // indicates this is from weekly pattern
+                'type' => 'recurring',
                 'id' => $recurringRecord->id,
             ];
         }

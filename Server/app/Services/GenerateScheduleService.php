@@ -64,6 +64,17 @@ class GenerateScheduleService
     public function generateSchedule(int $departmentId, string $startDate, string $endDate): array
     {
         try {
+            // Check if schedule already exists for this period
+            $existingSchedule = $this->checkIfScheduleExists($departmentId, $startDate, $endDate);
+            if ($existingSchedule['exists']) {
+                return [
+                    'success' => false,
+                    'message' => 'Schedule already exists for this period',
+                    'existing_assignments_count' => $existingSchedule['count'],
+                    'existing_date_range' => $existingSchedule['date_range'],
+                ];
+            }
+
             $scheduleRequirements = $this->fetchScheduleRequirements($departmentId, $startDate, $endDate);
             $employeeData = $this->fetchEmployeeData($departmentId);
             $assignments = $this->assignEmployeesToShifts($scheduleRequirements, $employeeData);
@@ -86,6 +97,59 @@ class GenerateScheduleService
                 'success' => false,
                 'message' => 'Schedule generation failed: '.$e->getMessage(),
                 'error' => $e,
+            ];
+        }
+    }
+
+    public function checkIfScheduleExists(int $departmentId, string $startDate, string $endDate): array
+    {
+        try {
+            $start = Carbon::parse($startDate)->toDateString();
+            $end = Carbon::parse($endDate)->toDateString();
+
+            $existingAssignments = Shift_Assigments::with('shift')
+                ->whereHas('shift', function ($query) use ($departmentId, $start, $end) {
+                    $query->where('department_id', $departmentId)
+                        ->whereBetween('shift_date', [$start, $end]);
+                })
+                ->count();
+
+            if ($existingAssignments > 0) {
+                $dateRgeInfo = Shift_Assigments::with('shift')
+                    ->whereHas('shift', function ($query) use ($departmentId, $start, $end) {
+                        $query->where('department_id', $departmentId)
+                            ->whereBetween('shift_date', [$start, $end]);
+                    })
+                    ->get()
+                    ->groupBy('shift.shift_date');
+
+                return [
+                    'exists' => true,
+                    'count' => $existingAssignments,
+                    'date_range' => [
+                        'first_date' => $dateRgeInfo->keys()->first(),
+                        'last_date' => $dateRgeInfo->keys()->last(),
+                    ],
+                ];
+            }
+
+            return [
+                'exists' => false,
+                'count' => 0,
+                'date_range' => null,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Error checking existing schedule', [
+                'department_id' => $departmentId,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'exists' => false,
+                'count' => 0,
+                'date_range' => null,
             ];
         }
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreEmployeeAvailabilityRequest;
 use App\Http\Requests\UpdateEmployeeAvailabilityRequest;
 use App\Services\EmployeeAvailabilityService;
+use Illuminate\Http\Request;
 
 class EmployeeAvailabilityController extends Controller
 {
@@ -15,16 +16,22 @@ class EmployeeAvailabilityController extends Controller
         $this->availabilityService = $availabilityService;
     }
 
-    public function listAvailability()
+    public function getAvailability($employeeId)
     {
-        $data = $this->availabilityService->listAvailability();
+        $data = $this->availabilityService->getByEmployee((int) $employeeId);
 
         return $this->responseJSON($data, 'success', 200);
     }
 
-    public function getAvailability($employeeId)
+    public function getAvailableEmployeesForDate($departmentId, Request $request)
     {
-        $data = $this->availabilityService->getByEmployee((int) $employeeId);
+        $date = $request->query('date');
+
+        if (! $date) {
+            return $this->responseJSON(null, 'Date parameter is required', 400);
+        }
+
+        $data = $this->availabilityService->getAvailableEmployeesForDate((int) $departmentId, $date);
 
         return $this->responseJSON($data, 'success', 200);
     }
