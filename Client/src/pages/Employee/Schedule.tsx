@@ -11,9 +11,11 @@ import {
   Zap,
   Loader2,
   AlertCircle,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { Badge } from "../../components/ui/Badge";
 import { Layout } from "../../components/Sidebar";
 import { useScheduleAssignments } from "../../hooks/Employee/useScheduleAssignments";
 import type { ShiftAssignment } from "../../hooks/Employee/useScheduleAssignments";
@@ -310,9 +312,9 @@ export function Schedule() {
                         
                         <Button
                           size="sm"
-                          className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white inline-flex items-center gap-2"
                         >
-                          <Zap className="w-4 h-4 mr-2" />
+                          <Zap className="w-4 h-4" />
                           Request Swap
                         </Button>
                       </div>
@@ -320,6 +322,59 @@ export function Schedule() {
                   </div>
                 </Card>
               )}
+              <Card className="p-6 bg-white border border-[#E5E7EB]">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="w-5 h-5 text-[#6B7280]" />
+                  <h3 className="text-lg font-semibold text-[#111827]">
+                    Week Summary
+                  </h3>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB]">
+                    <div className="text-xs text-[#6B7280] mb-2 font-medium uppercase tracking-wide">
+                      Total Hours
+                    </div>
+                    <div className="text-2xl font-bold text-[#111827]">
+                      {(() => {
+                        let totalShifts = 0;
+                        Object.values(weekAssignments.days).forEach((day) => {
+                          totalShifts += day.day.length + day.evening.length + day.night.length;
+                        });
+                        return totalShifts * 8;
+                      })()}h
+                    </div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB]">
+                    <div className="text-xs text-[#6B7280] mb-2 font-medium uppercase tracking-wide">
+                      Shifts
+                    </div>
+                    <div className="text-2xl font-bold text-[#111827]">
+                      {(() => {
+                        let totalShifts = 0;
+                        Object.values(weekAssignments.days).forEach((day) => {
+                          totalShifts += day.day.length + day.evening.length + day.night.length;
+                        });
+                        return totalShifts;
+                      })()}
+                    </div>
+                  </div>
+                  <div className="text-center p-4 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB]">
+                    <div className="text-xs text-[#6B7280] mb-2 font-medium uppercase tracking-wide">
+                      Days Off
+                    </div>
+                    <div className="text-2xl font-bold text-[#111827]">
+                      {(() => {
+                        let daysOff = 7;
+                        Object.values(weekAssignments.days).forEach((day) => {
+                          const hasShift = day.day.length > 0 || day.evening.length > 0 || day.night.length > 0;
+                          if (hasShift) daysOff--;
+                        });
+                        return daysOff;
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </>
           )}
         </div>
