@@ -12,10 +12,12 @@ import {
   Loader2,
   AlertCircle,
   BarChart3,
+  Building2,
+  Tag,
+  CheckCircle2,
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
-import { Badge } from "../../components/ui/Badge";
 import { Layout } from "../../components/Sidebar";
 import { useScheduleAssignments } from "../../hooks/Employee/useScheduleAssignments";
 import type { ShiftAssignment } from "../../hooks/Employee/useScheduleAssignments";
@@ -291,9 +293,10 @@ export function Schedule() {
                     {selectedShift.assignments.map((assignment, idx) => (
                       <div
                         key={idx}
-                        className="space-y-4 pb-6 border-b border-[#E5E7EB] last:border-b-0 last:pb-0"
+                        className="pb-6 border-b border-[#E5E7EB] last:border-b-0 last:pb-0 space-y-4"
                       >
-                        <div className="flex items-center gap-3">
+                        
+                        <div className="flex items-center gap-3 mb-4">
                           <div className="w-10 h-10 rounded-lg bg-[#EFF6FF] flex items-center justify-center">
                             {getShiftIcon(assignment.type)}
                           </div>
@@ -302,17 +305,51 @@ export function Schedule() {
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-2 text-[#6B7280]">
-                          <Clock className="w-4 h-4" />
-                          <span className="text-sm font-medium">
-                            {assignment.label}
-                          </span>
+                       
+                        <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+                          <div className="flex items-center gap-2 text-[#6B7280]">
+                            <Clock className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-sm font-medium">
+                              {assignment.label}
+                            </span>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-[#6B7280]">
+                              <Tag className="w-4 h-4 flex-shrink-0" />
+                              <span className="text-sm font-medium capitalize">
+                                {assignment.assignment_type}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-sm font-medium px-3 py-1.5 rounded-md ${
+                                  assignment.status === "confirmed"
+                                    ? "bg-[#DCFCE7] text-[#10B981]"
+                                    : assignment.status === "pending"
+                                    ? "bg-[#FEF3C7] text-[#F59E0B]"
+                                    : "bg-[#FEE2E2] text-[#EF4444]"
+                                }`}
+                              >
+                                {assignment.status.charAt(0).toUpperCase() +
+                                  assignment.status.slice(1)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 text-[#6B7280]">
+                            <Building2 className="w-4 h-4 flex-shrink-0" />
+                            <span className="text-sm font-medium">
+                              {assignment.department_name}
+                            </span>
+                          </div>
                         </div>
 
-                        
+                        {/* Action Button */}
                         <Button
                           size="sm"
-                          className="bg-[#3B82F6] hover:bg-[#2563EB] text-white inline-flex items-center gap-2"
+                          className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white inline-flex items-center justify-center gap-2"
                         >
                           <Zap className="w-4 h-4" />
                           Request Swap

@@ -2,6 +2,7 @@ export type ShiftAssignment = {
   assignment_id: number;
   employee_id: number;
   full_name: string;
+  department_name: string;
   assignment_type: "regular" | "overtime" | "swap";
   status: "confirmed" | "pending" | "cancelled";
 };

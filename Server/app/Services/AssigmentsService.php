@@ -140,6 +140,7 @@ class AssigmentsService
 
         $assignments = Shift_Assigments::with([
             'shift:id,shift_date,shift_type,department_id',
+            'shift.department:id,name',
             'employee:id,full_name',
         ])
             ->where('employee_id', $employeeId)
@@ -149,10 +150,10 @@ class AssigmentsService
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
 
-        return $this->formatSchedule($assignments, $start, $end, true);
+        return $this->formatSchedule($assignments, $start, $end, true, $employeeId);
     }
 
-    private function formatSchedule(Collection $assignments, Carbon $start, Carbon $end, bool $withLabels = false): array
+    private function formatSchedule(Collection $assignments, Carbon $start, Carbon $end, bool $withLabels = false, ?int $currentEmployeeId = null): array
     {
         $shiftLabels = [
             'day' => '8-4pm',
@@ -184,6 +185,7 @@ class AssigmentsService
                 'assignment_id' => $assignment->id,
                 'employee_id' => $assignment->employee_id,
                 'full_name' => $assignment->employee?->full_name ?? '',
+                'department_name' => $assignment->shift?->department?->name ?? '',
                 'assignment_type' => $assignment->assignment_type,
                 'status' => $assignment->status,
             ];
