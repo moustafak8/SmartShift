@@ -68,7 +68,6 @@ class AssigmentsService
 
     public function determineAssignmentType(int $employeeId, int $shiftId, string $shiftDate): string
     {
-
         $weekStart = Carbon::parse($shiftDate)->startOfWeek();
         $weekEnd = Carbon::parse($shiftDate)->endOfWeek();
 
@@ -77,11 +76,8 @@ class AssigmentsService
                 $q->whereBetween('shift_date', [$weekStart->toDateString(), $weekEnd->toDateString()]);
             })
             ->count();
-        if ($weeklyAssignments >= 6) {
-            return 'overtime';
-        }
 
-        return 'regular';
+        return $weeklyAssignments >= 6 ? 'overtime' : 'regular';
     }
 
     public function determineAssignmentStatus(int $shiftId, string $shiftDate): string
@@ -116,8 +112,7 @@ class AssigmentsService
 
     public function getWeeklySchedule(string $startDate, ?int $departmentId = null): array
     {
-        $normalizedStart = trim($startDate, "\"' ");
-        $start = Carbon::parse($normalizedStart)->startOfDay();
+        $start = Carbon::parse($startDate)->startOfDay();
         $end = $start->copy()->addDays(6)->endOfDay();
 
         $assignments = Shift_Assigments::with([
@@ -133,52 +128,12 @@ class AssigmentsService
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
 
-        $days = [];
-        for ($i = 0; $i < 7; $i++) {
-            $dateKey = $start->copy()->addDays($i)->toDateString();
-            $days[$dateKey] = [
-                'day' => [],
-                'evening' => [],
-                'night' => [],
-            ];
-        }
-
-        foreach ($assignments as $a) {
-            $dateValue = $a->shift?->shift_date;
-            $date = is_string($dateValue) ? $dateValue : ($dateValue?->toDateString() ?? '');
-            if ($date === '') {
-                continue;
-            }
-
-            $type = $a->shift->shift_type ?? 'day';
-            if (! isset($days[$date])) {
-                $days[$date] = [
-                    'day' => [],
-                    'evening' => [],
-                    'night' => [],
-                ];
-            }
-            $fullName = optional($a->employee)->full_name ?? '';
-            $days[$date][$type][] = [
-                'assignment_id' => $a->id,
-                'employee_id' => $a->employee_id,
-                'full_name' => $fullName,
-                'assignment_type' => $a->assignment_type,
-                'status' => $a->status,
-            ];
-        }
-
-        return [
-            'start_date' => $start->toDateString(),
-            'end_date' => $end->toDateString(),
-            'days' => $days,
-        ];
+        return $this->formatSchedule($assignments, $start, $end);
     }
 
-    public function getWeeklyScheduleByEmployee(string $startDate, int $employeeId, ?int $departmentId = null): array
+    public function getWeeklyScheduleByEmployee(string $startDate, int $employeeId): array
     {
-        $normalizedStart = trim($startDate, "\"' ");
-        $start = Carbon::parse($normalizedStart)->startOfDay();
+        $start = Carbon::parse($startDate)->startOfDay();
         $end = $start->copy()->addDays(6)->endOfDay();
 
         $assignments = Shift_Assigments::with([
@@ -192,7 +147,12 @@ class AssigmentsService
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
 
-        $labels = [
+        return $this->formatSchedule($assignments, $start, $end, withLabels: true);
+    }
+
+    private function formatSchedule(Collection $assignments, Carbon $start, Carbon $end, bool $withLabels = false): array
+    {
+        $shiftLabels = [
             'day' => '7-3pm',
             'evening' => '3-11pm',
             'night' => '11-7am',
@@ -202,36 +162,28 @@ class AssigmentsService
         for ($i = 0; $i < 7; $i++) {
             $dateKey = $start->copy()->addDays($i)->toDateString();
             $days[$dateKey] = [
-                'labels' => $labels,
+                ...$withLabels ? ['labels' => $shiftLabels] : [],
                 'day' => [],
                 'evening' => [],
                 'night' => [],
             ];
         }
 
-        foreach ($assignments as $a) {
-            $dateValue = $a->shift?->shift_date;
+        foreach ($assignments as $assignment) {
+            $dateValue = $assignment->shift?->shift_date;
             $date = is_string($dateValue) ? $dateValue : ($dateValue?->toDateString() ?? '');
-            if ($date === '') {
+
+            if ($date === '' || !isset($days[$date])) {
                 continue;
             }
 
-            $type = $a->shift->shift_type ?? 'day';
-            if (! isset($days[$date])) {
-                $days[$date] = [
-                    'labels' => $labels,
-                    'day' => [],
-                    'evening' => [],
-                    'night' => [],
-                ];
-            }
-            $fullName = optional($a->employee)->full_name ?? '';
-            $days[$date][$type][] = [
-                'assignment_id' => $a->id,
-                'employee_id' => $a->employee_id,
-                'full_name' => $fullName,
-                'assignment_type' => $a->assignment_type,
-                'status' => $a->status,
+            $shiftType = $assignment->shift->shift_type ?? 'day';
+            $days[$date][$shiftType][] = [
+                'assignment_id' => $assignment->id,
+                'employee_id' => $assignment->employee_id,
+                'full_name' => $assignment->employee?->full_name ?? '',
+                'assignment_type' => $assignment->assignment_type,
+                'status' => $assignment->status,
             ];
         }
 

@@ -32,9 +32,12 @@ class ShiftAssigmentsController extends Controller
 
     public function createAssignment(StoreShiftAssignmentRequest $request)
     {
-        $assignment = $this->assigmentsService->createAssignment($request->validated());
-
-        return $this->responseJSON($assignment, 'success', 201);
+        try {
+            $assignment = $this->assigmentsService->createAssignment($request->validated());
+            return $this->responseJSON($assignment, 'Assignment created successfully', 201);
+        } catch (\Exception $e) {
+            return $this->responseJSON(null, $e->getMessage(), 400);
+        }
     }
 
     public function createBulkAssignments(BulkAssignmentsRequest $request)

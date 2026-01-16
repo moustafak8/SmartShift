@@ -16,7 +16,10 @@ class EmployeeAvailabilityService
         $dayOfWeek = $carbon->dayOfWeek;
         $dateString = $carbon->toDateString();
 
-        return Employee_Availability::with('employee:id,full_name')
+        return Employee_Availability::with([
+            'employee:id,full_name',
+            'employee.employeeDepartments.position',
+        ])
             ->whereHas('employee.employeeDepartments', function ($q) use ($departmentId) {
                 $q->where('department_id', $departmentId);
             })
@@ -37,7 +40,24 @@ class EmployeeAvailabilityService
                 'notes',
             ])
             ->orderBy('employee_id')
-            ->get();
+            ->get()
+            ->map(function ($availability) use ($departmentId) {
+                $position = $availability->employee
+                    ->employeeDepartments
+                    ->where('department_id', $departmentId)
+                    ->first()
+                    ?->position;
+
+                return [
+                    'id' => $availability->id,
+                    'employee_id' => $availability->employee_id,
+                    'employee_name' => $availability->employee->full_name,
+                    'position_id' => $position?->id,
+                    'position_name' => $position?->name,
+                    'is_available' => $availability->is_available,
+                    'preferred_shift_type' => $availability->preferred_shift_type,
+                ];
+            });
     }
 
     public function getByEmployee(int $employeeId): Collection

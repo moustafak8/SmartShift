@@ -59,8 +59,11 @@ export const useAvailableEmployees = (departmentId: number, date: string) => {
 
   return {
     employees: query.data?.payload?.map((item) => ({
-      id: item.employee.id,
-      full_name: item.employee.full_name,
+      id: item.employee_id,
+      employee_id: item.employee_id,
+      full_name: item.employee_name,
+      position_id: item.position_id,
+      position_name: item.position_name,
       is_available: item.is_available,
       preferred_shift_type: item.preferred_shift_type,
     })) || [],

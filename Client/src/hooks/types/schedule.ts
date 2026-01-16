@@ -80,28 +80,27 @@ export interface SaveReviewedScheduleApiResponse {
 export interface CreateAssignmentRequest {
   shift_id: number;
   employee_id: number;
-  assignment_type: "regular" | "overtime" | "on_call";
-  status: "assigned" | "pending" | "confirmed";
+  position_id: number;
+  assignment_type: "regular" | "overtime" | "cover";
+  status: "assigned" | "confirmed";
 }
 
 export interface UpdateAssignmentRequest {
   shift_id: number;
   employee_id: number;
-  assignment_type: "regular" | "overtime" | "on_call";
-  status: "assigned" | "pending" | "confirmed";
+  position_id: number;
+  assignment_type: "regular" | "overtime" | "cover";
+  status: "assigned" | "confirmed";
 }
 
 export interface AvailableEmployee {
   id: number;
   employee_id: number;
+  employee_name: string;
+  position_id: number;
+  position_name: string;
   is_available: boolean;
   preferred_shift_type: string;
-  reason: string | null;
-  notes: string | null;
-  employee: {
-    id: number;
-    full_name: string;
-  };
 }
 
 export interface AvailableEmployeesResponse {
