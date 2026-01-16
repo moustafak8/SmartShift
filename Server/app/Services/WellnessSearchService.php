@@ -10,7 +10,7 @@ class WellnessSearchService
 {
     private const DEFAULT_SEARCH_LIMIT = 5;
 
-    private const DEFAULT_SCORE_THRESHOLD = 0.2;
+    private const DEFAULT_SCORE_THRESHOLD = 0.05;
 
     private const DEFAULT_PREVIEW_LENGTH = 150;
 
@@ -243,7 +243,6 @@ class WellnessSearchService
     {
         $queryLower = strtolower($query);
         $contentLower = strtolower($content);
-
         $constraint = $this->parseSleepConstraint($queryLower);
         if ($constraint !== null) {
             $hours = $this->extractHoursFromText($contentLower);
@@ -251,25 +250,7 @@ class WellnessSearchService
             return ! empty($hours) && $this->matchesNumericConstraint($hours, $constraint);
         }
 
-        $queryKeywords = $this->extractQueryKeywords($queryLower);
-        if (! empty($queryKeywords)) {
-            return $this->hasKeywordMatch($queryKeywords, $contentLower, $payload);
-        }
-
         return true;
-    }
-
-    private function hasKeywordMatch(array $keywords, string $content, array $payload): bool
-    {
-        $payloadKeywords = array_map('strtolower', $payload['keywords'] ?? []);
-
-        foreach ($keywords as $kw) {
-            if (str_contains($content, $kw) || in_array($kw, $payloadKeywords, true)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function parseSleepConstraint(string $q): ?array
@@ -356,81 +337,25 @@ class WellnessSearchService
         return false;
     }
 
-    private function extractQueryKeywords(string $q): array
-    {
-        $q = preg_replace('/\d+(?:\.\d+)?/', ' ', $q);
-        $parts = preg_split('/[^a-z]+/i', $q, -1, PREG_SPLIT_NO_EMPTY);
-
-        $stop = [
-            'who',
-            'got',
-            'get',
-            'of',
-            'for',
-            'the',
-            'a',
-            'an',
-            'is',
-            'are',
-            'was',
-            'were',
-            'to',
-            'in',
-            'on',
-            'at',
-            'with',
-            'and',
-            'or',
-            'than',
-            'less',
-            'more',
-            'under',
-            'over',
-            'below',
-            'above',
-            'least',
-            'most',
-            'exactly',
-            'sleep',
-            'slept',
-            'hours',
-            'hour',
-            'hrs',
-            'hr',
-            'h',
-            'before',
-            'their',
-            'shift',
-            'any',
-            'entries',
-            'entry',
-            'employee',
-            'employees',
-            'wellness',
-        ];
-
-        $out = [];
-        foreach ($parts as $p) {
-            $pl = strtolower($p);
-            if (strlen($pl) > 2 && ! in_array($pl, $stop, true)) {
-                $out[] = $pl;
-            }
-        }
-
-        return array_values(array_unique($out));
-    }
-
     private function callOpenAIChat(string $query, string $context, array $sources): string
     {
-        $systemPrompt = 'You are a helpful HR wellness analyst. '.
-            'Answer questions about employee wellness entries based ONLY on the provided context. '.
-            'Provide comprehensive, detailed answers that include relevant contextual information from the wellness entries. '.
-            'Always cite your sources using [1], [2], etc. corresponding to the provided sources. '.
-            'Include specific details like dates, times, and situations mentioned in the entries. '.
-            'Format the answer as a natural, flowing response that addresses the query thoroughly.';
+        $systemPrompt = 'You are an expert HR wellness analyst providing detailed, evidence-based insights to managers. '
+            .'Analyze employee wellness entries deeply and comprehensively. Use ONLY the provided context—never invent facts. '
+            .'Identify patterns, sentiment trends, and critical concerns across multiple entries. '
+            .'Weigh evidence by source relevance scores (higher scores = more relevant). '
+            .'Always cite specific sources using [1], [2], etc. for every factual claim. '
+            .'Provide thorough, flowing answers that synthesize information naturally while maintaining strict citation discipline. '
+            .'Include specific details like dates, employee situations, and contextual factors. ';
 
         $sourcesText = $this->formatSourcesForPrompt($sources);
-        $userPrompt = "Sources:\n{$sourcesText}\n\nContext from Wellness Entries:\n{$context}\n\nQuestion: {$query}\n\nProvide a detailed, comprehensive answer using the sources above. Always cite which source each piece of information comes from using [1], [2], etc.";
+        $userPrompt = "Sources:\n{$sourcesText}\n\n"
+            ."Wellness Entry Context:\n{$context}\n\n"
+            ."Question: {$query}\n\n"
+            .'Provide a comprehensive, detailed answer that synthesizes the wellness entries above. '
+            .'Cite every fact with bracketed numbers [1], [2], etc. matching the sources. '
+            .'Prioritize higher-scored sources and entries matching the query intent (sentiment, flags, keywords). '
+            .'Include relevant quotes, dates, and specific situations from the entries. '
+            .'If patterns or concerns emerge, highlight them. If actionable, suggest next steps for managers.';
 
         $response = OpenAI::chat()->create([
             'model' => self::OPENAI_CHAT_MODEL,
@@ -450,10 +375,12 @@ class WellnessSearchService
         $formatted = '';
         foreach ($sources as $source) {
             $formatted .= sprintf(
-                "[%d] %s (%s)\n",
+                "[%d] %s (%s) — score: %.3f, sentiment: %s\n",
                 $source['citation_number'],
                 $source['employee_name'],
-                $source['entry_date']
+                $source['entry_date'],
+                $source['score'] ?? 0,
+                $source['sentiment'] ?? 'unknown'
             );
         }
 

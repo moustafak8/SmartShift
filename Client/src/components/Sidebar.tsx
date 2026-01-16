@@ -63,7 +63,7 @@ const ManagerNavigationItems: NavigationItem[] = [
     icon: Heart,
     label: "Wellness",
     badge: null,
-    path: "/manager/wellness",
+    path: "/manager/team-wellness",
   },
   {
     id: "rag-query",
@@ -195,16 +195,14 @@ export function Layout({ children, notificationCount = 8 }: LayoutProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative top-0 left-0 h-full bg-white border-r border-[#E5E7EB] z-50 transition-all duration-300 flex flex-col overflow-hidden ${
-          isOpen
+        className={`fixed lg:relative top-0 left-0 h-full bg-white border-r border-[#E5E7EB] z-50 transition-all duration-300 flex flex-col overflow-hidden ${isOpen
             ? "translate-x-0 lg:w-64"
             : "-translate-x-full lg:translate-x-0 lg:w-0 lg:border-r-0"
-        } w-64`}
+          } w-64`}
       >
         <div
-          className={`${
-            isOpen ? "opacity-100" : "lg:opacity-0"
-          } transition-opacity duration-300 flex flex-col h-full w-64`}
+          className={`${isOpen ? "opacity-100" : "lg:opacity-0"
+            } transition-opacity duration-300 flex flex-col h-full w-64`}
         >
           <button
             onClick={handleToggle}
