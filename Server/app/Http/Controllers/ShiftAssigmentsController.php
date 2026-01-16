@@ -34,6 +34,7 @@ class ShiftAssigmentsController extends Controller
     {
         try {
             $assignment = $this->assigmentsService->createAssignment($request->validated());
+
             return $this->responseJSON($assignment, 'Assignment created successfully', 201);
         } catch (\Exception $e) {
             return $this->responseJSON(null, $e->getMessage(), 400);
@@ -69,7 +70,7 @@ class ShiftAssigmentsController extends Controller
     {
         $assignment = $this->assigmentsService->updateAssignment((int) $assignmentId, $request->validated());
 
-        if (!$assignment) {
+        if (! $assignment) {
             return $this->responseJSON(null, 'Assignment not found', 404);
         }
 
@@ -80,7 +81,7 @@ class ShiftAssigmentsController extends Controller
     {
         $deleted = $this->assigmentsService->deleteAssignment((int) $assignmentId);
 
-        if (!$deleted) {
+        if (! $deleted) {
             return $this->responseJSON(null, 'Assignment not found', 404);
         }
 

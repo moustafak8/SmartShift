@@ -46,7 +46,7 @@ class AssigmentsService
     {
         $assignment = Shift_Assigments::find($assignmentId);
 
-        if (!$assignment) {
+        if (! $assignment) {
             return null;
         }
 
@@ -59,7 +59,7 @@ class AssigmentsService
     {
         $assignment = Shift_Assigments::find($assignmentId);
 
-        if (!$assignment) {
+        if (! $assignment) {
             return false;
         }
 
@@ -173,7 +173,7 @@ class AssigmentsService
             $dateValue = $assignment->shift?->shift_date;
             $date = is_string($dateValue) ? $dateValue : ($dateValue?->toDateString() ?? '');
 
-            if ($date === '' || !isset($days[$date])) {
+            if ($date === '' || ! isset($days[$date])) {
                 continue;
             }
 

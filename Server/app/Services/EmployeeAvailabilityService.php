@@ -8,8 +8,6 @@ use Illuminate\Support\Collection;
 
 class EmployeeAvailabilityService
 {
-
-
     public function getAvailableEmployeesForDate(int $departmentId, string $date): Collection
     {
         $carbon = Carbon::parse($date);
