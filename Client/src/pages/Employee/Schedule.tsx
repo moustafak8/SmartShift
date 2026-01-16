@@ -14,7 +14,6 @@ import {
   BarChart3,
   Building2,
   Tag,
-  CheckCircle2,
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -275,14 +274,21 @@ export function Schedule() {
                         Shift Details
                       </div>
                     </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setSelectedShift(null)}
-                      className="border-0 hover:bg-[#F3F4F6]"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                      >
+                        <Zap className="w-4 h-4" />
+                        Request Swap
+                      </Button>
+                      <button
+                        onClick={() => setSelectedShift(null)}
+                        className="w-10 h-10 flex items-center justify-center border border-[#E5E7EB] hover:bg-[#F3F4F6] rounded-lg transition-colors bg-white"
+                      >
+                        <X className="w-4 h-4 text-[#6B7280]" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-6">
@@ -293,67 +299,97 @@ export function Schedule() {
                     {selectedShift.assignments.map((assignment, idx) => (
                       <div
                         key={idx}
-                        className="pb-6 border-b border-[#E5E7EB] last:border-b-0 last:pb-0 space-y-4"
+                        className="pb-6 border-b border-[#E5E7EB] last:border-b-0 last:pb-0"
                       >
                         
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className="w-10 h-10 rounded-lg bg-[#EFF6FF] flex items-center justify-center">
+                        <div className="flex items-center gap-3 mb-5">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] flex items-center justify-center shadow-sm">
                             {getShiftIcon(assignment.type)}
                           </div>
-                          <span className="font-semibold text-[#111827] text-lg capitalize">
-                            {assignment.type} Shift
-                          </span>
+                          <div>
+                            <div className="font-bold text-[#111827] text-xl capitalize">
+                              {assignment.type} Shift
+                            </div>
+                            <div className="text-xs text-[#6B7280] mt-0.5">
+                              {formatShiftDate(selectedShift.date)}
+                            </div>
+                          </div>
                         </div>
 
-                       
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                          <div className="flex items-center gap-2 text-[#6B7280]">
-                            <Clock className="w-4 h-4 flex-shrink-0" />
-                            <span className="text-sm font-medium">
-                              {assignment.label}
-                            </span>
-                          </div>
-
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-[#6B7280]">
-                              <Tag className="w-4 h-4 flex-shrink-0" />
-                              <span className="text-sm font-medium capitalize">
-                                {assignment.assignment_type}
-                              </span>
+                        
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          
+                          <div className="bg-[#F9FAFB] rounded-lg p-3 space-y-2.5 border border-[#E5E7EB]">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
+                                <Clock className="w-3.5 h-3.5 text-[#3B82F6]" />
+                              </div>
+                              <div>
+                                <div className="text-xs text-[#6B7280] font-medium">Time</div>
+                                <div className="text-sm font-semibold text-[#111827]">
+                                  {assignment.label}
+                                </div>
+                              </div>
                             </div>
+
+                            <div className="h-px bg-[#E5E7EB]"></div>
 
                             <div className="flex items-center gap-2">
-                              <span
-                                className={`text-sm font-medium px-3 py-1.5 rounded-md ${
-                                  assignment.status === "confirmed"
-                                    ? "bg-[#DCFCE7] text-[#10B981]"
-                                    : assignment.status === "pending"
-                                    ? "bg-[#FEF3C7] text-[#F59E0B]"
-                                    : "bg-[#FEE2E2] text-[#EF4444]"
-                                }`}
-                              >
-                                {assignment.status.charAt(0).toUpperCase() +
-                                  assignment.status.slice(1)}
-                              </span>
+                              <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
+                                <Building2 className="w-3.5 h-3.5 text-[#3B82F6]" />
+                              </div>
+                              <div>
+                                <div className="text-xs text-[#6B7280] font-medium">Department</div>
+                                <div className="text-sm font-semibold text-[#111827]">
+                                  {assignment.department_name}
+                                </div>
+                              </div>
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 text-[#6B7280]">
-                            <Building2 className="w-4 h-4 flex-shrink-0" />
-                            <span className="text-sm font-medium">
-                              {assignment.department_name}
-                            </span>
+                          
+                          <div className="bg-[#F9FAFB] rounded-lg p-3 space-y-2.5 border border-[#E5E7EB]">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
+                                <Tag className="w-3.5 h-3.5 text-[#3B82F6]" />
+                              </div>
+                              <div>
+                                <div className="text-xs text-[#6B7280] font-medium">Type</div>
+                                <div className="text-sm font-semibold text-[#111827] capitalize">
+                                  {assignment.assignment_type}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="h-px bg-[#E5E7EB]"></div>
+
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
+                                <span className="text-xs">
+                                  {assignment.status === "confirmed" ? "✓" : 
+                                   assignment.status === "pending" ? "⏱" : "✕"}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="text-xs text-[#6B7280] font-medium">Status</div>
+                                <div
+                                  className={`text-sm font-bold ${
+                                    assignment.status === "confirmed"
+                                      ? "text-[#10B981]"
+                                      : assignment.status === "pending"
+                                      ? "text-[#F59E0B]"
+                                      : "text-[#EF4444]"
+                                  }`}
+                                >
+                                  {assignment.status.charAt(0).toUpperCase() +
+                                    assignment.status.slice(1)}
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
-                        {/* Action Button */}
-                        <Button
-                          size="sm"
-                          className="w-full bg-[#3B82F6] hover:bg-[#2563EB] text-white inline-flex items-center justify-center gap-2"
-                        >
-                          <Zap className="w-4 h-4" />
-                          Request Swap
-                        </Button>
+
                       </div>
                     ))}
                   </div>
