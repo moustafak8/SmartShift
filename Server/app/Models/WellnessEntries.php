@@ -20,4 +20,14 @@ class WellnessEntries extends Model
     {
         return $this->belongsTo(User::class, 'employee_id');
     }
+
+    public function vector()
+    {
+        return $this->hasOne(WellnessEntryVector::class, 'entry_id');
+    }
+
+    public function employeeDepartments()
+    {
+        return $this->hasMany(Employee_Department::class, 'employee_id', 'employee_id');
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\ProcessWellnessEntry;
+use App\Models\Employee_Department;
 use App\Models\WellnessEntries;
 use Illuminate\Support\Collection;
 
@@ -10,25 +11,30 @@ class WellnessService
 {
     public function listEntries($departmentId): Collection
     {
+        $employeeIds = Employee_Department::where('department_id', $departmentId)
+            ->pluck('employee_id');
+
         return WellnessEntries::query()
-            ->join('employee__departments as ed', 'ed.employee_id', '=', 'wellness_entries.employee_id')
-            ->leftJoin('wellness_entry_vectors as v', 'v.entry_id', '=', 'wellness_entries.id')
-            ->where('ed.department_id', $departmentId)
-            ->whereDate('wellness_entries.created_at', now()->toDateString())
-            ->select([
-                'wellness_entries.id',
-                'wellness_entries.employee_id',
-                'wellness_entries.entry_text',
-                'wellness_entries.word_count',
-                'wellness_entries.created_at',
-                'v.is_flagged',
-                'v.flag_severity',
-                'v.flag_reason',
-                'v.sentiment_label',
-                'v.sentiment_score',
-            ])
-            ->orderByDesc('wellness_entries.created_at')
-            ->get();
+            ->with(['employee', 'vector'])
+            ->whereIn('employee_id', $employeeIds)
+            ->whereDate('created_at', now()->toDateString())
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($entry) {
+                return [
+                    'id' => $entry->id,
+                    'employee_id' => $entry->employee_id,
+                    'employee_name' => $entry->employee->full_name ?? null,
+                    'entry_text' => $entry->entry_text,
+                    'word_count' => $entry->word_count,
+                    'created_at' => $entry->created_at,
+                    'is_flagged' => $entry->vector->is_flagged ?? false,
+                    'flag_severity' => $entry->vector->flag_severity ?? null,
+                    'flag_reason' => $entry->vector->flag_reason ?? null,
+                    'sentiment_label' => $entry->vector->sentiment_label ?? null,
+                    'sentiment_score' => $entry->vector->sentiment_score ?? null,
+                ];
+            });
     }
 
     public function listByEmployee(int $employeeId): Collection

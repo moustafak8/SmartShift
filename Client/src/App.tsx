@@ -12,6 +12,7 @@ import { ToastProvider } from "./components/ui/Toast";
 import { RAGQuery } from "./pages/Manager/RAGQuery";
 import { TeamOverview } from "./pages/Manager/TeamOverview";
 import { Shifts } from "./pages/Manager/Shifts";
+import { TeamWellness } from "./pages/Manager/TeamWellness";
 import { Roles } from "./hooks/types/Roles";
 
 export default function App() {
@@ -96,6 +97,16 @@ export default function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
                 <Shifts />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/team-wellness"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
+                <TeamWellness />
               </RoleBasedRoute>
             </ProtectedRoute>
           }
