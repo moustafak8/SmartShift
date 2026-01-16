@@ -128,7 +128,7 @@ class WellnessSearchService
         return $employeeNames[$entry->employee_id]
             ?? $entry->employee->name
             ?? $result['payload']['employee_name']
-            ?? ('Employee #' . $entry->employee_id);
+            ?? ('Employee #'.$entry->employee_id);
     }
 
     private function extractRelevantSnippet(string $text, array $keywords): string
@@ -144,7 +144,7 @@ class WellnessSearchService
             return $this->formatPreview($text);
         }
 
-        usort($scoredSentences, fn($a, $b) => $b['score'] - $a['score']);
+        usort($scoredSentences, fn ($a, $b) => $b['score'] - $a['score']);
 
         return $this->formatPreview($scoredSentences[0]['sentence']);
     }
@@ -200,10 +200,10 @@ class WellnessSearchService
         }
 
         if ($lastSpace !== false) {
-            return mb_substr($preview, 0, $lastSpace) . '...';
+            return mb_substr($preview, 0, $lastSpace).'...';
         }
 
-        return $preview . '...';
+        return $preview.'...';
     }
 
     private function buildContextAndSources(array $searchResults): array
@@ -212,7 +212,7 @@ class WellnessSearchService
         $sources = [];
 
         foreach ($searchResults as $index => $result) {
-            $context .= $result['content'] . "\n\n";
+            $context .= $result['content']."\n\n";
             $sources[] = $this->buildSource($result, $index + 1);
         }
 
@@ -246,8 +246,10 @@ class WellnessSearchService
         $constraint = $this->parseSleepConstraint($queryLower);
         if ($constraint !== null) {
             $hours = $this->extractHoursFromText($contentLower);
+
             return ! empty($hours) && $this->matchesNumericConstraint($hours, $constraint);
         }
+
         return true;
     }
 
@@ -338,22 +340,22 @@ class WellnessSearchService
     private function callOpenAIChat(string $query, string $context, array $sources): string
     {
         $systemPrompt = 'You are an expert HR wellness analyst providing detailed, evidence-based insights to managers. '
-            . 'Analyze employee wellness entries deeply and comprehensively. Use ONLY the provided context—never invent facts. '
-            . 'Identify patterns, sentiment trends, and critical concerns across multiple entries. '
-            . 'Weigh evidence by source relevance scores (higher scores = more relevant). '
-            . 'Always cite specific sources using [1], [2], etc. for every factual claim. '
-            . 'Provide thorough, flowing answers that synthesize information naturally while maintaining strict citation discipline. '
-            . 'Include specific details like dates, employee situations, and contextual factors. ';
+            .'Analyze employee wellness entries deeply and comprehensively. Use ONLY the provided context—never invent facts. '
+            .'Identify patterns, sentiment trends, and critical concerns across multiple entries. '
+            .'Weigh evidence by source relevance scores (higher scores = more relevant). '
+            .'Always cite specific sources using [1], [2], etc. for every factual claim. '
+            .'Provide thorough, flowing answers that synthesize information naturally while maintaining strict citation discipline. '
+            .'Include specific details like dates, employee situations, and contextual factors. ';
 
         $sourcesText = $this->formatSourcesForPrompt($sources);
         $userPrompt = "Sources:\n{$sourcesText}\n\n"
-            . "Wellness Entry Context:\n{$context}\n\n"
-            . "Question: {$query}\n\n"
-            . "Provide a comprehensive, detailed answer that synthesizes the wellness entries above. "
-            . "Cite every fact with bracketed numbers [1], [2], etc. matching the sources. "
-            . "Prioritize higher-scored sources and entries matching the query intent (sentiment, flags, keywords). "
-            . "Include relevant quotes, dates, and specific situations from the entries. "
-            . "If patterns or concerns emerge, highlight them. If actionable, suggest next steps for managers.";
+            ."Wellness Entry Context:\n{$context}\n\n"
+            ."Question: {$query}\n\n"
+            .'Provide a comprehensive, detailed answer that synthesizes the wellness entries above. '
+            .'Cite every fact with bracketed numbers [1], [2], etc. matching the sources. '
+            .'Prioritize higher-scored sources and entries matching the query intent (sentiment, flags, keywords). '
+            .'Include relevant quotes, dates, and specific situations from the entries. '
+            .'If patterns or concerns emerge, highlight them. If actionable, suggest next steps for managers.';
 
         $response = OpenAI::chat()->create([
             'model' => self::OPENAI_CHAT_MODEL,
