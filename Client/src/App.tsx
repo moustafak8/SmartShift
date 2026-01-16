@@ -13,6 +13,7 @@ import { RAGQuery } from "./pages/Manager/RAGQuery";
 import { TeamOverview } from "./pages/Manager/TeamOverview";
 import { Shifts } from "./pages/Manager/Shifts";
 import { TeamWellness } from "./pages/Manager/TeamWellness";
+import { Schedule } from "./pages/Employee/Schedule";
 import { Roles } from "./hooks/types/Roles";
 
 export default function App() {
@@ -57,6 +58,16 @@ export default function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={[Roles.EMPLOYEE]}>
                 <Profile />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+           <Route
+          path="/employee/schedule"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={[Roles.EMPLOYEE]}>
+                <Schedule />
               </RoleBasedRoute>
             </ProtectedRoute>
           }

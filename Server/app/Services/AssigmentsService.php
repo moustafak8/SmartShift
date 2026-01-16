@@ -6,6 +6,8 @@ use App\Models\Shift_Assigments;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
+use function Psy\sh;
+
 class AssigmentsService
 {
     public function listAssignments(): Collection
@@ -147,15 +149,15 @@ class AssigmentsService
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
 
-        return $this->formatSchedule($assignments, $start, $end, withLabels: true);
+        return $this->formatSchedule($assignments, $start, $end, true);
     }
 
     private function formatSchedule(Collection $assignments, Carbon $start, Carbon $end, bool $withLabels = false): array
     {
         $shiftLabels = [
-            'day' => '7-3pm',
-            'evening' => '3-11pm',
-            'night' => '11-7am',
+            'day' => '8-4pm',
+            'evening' => '4-12am',
+            'night' => '12-8am',
         ];
 
         $days = [];
