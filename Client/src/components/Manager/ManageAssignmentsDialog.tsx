@@ -9,6 +9,7 @@ import {
 } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { useToast } from "../ui/Toast";
+import { ConfirmDialog } from "../ui/ConfirmDialog";
 import {
   useCreateAssignment,
   useDeleteAssignment,
@@ -43,6 +44,9 @@ export function ManageAssignmentsDialog({
   const [assignmentStatus, setAssignmentStatus] = useState<
     "assigned" | "confirmed"
   >("assigned");
+  
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [assignmentToDelete, setAssignmentToDelete] = useState<{ id: number; name: string } | null>(null);
 
   const { mutate: createAssignment, isPending: isCreating } =
     useCreateAssignment();
@@ -92,6 +96,7 @@ export function ManageAssignmentsDialog({
           setAssignmentType("regular");
           setAssignmentStatus("assigned");
           onAssignmentChange();
+          onClose(); 
         },
         onError: (error: any) => {
           toast.error(
@@ -108,10 +113,20 @@ export function ManageAssignmentsDialog({
     assignmentId: number,
     employeeName: string
   ) => {
-    deleteAssignment(assignmentId, {
+    setAssignmentToDelete({ id: assignmentId, name: employeeName });
+    setIsConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!assignmentToDelete) return;
+    
+    deleteAssignment(assignmentToDelete.id, {
       onSuccess: () => {
-        toast.success(`Removed ${employeeName} from shift`);
+        toast.success(`Removed ${assignmentToDelete.name} from shift`);
         onAssignmentChange();
+        setIsConfirmOpen(false);
+        setAssignmentToDelete(null);
+        onClose();
       },
       onError: (error: any) => {
         toast.error(
@@ -119,6 +134,8 @@ export function ManageAssignmentsDialog({
             error.response?.data?.message ||
             "Failed to remove assignment"
         );
+        setIsConfirmOpen(false);
+        setAssignmentToDelete(null);
       },
     });
   };
@@ -371,6 +388,17 @@ export function ManageAssignmentsDialog({
           </Button>
         </div>
       </DialogContent>
+      
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        onConfirm={confirmDelete}
+        title="Remove Assignment"
+        description={`Are you sure you want to remove ${assignmentToDelete?.name} from this shift? This action cannot be undone.`}
+        confirmText="Remove"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </Dialog>
   );
 }
