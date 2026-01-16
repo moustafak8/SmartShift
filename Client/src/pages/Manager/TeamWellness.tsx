@@ -295,27 +295,27 @@ export function TeamWellness() {
                 Team Wellness Overview
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-lg bg-gradient-to-br from-[#DBEAFE] to-[#BFDBFE] p-4">
-                  <div className="text-sm font-medium text-[#1E40AF]">
+                <div className="rounded-lg border-l-4 border-[#3B82F6] bg-white p-4 shadow-sm">
+                  <div className="text-sm font-medium text-[#6B7280]">
                     Total Flagged Entries
                   </div>
-                  <div className="mt-2 text-3xl font-bold text-[#1E3A8A]">
+                  <div className="mt-2 text-3xl font-bold text-[#111827]">
                     {stats.totalEntries}
                   </div>
                 </div>
-                <div className="rounded-lg bg-gradient-to-br from-[#FEE2E2] to-[#FECACA] p-4">
-                  <div className="text-sm font-medium text-[#991B1B]">
+                <div className="rounded-lg border-l-4 border-[#EF4444] bg-white p-4 shadow-sm">
+                  <div className="text-sm font-medium text-[#6B7280]">
                     High Risk Cases
                   </div>
-                  <div className="mt-2 text-3xl font-bold text-[#7F1D1D]">
+                  <div className="mt-2 text-3xl font-bold text-[#111827]">
                     {stats.highRiskCount}
                   </div>
                 </div>
-                <div className="rounded-lg bg-gradient-to-br from-[#E9D5FF] to-[#D8B4FE] p-4">
-                  <div className="text-sm font-medium text-[#6B21A8]">
+                <div className="rounded-lg border-l-4 border-[#8B5CF6] bg-white p-4 shadow-sm">
+                  <div className="text-sm font-medium text-[#6B7280]">
                     Avg Sentiment Score
                   </div>
-                  <div className="mt-2 text-3xl font-bold text-[#581C87]">
+                  <div className="mt-2 text-3xl font-bold text-[#111827]">
                     {stats.avgSentiment}
                   </div>
                 </div>
