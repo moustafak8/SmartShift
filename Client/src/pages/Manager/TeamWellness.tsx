@@ -10,6 +10,8 @@ import { Badge, Button, Input, Card } from "../../components/ui";
 import { Layout } from "../../components/Sidebar";
 import { useFlaggedWellnessEntries } from "../../hooks/Manager/useFlaggedWellnessEntries";
 import { useAuth } from "../../hooks/context/AuthContext";
+import { ViewEntryDialog } from "../../components/Manager/ViewEntryDialog";
+import type { FlaggedWellnessEntry } from "../../hooks/types/managerWellness";
 
 export function TeamWellness() {
   const { departmentId } = useAuth();
@@ -21,6 +23,19 @@ export function TeamWellness() {
   const [filterSeverity, setFilterSeverity] = useState<
     "all" | "high" | "medium" | "low"
   >("all");
+  const [selectedEntry, setSelectedEntry] =
+    useState<FlaggedWellnessEntry | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+
+  const handleViewEntry = (entry: FlaggedWellnessEntry) => {
+    setSelectedEntry(entry);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleCloseViewDialog = () => {
+    setIsViewDialogOpen(false);
+    setSelectedEntry(null);
+  };
 
   const filteredEntries = useMemo(() => {
     return entries.filter((entry) => {
@@ -187,21 +202,6 @@ export function TeamWellness() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        size="sm"
-                        className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
-                      >
-                        Review Full Entry
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        className="border border-[#E5E7EB]"
-                      >
-                        Take Action
-                      </Button>
-                    </div>
                   </div>
                 </Card>
               ))}
@@ -278,6 +278,7 @@ export function TeamWellness() {
                           size="sm"
                           variant="secondary"
                           className="border border-[#E5E7EB]"
+                          onClick={() => handleViewEntry(entry)}
                         >
                           View Details
                         </Button>
@@ -324,6 +325,12 @@ export function TeamWellness() {
           )}
         </div>
       </div>
+
+      <ViewEntryDialog
+        isOpen={isViewDialogOpen}
+        onClose={handleCloseViewDialog}
+        entry={selectedEntry}
+      />
     </Layout>
   );
 }

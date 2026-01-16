@@ -62,7 +62,7 @@ class QdrantService
         float $scoreThreshold = self::DEFAULT_SCORE_THRESHOLD
     ): array {
         if (count($vector) !== $this->vectorDimension) {
-            throw new Exception('Invalid query vector dimension: expected '.$this->vectorDimension.', got '.count($vector));
+            throw new Exception('Invalid query vector dimension: expected ' . $this->vectorDimension . ', got ' . count($vector));
         }
 
         $searchBody = [
@@ -149,7 +149,7 @@ class QdrantService
             ->post("{$this->qdrantUrl}{$endpoint}", $data);
 
         if ($response->status() < 200 || $response->status() >= 300) {
-            throw new Exception($errorMessage.': '.$response->body());
+            throw new Exception($errorMessage . ': ' . $response->body());
         }
 
         return $response->json();
@@ -162,7 +162,7 @@ class QdrantService
             ->put("{$this->qdrantUrl}{$endpoint}", $data);
 
         if ($response->status() < 200 || $response->status() >= 300) {
-            throw new Exception($errorMessage.': '.$response->body());
+            throw new Exception($errorMessage . ': ' . $response->body());
         }
     }
 }
