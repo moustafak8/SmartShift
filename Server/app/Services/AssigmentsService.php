@@ -6,8 +6,6 @@ use App\Models\Shift_Assigments;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
-use function Psy\sh;
-
 class AssigmentsService
 {
     public function listAssignments(): Collection
