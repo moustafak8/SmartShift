@@ -122,7 +122,7 @@ const EmployeeNavigationItems: NavigationItem[] = [
     icon: RefreshCw,
     label: "Shift Swaps",
     badge: null,
-    path: "/employee/swaps",
+    path: "/employee/swap-request",
   },
   {
     id: "wellness",

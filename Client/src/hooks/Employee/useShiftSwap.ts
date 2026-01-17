@@ -87,5 +87,79 @@ export const useCreateSwap = () => {
   });
 };
 
+export interface IncomingSwap {
+  id: number;
+  requester_id: number;
+  requester_shift_id: number;
+  target_employee_id: number;
+  target_shift_id: number;
+  status: string;
+  swap_reason?: string;
+  created_at: string;
+  requester?: {
+    id: number;
+    full_name: string;
+  };
+  requester_shift?: {
+    id: number;
+    shift_date: string;
+    shift_type: string;
+  };
+  target_shift?: {
+    id: number;
+    shift_date: string;
+    shift_type: string;
+  };
+}
+
+interface IncomingSwapsResponse {
+  status: string;
+  message: string;
+  payload: IncomingSwap[];
+}
+
+const fetchIncomingSwaps = async (): Promise<IncomingSwap[]> => {
+  const response = await api.get<IncomingSwapsResponse>("shift-swaps/incoming");
+  return response.data.payload;
+};
+
+export const useIncomingSwaps = () => {
+  const query = useQuery({
+    queryKey: ["incomingSwaps"],
+    queryFn: fetchIncomingSwaps,
+    refetchOnWindowFocus: true,
+  });
+
+  return {
+    swaps: query.data || [],
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
+};
+
+interface RespondToSwapParams {
+  swapId: number;
+  response: "accept" | "decline";
+}
+
+const respondToSwap = async ({ swapId, response }: RespondToSwapParams) => {
+  const res = await api.post(`shift-swaps/${swapId}/respond`, { response });
+  return res.data;
+};
+
+export const useRespondToSwap = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: respondToSwap,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["incomingSwaps"] });
+      queryClient.invalidateQueries({ queryKey: ["scheduleAssignments"] });
+    },
+  });
+};
+
 export type { SwapCandidate, CreateSwapRequest } from "../types/shiftSwap";
 
