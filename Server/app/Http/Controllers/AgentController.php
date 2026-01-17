@@ -47,7 +47,7 @@ class AgentController extends Controller
             'id' => $shift->id,
             'department_id' => $shift->department_id,
             'department_name' => $shift->department?->name,
-            'shift_date' => $shift->shift_date?->toDateString(),
+            'shift_date' => $shift->shift_date,
             'start_time' => $shift->start_time,
             'end_time' => $shift->end_time,
             'shift_type' => $shift->shift_type,
@@ -86,7 +86,7 @@ class AgentController extends Controller
         try {
             $score = $this->scoreService->getLatestScoreForEmployee($employeeId);
             return $this->responseJSON($score, 'success', 200);
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (Exception $e) {
             // Return default score if no fatigue record exists
             return $this->responseJSON([
                 'employee_id' => $employeeId,

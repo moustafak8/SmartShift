@@ -22,10 +22,6 @@ class Shifts extends Model
         'status',
     ];
 
-    protected $casts = [
-        'shift_date' => 'date',
-    ];
-
     public function department()
     {
         return $this->belongsTo(Department::class);

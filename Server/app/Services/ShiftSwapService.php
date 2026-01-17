@@ -124,6 +124,8 @@ class ShiftSwapService
         }
 
         if ($response === 'accept') {
+            $this->executeSwap($swap);
+            
             $swap->update([
                 'status' => 'approved',
                 'target_responded_at' => now(),
@@ -136,6 +138,29 @@ class ShiftSwapService
         }
 
         return $swap->fresh();
+    }
+
+    private function executeSwap(ShiftSwaps $swap): void
+    {
+        $requesterAssignment = Shift_Assigments::where('shift_id', $swap->requester_shift_id)
+            ->where('employee_id', $swap->requester_id)
+            ->first();
+
+        $targetAssignment = Shift_Assigments::where('shift_id', $swap->target_shift_id)
+            ->where('employee_id', $swap->target_employee_id)
+            ->first();
+
+        if ($requesterAssignment && $targetAssignment) {
+            $requesterAssignment->update([
+                'shift_id' => $swap->target_shift_id,
+                'assignment_type' => 'swap',
+            ]);
+
+            $targetAssignment->update([
+                'shift_id' => $swap->requester_shift_id,
+                'assignment_type' => 'swap',
+            ]);
+        }
     }
 
     public function getSwapsForTarget(int $targetEmployeeId): Collection

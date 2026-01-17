@@ -15,6 +15,7 @@ interface TargetShiftDialogProps {
   onClose: () => void;
   onBack: () => void;
   requesterShiftId: number;
+  requesterAssignmentId: number | null;
   swapReason: string;
 }
 
@@ -23,13 +24,14 @@ export function TargetShiftDialog({
   onClose,
   onBack,
   requesterShiftId,
+  requesterAssignmentId,
   swapReason,
 }: TargetShiftDialogProps) {
   const [selectedShiftId, setSelectedShiftId] = useState<number | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null);
   const [step, setStep] = useState<"shift" | "employee" | "confirm">("shift");
 
-  const { shifts: availableShifts, isLoading: loadingShifts, isError: shiftsError } = useSwappableShifts(requesterShiftId);
+  const { shifts: availableShifts, isLoading: loadingShifts, isError: shiftsError } = useSwappableShifts(requesterAssignmentId);
   const { candidates, isLoading: loadingCandidates, isError: candidatesError } = useSwapCandidates(selectedShiftId);
   const createSwap = useCreateSwap();
 

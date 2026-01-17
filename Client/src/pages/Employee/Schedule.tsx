@@ -46,16 +46,21 @@ export function Schedule() {
   const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
   const [swapReason, setSwapReason] = useState("");
   const [requesterShiftId, setRequesterShiftId] = useState<number | null>(null);
+  const [requesterAssignmentId, setRequesterAssignmentId] = useState<number | null>(null);
   const [swapShiftDetails, setSwapShiftDetails] = useState<{
     date: string;
     time: string;
     type: string;
     department: string;
     shiftId?: number;
+    assignmentId?: number;
   } | null>(null);
 
   const formatDateForAPI = (date: Date) => {
-    return date.toISOString().split("T")[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   const { weekAssignments, isLoading, isError } = useScheduleAssignments(
@@ -324,6 +329,7 @@ export function Schedule() {
                               type: assignment.type,
                               department: assignment.department_name,
                               shiftId: assignment.shift_id,
+                              assignmentId: assignment.assignment_id,
                             });
                             setIsSwapDialogOpen(true);
                           }
@@ -588,6 +594,7 @@ export function Schedule() {
           onContinue={(reason) => {
             setSwapReason(reason);
             setRequesterShiftId(swapShiftDetails.shiftId || null);
+            setRequesterAssignmentId(swapShiftDetails.assignmentId || null);
             setIsSwapDialogOpen(false);
             setIsTargetDialogOpen(true);
           }}
@@ -600,6 +607,7 @@ export function Schedule() {
           onClose={() => {
             setIsTargetDialogOpen(false);
             setRequesterShiftId(null);
+            setRequesterAssignmentId(null);
             setSwapReason("");
           }}
           onBack={() => {
@@ -607,6 +615,7 @@ export function Schedule() {
             setIsSwapDialogOpen(true);
           }}
           requesterShiftId={requesterShiftId}
+          requesterAssignmentId={requesterAssignmentId}
           swapReason={swapReason}
         />
       )}

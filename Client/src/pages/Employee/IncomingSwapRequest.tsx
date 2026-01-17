@@ -3,12 +3,10 @@ import {
   ArrowLeftRight,
   Calendar,
   Clock,
-  User,
   Loader2,
   AlertCircle,
   CheckCircle2,
   XCircle,
-  ArrowRight,
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
