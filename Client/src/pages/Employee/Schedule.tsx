@@ -14,6 +14,7 @@ import {
   BarChart3,
   Building2,
   Tag,
+  Calendar,
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -171,30 +172,34 @@ export function Schedule() {
         </div>
 
         <div className="p-6 space-y-6">
-            
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-[#6B7280] font-medium">
-              {formatWeekRange()}
+          <Card className="p-5 border border-[#E5E7EB] bg-gradient-to-r from-white to-[#F9FAFB]">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-xs font-semibold text-[#3B82F6] uppercase tracking-wide mb-1">
+                  Current Week
+                </div>
+                <div className="text-xl font-bold text-[#111827]">
+                  {formatWeekRange()}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigateWeek("prev")}
+                  className="flex items-center gap-2 px-4 py-2 border border-[#E5E7EB] bg-white hover:bg-[#F9FAFB] rounded-lg transition-all shadow-sm hover:shadow-md"
+                >
+                  <ChevronLeft className="w-4 h-4 text-[#6B7280]" />
+                  <span className="text-sm font-medium text-[#6B7280]">Previous</span>
+                </button>
+                <button
+                  onClick={() => navigateWeek("next")}
+                  className="flex items-center gap-2 px-4 py-2 border border-[#E5E7EB] bg-white hover:bg-[#F9FAFB] rounded-lg transition-all shadow-sm hover:shadow-md"
+                >
+                  <span className="text-sm font-medium text-[#6B7280]">Next</span>
+                  <ChevronRight className="w-4 h-4 text-[#6B7280]" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigateWeek("prev")}
-                className="border border-[#E5E7EB]"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => navigateWeek("next")}
-                className="border border-[#E5E7EB]"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
+          </Card>
 
             
           {isLoading && (
@@ -220,8 +225,9 @@ export function Schedule() {
             
           {!isLoading && !isError && weekAssignments && (
             <>
-              <Card className="p-6 border border-[#E5E7EB]">
-                <div className="grid grid-cols-7 gap-3">
+              
+              <Card className="p-6 border border-[#E5E7EB] shadow-sm">
+                <div className="grid grid-cols-7 gap-4">
                   {weekDays.map((day, index) => {
                     const date = weekDates[index];
                     const assignments = getAssignmentsForDate(date);
@@ -237,22 +243,41 @@ export function Schedule() {
                         key={day}
                         onClick={() => handleDateClick(date)}
                         disabled={!hasShifts}
-                        className={`flex flex-col p-4 rounded-lg border-2 transition-all ${
-                          hasShifts ? "hover:shadow-md cursor-pointer" : "cursor-default opacity-60"
+                        className={`relative flex flex-col items-center p-5 rounded-xl transition-all duration-200 ${
+                          hasShifts 
+                            ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer" 
+                            : "cursor-default opacity-50"
                         } ${
                           isSelected
-                            ? "border-[#3B82F6] bg-[#EFF6FF]"
+                            ? "bg-gradient-to-br from-[#3B82F6] to-[#2563EB] shadow-lg scale-105"
                             : today
-                            ? "border-[#3B82F6] bg-white"
-                            : "border-[#E5E7EB] bg-white"
+                            ? "bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] border-2 border-[#3B82F6] shadow-md"
+                            : "bg-white border-2 border-[#E5E7EB] hover:border-[#3B82F6]"
                         }`}
                       >
-                        <div className="text-xs font-medium text-[#6B7280] mb-1 text-center uppercase">
-                          {day}
+                       
+                        {hasShifts && (
+                          <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
+                            isSelected 
+                              ? "bg-white text-[#3B82F6]" 
+                              : "bg-[#3B82F6] text-white"
+                          }`}>
+                            {assignments.length}
+                          </div>
+                        )}
+                        
+                        <div className={`text-xs font-semibold mb-2 tracking-wide ${
+                          isSelected 
+                            ? "text-white" 
+                            : "text-[#6B7280]"
+                        }`}>
+                          {day.charAt(0) + day.slice(1).toLowerCase()}
                         </div>
                         <div
-                          className={`text-2xl font-bold text-center ${
-                            today || isSelected
+                          className={`text-3xl font-bold ${
+                            isSelected
+                              ? "text-white"
+                              : today
                               ? "text-[#3B82F6]"
                               : "text-[#111827]"
                           }`}
@@ -395,33 +420,72 @@ export function Schedule() {
                   </div>
                 </Card>
               )}
-              <Card className="p-6 bg-white border border-[#E5E7EB]">
-                <div className="flex items-center gap-2 mb-4">
-                  <BarChart3 className="w-5 h-5 text-[#6B7280]" />
-                  <h3 className="text-lg font-semibold text-[#111827]">
-                    Week Summary
-                  </h3>
+              {/* Enhanced Week Summary */}
+              <Card className="p-6 bg-gradient-to-br from-white to-[#F9FAFB] border border-[#E5E7EB] shadow-sm">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-md">
+                    <BarChart3 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-[#111827]">
+                      Week Summary
+                    </h3>
+                    <p className="text-xs text-[#6B7280]">Your weekly overview</p>
+                  </div>
                 </div>
+                
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center p-4 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB]">
-                    <div className="text-xs text-[#6B7280] mb-2 font-medium uppercase tracking-wide">
+                 
+                  <div className="relative overflow-hidden p-5 rounded-xl bg-white border-2 border-[#3B82F6]/30 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-[#EFF6FF] flex items-center justify-center shadow-sm">
+                        <Clock className="w-5 h-5 text-[#3B82F6]" />
+                      </div>
+                      <div className="text-xs font-bold text-[#3B82F6] bg-[#EFF6FF] px-2 py-1 rounded-md">
+                        Hours
+                      </div>
+                    </div>
+                    <div className="text-xs font-semibold text-[#3B82F6]/70 mb-1 uppercase tracking-wide">
                       Total Hours
                     </div>
-                    <div className="text-2xl font-bold text-[#111827]">
+                    <div className="text-4xl font-bold text-[#3B82F6] mb-2">
                       {(() => {
                         let totalShifts = 0;
                         Object.values(weekAssignments.days).forEach((day) => {
                           totalShifts += day.day.length + day.evening.length + day.night.length;
                         });
                         return totalShifts * 8;
-                      })()}h
+                      })()}
+                      <span className="text-xl ml-1">hrs</span>
+                    </div>
+                    <div className="h-1.5 bg-white/60 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB] rounded-full"
+                        style={{ width: `${Math.min(((() => {
+                          let totalShifts = 0;
+                          Object.values(weekAssignments.days).forEach((day) => {
+                            totalShifts += day.day.length + day.evening.length + day.night.length;
+                          });
+                          return totalShifts * 8;
+                        })() / 40) * 100, 100)}%` }}
+                      ></div>
                     </div>
                   </div>
-                  <div className="text-center p-4 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB]">
-                    <div className="text-xs text-[#6B7280] mb-2 font-medium uppercase tracking-wide">
-                      Shifts
+
+                 
+                  <div className="relative overflow-hidden p-5 rounded-xl bg-white border-2 border-[#10B981]/30 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-[#DCFCE7] flex items-center justify-center shadow-sm">
+                        <Calendar className="w-5 h-5 text-[#10B981]" />
+                      </div>
+                      <div className="text-xs font-bold text-[#10B981] bg-[#DCFCE7] px-2 py-1 rounded-md">
+                        Shifts
+                      </div>
                     </div>
-                    <div className="text-2xl font-bold text-[#111827]">
+                    <div className="text-xs font-semibold text-[#10B981]/70 mb-1 uppercase tracking-wide">
+                      Total Shifts
+                    </div>
+                    <div className="text-4xl font-bold text-[#10B981] mb-2">
                       {(() => {
                         let totalShifts = 0;
                         Object.values(weekAssignments.days).forEach((day) => {
@@ -429,13 +493,35 @@ export function Schedule() {
                         });
                         return totalShifts;
                       })()}
+                      <span className="text-xl ml-1">shifts</span>
+                    </div>
+                    <div className="h-1.5 bg-white/60 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#10B981] to-[#059669] rounded-full"
+                        style={{ width: `${Math.min(((() => {
+                          let totalShifts = 0;
+                          Object.values(weekAssignments.days).forEach((day) => {
+                            totalShifts += day.day.length + day.evening.length + day.night.length;
+                          });
+                          return totalShifts;
+                        })() / 7) * 100, 100)}%` }}
+                      ></div>
                     </div>
                   </div>
-                  <div className="text-center p-4 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB]">
-                    <div className="text-xs text-[#6B7280] mb-2 font-medium uppercase tracking-wide">
+
+                  <div className="relative overflow-hidden p-5 rounded-xl bg-white border-2 border-[#A855F7]/30 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="w-10 h-10 rounded-lg bg-[#F3E8FF] flex items-center justify-center shadow-sm">
+                        <Moon className="w-5 h-5 text-[#A855F7]" />
+                      </div>
+                      <div className="text-xs font-bold text-[#A855F7] bg-[#F3E8FF] px-2 py-1 rounded-md">
+                        Rest
+                      </div>
+                    </div>
+                    <div className="text-xs font-semibold text-[#A855F7]/70 mb-1 uppercase tracking-wide">
                       Days Off
                     </div>
-                    <div className="text-2xl font-bold text-[#111827]">
+                    <div className="text-4xl font-bold text-[#A855F7] mb-2">
                       {(() => {
                         let daysOff = 7;
                         Object.values(weekAssignments.days).forEach((day) => {
@@ -444,6 +530,20 @@ export function Schedule() {
                         });
                         return daysOff;
                       })()}
+                      <span className="text-xl ml-1">days</span>
+                    </div>
+                    <div className="h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-[#A855F7] to-[#9333EA] rounded-full"
+                        style={{ width: `${((() => {
+                          let daysOff = 7;
+                          Object.values(weekAssignments.days).forEach((day) => {
+                            const hasShift = day.day.length > 0 || day.evening.length > 0 || day.night.length > 0;
+                            if (hasShift) daysOff--;
+                          });
+                          return daysOff;
+                        })() / 7) * 100}%` }}
+                      ></div>
                     </div>
                   </div>
                 </div>
