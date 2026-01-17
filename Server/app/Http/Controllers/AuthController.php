@@ -45,7 +45,7 @@ class AuthController extends Controller
                 ]);
             } catch (\Exception $e) {
                 return $this->responseJSON(
-                    'Failed to assign employee to department: '.$e->getMessage(),
+                    'Failed to assign employee to department: ' . $e->getMessage(),
                     'error',
                     500
                 );
