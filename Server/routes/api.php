@@ -58,6 +58,7 @@ Route::prefix('v1')->group(function () {
         Route::get('positions/{positionId}', [PositionController::class, 'getPositionById']);
         Route::get('shift-swaps', [ShiftSwapsController::class, 'index']);
         Route::get('shift-swaps/pending-count', [ShiftSwapsController::class, 'pendingCount']);
+        Route::get('shift-swaps/awaiting-manager', [ShiftSwapsController::class, 'awaitingManager']);
         Route::post('shift-swaps/{swapId}/review', [ShiftSwapsController::class, 'review']);
     });
     Route::prefix('')->middleware('employee')->group(function () {
@@ -76,6 +77,8 @@ Route::prefix('v1')->group(function () {
         Route::post('shift-swaps', [ShiftSwapsController::class, 'store']);
         Route::get('shift-swaps/{swapId}', [ShiftSwapsController::class, 'show']);
         Route::post('shift-swaps/{swapId}/cancel', [ShiftSwapsController::class, 'cancel']);
+        Route::get('shift-swaps/incoming', [ShiftSwapsController::class, 'incomingSwaps']);
+        Route::post('shift-swaps/{swapId}/respond', [ShiftSwapsController::class, 'targetRespond']);
         Route::get('shifts/{shiftId}/swap-candidates', [ShiftSwapsController::class, 'eligibleCandidates']);
         Route::get('shifts/{shiftId}/swappable-shifts', [ShiftSwapsController::class, 'swappableShifts']);
     });

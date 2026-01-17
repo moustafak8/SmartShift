@@ -99,4 +99,44 @@ class ShiftSwapsController extends Controller
 
         return $this->responseJSON($shifts, 'success', 200);
     }
+
+    public function targetRespond(int $swapId, Request $request)
+    {
+        $request->validate([
+            'response' => ['required', 'in:accept,decline'],
+        ]);
+
+        $userId = auth()->id();
+        $swap = $this->swapService->targetRespond(
+            $swapId,
+            $userId,
+            $request->input('response')
+        );
+
+        if (!$swap) {
+            return $this->responseJSON(null, 'Cannot respond to this swap request', 400);
+        }
+
+        $message = $request->input('response') === 'accept' 
+            ? 'Swap request accepted' 
+            : 'Swap request declined';
+
+        return $this->responseJSON($swap, $message, 200);
+    }
+
+    public function incomingSwaps()
+    {
+        $userId = auth()->id();
+        $swaps = $this->swapService->getSwapsForTarget($userId);
+
+        return $this->responseJSON($swaps, 'success', 200);
+    }
+
+    public function awaitingManager(Request $request)
+    {
+        $departmentId = $request->query('department_id');
+        $swaps = $this->swapService->getSwapsAwaitingManager($departmentId ? (int) $departmentId : null);
+
+        return $this->responseJSON($swaps, 'success', 200);
+    }
 }
