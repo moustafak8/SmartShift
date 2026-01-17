@@ -5,14 +5,48 @@ from datetime import datetime, timedelta
 import logging
 import jwt
 import asyncio
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 settings = get_settings()
 logger = logging.getLogger(__name__)
 
 
-class JWTTokenManager:
-    """Manages JWT token lifecycle: login, refresh, expiry checking"""
+class CircuitBreaker:
+    def __init__(self, failure_threshold: int = 5, timeout_seconds: int = 60):
+        self.failure_count = 0
+        self.failure_threshold = failure_threshold
+        self.timeout_seconds = timeout_seconds
+        self.last_failure_time: Optional[datetime] = None
+        self.state = "CLOSED"
     
+    def call_failed(self):
+        self.failure_count += 1
+        self.last_failure_time = datetime.now()
+        
+        if self.failure_count >= self.failure_threshold:
+            self.state = "OPEN"
+            logger.warning(f"Circuit breaker OPEN after {self.failure_count} failures")
+    
+    def call_succeeded(self):
+        self.failure_count = 0
+        self.state = "CLOSED"
+    
+    def can_attempt(self) -> bool:
+        if self.state == "CLOSED":
+            return True
+        
+        if self.state == "OPEN":
+            if self.last_failure_time and \
+               datetime.now() - self.last_failure_time > timedelta(seconds=self.timeout_seconds):
+                self.state = "HALF_OPEN"
+                logger.info("Circuit breaker HALF_OPEN - allowing test request")
+                return True
+            return False
+        
+        return True  # HALF_OPEN: allow one attempt
+
+
+class JWTTokenManager:
     def __init__(self):
         self.token: Optional[str] = None
         self.token_expiry: Optional[datetime] = None
@@ -20,7 +54,6 @@ class JWTTokenManager:
         self._lock = asyncio.Lock()  # Prevent concurrent logins
         
     def _decode_token_expiry(self, token: str) -> datetime:
-        """Extract expiry time from JWT token"""
         try:
             decoded = jwt.decode(token, options={"verify_signature": False})
             exp_timestamp = decoded.get('exp')
@@ -33,7 +66,6 @@ class JWTTokenManager:
         return datetime.now() + timedelta(hours=1)
     
     def is_token_valid(self) -> bool:
-        """Check if current token is still valid"""
         if not self.token or not self.token_expiry:
             return False
         
@@ -41,7 +73,6 @@ class JWTTokenManager:
         return datetime.now() < (self.token_expiry - timedelta(minutes=5))
     
     async def get_valid_token(self) -> str:
-        """Get a valid token, logging in if necessary"""
         async with self._lock:  
             if self.is_token_valid():
                 return self.token
@@ -60,7 +91,6 @@ class JWTTokenManager:
             return self.token
     
     async def _login(self):
-        """Login to Laravel and get JWT token"""
         logger.info("Logging in to Laravel API...")
         
         async with httpx.AsyncClient() as client:
@@ -77,7 +107,6 @@ class JWTTokenManager:
                 response.raise_for_status()
                 data = response.json()
               
-                # If token not in body, try to extract from Set-Cookie header
                 if not self.token:
                     set_cookie = response.headers.get('set-cookie', '')
                     if 'auth_token=' in set_cookie:
@@ -104,9 +133,7 @@ class JWTTokenManager:
                 raise
     
     async def _refresh_token(self):
-        """Refresh JWT token using refresh token"""
         logger.info("Refreshing JWT token...")
-        
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(
@@ -129,15 +156,13 @@ class JWTTokenManager:
 
 
 class LaravelAPIClient:
-    """Client for making authenticated requests to Laravel API"""
-    
     def __init__(self):
         self.base_url = settings.laravel_api_base_url
         self.token_manager = JWTTokenManager()
         self.timeout = 10.0
+        self.circuit_breaker = CircuitBreaker(failure_threshold=5, timeout_seconds=60)
     
     async def _get_headers(self) -> Dict[str, str]:
-        """Get headers with valid JWT token"""
         token = await self.token_manager.get_valid_token()
         return {
             "Authorization": f"Bearer {token}",
@@ -145,104 +170,88 @@ class LaravelAPIClient:
             "Accept": "application/json"
         }
     
-    async def _get(self, endpoint: str) -> Dict[str, Any]:
-        """Generic GET request with automatic authentication"""
+    async def _make_request(self, endpoint: str) -> Dict[str, Any]:
         headers = await self._get_headers()
         
         async with httpx.AsyncClient() as client:
-            try:
-                response = await client.get(
-                    f"{self.base_url}{endpoint}",
-                    headers=headers,
-                    timeout=self.timeout
-                )
-                response.raise_for_status()
-                return response.json()
-                
-            except httpx.HTTPStatusError as e:
-                if e.response.status_code == 401:
-                    # Token might be invalid, force re-login
-                    logger.warning("Got 401, forcing re-login...")
-                    self.token_manager.token = None  # Invalidate token
+            response = await client.get(
+                f"{self.base_url}{endpoint}",
+                headers=headers,
+                timeout=self.timeout
+            )
+            response.raise_for_status()
+            data = response.json()
+            
+            if isinstance(data, dict) and 'payload' in data:
+                return data['payload']
+            return data
+    
+    async def _get(self, endpoint: str) -> Dict[str, Any]:
+         
+        if not self.circuit_breaker.can_attempt():
+            raise Exception(f"Circuit breaker OPEN - Laravel API unavailable after too many failures")
+        
+        try:
+            for attempt in range(3):
+                try:
+                    result = await self._make_request(endpoint)
+                    self.circuit_breaker.call_succeeded()
+                    return result
                     
-                    # Retry once with fresh token
-                    headers = await self._get_headers()
-                    response = await client.get(
-                        f"{self.base_url}{endpoint}",
-                        headers=headers,
-                        timeout=self.timeout
-                    )
-                    response.raise_for_status()
-                    return response.json()
-                else:
-                    logger.error(f"API GET error for {endpoint}: {e.response.status_code} - {e.response.text}")
+                except httpx.HTTPStatusError as e:
+                    if e.response.status_code == 401 and attempt == 0:
+                        logger.warning("Got 401, forcing re-login...")
+                        self.token_manager.token = None
+                        continue
+                    elif e.response.status_code >= 500:
+                        if attempt < 2:
+                            wait_time = (2 ** attempt)  # 1s, 2s
+                            logger.warning(f"Server error {e.response.status_code}, retrying in {wait_time}s...")
+                            await asyncio.sleep(wait_time)
+                            continue
                     raise
-            except Exception as e:
-                logger.error(f"API GET error for {endpoint}: {str(e)}")
-                raise
+                    
+                except (httpx.ConnectError, httpx.TimeoutException) as e:
+                    if attempt < 2:
+                        wait_time = (2 ** attempt)
+                        logger.warning(f"Network error, retrying in {wait_time}s: {e}")
+                        await asyncio.sleep(wait_time)
+                        continue
+                    raise
+            
+            raise Exception(f"Failed to fetch {endpoint} after 3 attempts")
+            
+        except Exception as e:
+            self.circuit_breaker.call_failed()
+            logger.error(f"API GET error for {endpoint}: {str(e)}")
+            raise
     
    
     
     async def get_employee(self, employee_id: int) -> Dict[str, Any]:
-        """
-        Fetch employee details by ID.
-        
-        Returns:
-            Dict with id, first_name, last_name, email, role, department_id
-        """
         logger.debug(f"Fetching employee {employee_id}")
-        return await self._get(f"employees/{employee_id}")
+        return await self._get(f"agent/employees/{employee_id}")
     
     async def get_employee_availability(self, employee_id: int, date: str) -> Dict[str, Any]:
-        """
-        Check if employee is available on a specific date.
-        
-        Args:
-            employee_id: The employee's ID
-            date: Date in YYYY-MM-DD format
-            
-        Returns:
-            Dict with employee_id, date, is_available, reason, preferred_shift_type
-        """
+     
         logger.debug(f"Checking availability for employee {employee_id} on {date}")
-        return await self._get(f"employees/{employee_id}/availability?date={date}")
+        return await self._get(f"agent/employees/{employee_id}/availability?date={date}")
     
     async def get_fatigue_score(self, employee_id: int, date: str = None) -> Dict[str, Any]:
-        """
-        Get employee's fatigue score (latest or for specific date).
-        
-        Args:
-            employee_id: The employee's ID
-            date: Optional date in YYYY-MM-DD format
-            
-        Returns:
-            Dict with employee_id, total_score, risk_level, breakdown
-        """
         logger.debug(f"Fetching fatigue score for employee {employee_id}")
-        return await self._get(f"fatigue-scores/{employee_id}")
+        return await self._get(f"agent/fatigue-scores/{employee_id}")
     
    
     
     async def get_shift(self, shift_id: int) -> Dict[str, Any]:
-        """
-        Fetch shift details by ID.
-        
-        Returns:
-            Dict with id, department_id, shift_date, start_time, end_time,
-            shift_type, required_staff_count, status
-        """
+       
         logger.debug(f"Fetching shift {shift_id}")
-        return await self._get(f"shifts/{shift_id}")
+        return await self._get(f"agent/shifts/{shift_id}")
     
     async def get_shift_assignments(self, shift_id: int) -> Dict[str, Any]:
-        """
-        Get all employees assigned to a specific shift.
-        
-        Returns:
-            Dict with shift_id and data array containing assignments
-        """
+    
         logger.debug(f"Fetching assignments for shift {shift_id}")
-        return await self._get(f"shifts/{shift_id}/assignments")
+        return await self._get(f"agent/shifts/{shift_id}/assignments")
 
 
 # Singleton instance

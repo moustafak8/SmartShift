@@ -15,7 +15,7 @@ app = FastAPI(
     description="LangGraph-powered shift swap validation"
 )
 
-# CORS
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Logging
+
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
 
@@ -82,25 +82,100 @@ async def force_refresh():
 @app.post("/api/validate-swap", response_model=SwapValidationResponse)
 async def validate_swap(request: SwapValidationRequest):
     """
-    Main endpoint: Validate a shift swap request using LangGraph agent
-    TODO: Implement swap validation workflow
+    Main endpoint: Validate a shift swap request using LangGraph agent.
+    
+    This endpoint:
+    1. Converts the request to workflow state
+    2. Runs the LangGraph validation workflow
+    3. Collects all check results
+    4. Returns the final decision with reasoning
     """
+    from app.graph.workflow import validation_app
+    from app.models import ValidationCheckResult
+    
     start_time = time.time()
     
     try:
-        # TODO: Import workflow once implemented
-        # from app.graph.workflow import validation_app
-        
         logger.info(f"Validating swap {request.swap_id}")
         
-        # Placeholder response - replace with actual workflow
+        # Build initial state from request
+        initial_state = {
+            "swap_id": request.swap_id,
+            "requester_id": request.requester_id,
+            "requester_shift_id": request.requester_shift_id,
+            "target_employee_id": request.target_employee_id,
+            "target_shift_id": request.target_shift_id,
+            "swap_reason": request.swap_reason,
+            # Initialize optional fields
+            "requester_data": None,
+            "target_data": None,
+            "requester_shift_data": None,
+            "target_shift_data": None,
+            "availability_check": None,
+            "fatigue_check": None,
+            "staffing_check": None,
+            "compliance_check": None,
+            "decision": None,
+            "confidence": None,
+            "reasoning": None,
+            "risk_factors": [],
+            "all_checks": [],
+            "error": None
+        }
+        
+       
+        logger.info("Starting validation workflow...")
+        final_state = await validation_app.ainvoke(initial_state)
+        
+       
         processing_time = int((time.time() - start_time) * 1000)
         
-        raise HTTPException(status_code=501, detail="Swap validation workflow not yet implemented")
+       
+        checks = []
+        for check in final_state.get("all_checks", []):
+            checks.append(ValidationCheckResult(
+                check_name=check.get("check_name", "unknown"),
+                passed=check.get("passed", False),
+                severity=check.get("severity", "hard"),
+                message=check.get("message", ""),
+                details=check.get("details")
+            ))
+        
+       
+        validation_passed = final_state.get("decision") != "auto_reject"
+        
+       
+        response = SwapValidationResponse(
+            swap_id=request.swap_id,
+            decision=final_state.get("decision", "requires_review"),
+            confidence=final_state.get("confidence", 0.0),
+            reasoning=final_state.get("reasoning", "Validation completed"),
+            validation_passed=validation_passed,
+            checks=checks,
+            risk_factors=final_state.get("risk_factors", []),
+            suggestions=final_state.get("suggestions", []),
+            processing_time_ms=processing_time
+        )
+        
+        logger.info(f"Validation complete: {response.decision} (confidence: {response.confidence})")
+        return response
         
     except Exception as e:
         logger.error(f"Validation failed: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        
+        
+        processing_time = int((time.time() - start_time) * 1000)
+        return SwapValidationResponse(
+            swap_id=request.swap_id,
+            decision="requires_review",
+            confidence=0.0,
+            reasoning=f"Validation workflow encountered an error: {str(e)}",
+            validation_passed=False,
+            checks=[],
+            risk_factors=["System error - manual review required"],
+            suggestions=["Please try again or contact support"],
+            processing_time_ms=processing_time
+        )
 
 
 if __name__ == "__main__":

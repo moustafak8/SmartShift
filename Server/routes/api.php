@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeAvailabilityController;
 use App\Http\Controllers\EmployeeDepartmentController;
@@ -25,6 +26,14 @@ Route::prefix('v1')->group(function () {
     Route::delete('positions/{positionId}', [PositionController::class, 'deletePosition']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
     Route::get('me', [AuthController::class, 'me'])->middleware('jwt');
+    
+    Route::prefix('agent')->middleware('jwt')->group(function () {
+        Route::get('employees/{id}', [AgentController::class, 'getEmployee']);
+        Route::get('employees/{employeeId}/availability', [AgentController::class, 'getEmployeeAvailability']);
+        Route::get('fatigue-scores/{employeeId}', [AgentController::class, 'getFatigueScore']);
+        Route::get('shifts/{id}', [AgentController::class, 'getShift']);
+        Route::get('shifts/{shiftId}/assignments', [AgentController::class, 'getShiftAssignments']);
+    });
 
     Route::prefix('')->middleware('manager')->group(function () {
         Route::post('register', [AuthController::class, 'register']);

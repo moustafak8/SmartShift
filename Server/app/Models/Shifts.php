@@ -42,4 +42,14 @@ class Shifts extends Model
     {
         return $this->hasMany(Shift_Position_Requirement::class, 'shift_id');
     }
+
+    public function shiftAssigments()
+    {
+        return $this->hasMany(Shift_Assigments::class, 'shift_id');
+    }
+
+    public function shiftTemplate()
+    {
+        return $this->belongsTo(Shift_Template::class, 'shift_template_id');
+    }
 }
