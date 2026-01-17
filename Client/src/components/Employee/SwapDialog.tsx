@@ -93,7 +93,7 @@ export function SwapDialog({ isOpen, onClose, shiftDetails }: SwapDialogProps) {
                     value={reason.id}
                     checked={selectedReason === reason.id}
                     onChange={(e) => setSelectedReason(e.target.value)}
-                    className="w-4 h-4 text-[#3B82F6] focus:ring-[#3B82F6] focus:ring-2"
+                    className="w-4 h-4 text-[#3B82F6] border-[#D1D5DB] focus:ring-2 focus:ring-[#3B82F6] focus:ring-offset-0 cursor-pointer"
                   />
                   <span className="text-sm text-[#111827]">{reason.label}</span>
                 </label>
