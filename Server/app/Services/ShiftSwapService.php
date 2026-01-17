@@ -88,25 +88,90 @@ class ShiftSwapService
     {
         $swap = ShiftSwaps::find($swapId);
 
-        if (!$swap || $swap->status !== 'pending') {
+        if (!$swap || $swap->status !== 'awaiting_manager') {
             return null;
         }
 
-        $status = $decision === 'approve' ? 'approved' : 'rejected';
-
-        $swap->update([
-            'status' => $status,
-            'reviewed_by' => $reviewerId,
-            'reviewed_at' => now(),
-            'review_notes' => $notes,
-        ]);
+        if ($decision === 'approve') {
+            $swap->update([
+                'status' => 'awaiting_target',
+                'reviewed_by' => $reviewerId,
+                'reviewed_at' => now(),
+                'review_notes' => $notes,
+            ]);
+        } else {
+            $swap->update([
+                'status' => 'rejected',
+                'reviewed_by' => $reviewerId,
+                'reviewed_at' => now(),
+                'review_notes' => $notes,
+            ]);
+        }
 
         return $swap->fresh();
     }
 
+    public function targetRespond(int $swapId, int $targetUserId, string $response): ?ShiftSwaps
+    {
+        $swap = ShiftSwaps::find($swapId);
+
+        if (!$swap || $swap->status !== 'awaiting_target') {
+            return null;
+        }
+
+        if ($swap->target_employee_id !== $targetUserId) {
+            return null;
+        }
+
+        if ($response === 'accept') {
+            $swap->update([
+                'status' => 'approved',
+                'target_responded_at' => now(),
+            ]);
+        } else {
+            $swap->update([
+                'status' => 'rejected',
+                'target_responded_at' => now(),
+            ]);
+        }
+
+        return $swap->fresh();
+    }
+
+    public function getSwapsForTarget(int $targetEmployeeId): Collection
+    {
+        return ShiftSwaps::with([
+            'requester:id,full_name',
+            'requesterShift:id,shift_date,shift_type',
+            'targetShift:id,shift_date,shift_type',
+        ])
+            ->where('target_employee_id', $targetEmployeeId)
+            ->where('status', 'awaiting_target')
+            ->orderByDesc('created_at')
+            ->get();
+    }
+
+    public function getSwapsAwaitingManager(?int $departmentId = null): Collection
+    {
+        $query = ShiftSwaps::with([
+            'requester:id,full_name',
+            'targetEmployee:id,full_name',
+            'requesterShift:id,shift_date,shift_type',
+            'targetShift:id,shift_date,shift_type',
+        ])->where('status', 'awaiting_manager');
+
+        if ($departmentId) {
+            $query->whereHas('requesterShift', function ($q) use ($departmentId) {
+                $q->where('department_id', $departmentId);
+            });
+        }
+
+        return $query->orderByDesc('created_at')->get();
+    }
+
     public function getPendingSwapsCount(?int $departmentId = null): int
     {
-        $query = ShiftSwaps::where('status', 'pending');
+        $query = ShiftSwaps::where('status', 'awaiting_manager');
 
         if ($departmentId) {
             $query->whereHas('requesterShift', function ($q) use ($departmentId) {

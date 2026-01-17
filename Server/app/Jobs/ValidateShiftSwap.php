@@ -109,9 +109,10 @@ class ValidateShiftSwap implements ShouldQueue
         $decision = $response['decision'] ?? 'requires_review';
         
         return match ($decision) {
-            'auto_approve' => 'approved',
+            'auto_approve' => 'awaiting_target',
             'auto_reject' => 'rejected',
-            default => 'pending',
+            'requires_review' => 'awaiting_manager',
+            default => 'awaiting_manager',
         };
     }
 }
