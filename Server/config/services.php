@@ -39,5 +39,9 @@ return [
         'url' => env('QDRANT_URL', 'http://localhost:6333'),
         'api_key' => env('QDRANT_API_KEY', ''),
     ],
+    'ai_agent' => [
+        'url' => env('AI_AGENT_URL', 'http://localhost:8001'),
+        'timeout' => env('AI_AGENT_TIMEOUT', 30),
+    ],
 
 ];
