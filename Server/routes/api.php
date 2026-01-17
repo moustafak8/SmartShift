@@ -10,6 +10,7 @@ use App\Http\Controllers\GenerateScheduleController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
+use App\Http\Controllers\ShiftSwapsController;
 use App\Http\Controllers\ShiftTemplatesController;
 use App\Http\Controllers\WellnessEntriesController;
 use App\Http\Controllers\WellnessSearchController;
@@ -55,6 +56,9 @@ Route::prefix('v1')->group(function () {
         Route::post('schedules/save-reviewed', [GenerateScheduleController::class, 'saveReviewed']);
         Route::get('departments/{departmentId}/positions', [PositionController::class, 'getPositionsByDepartment']);
         Route::get('positions/{positionId}', [PositionController::class, 'getPositionById']);
+        Route::get('shift-swaps', [ShiftSwapsController::class, 'index']);
+        Route::get('shift-swaps/pending-count', [ShiftSwapsController::class, 'pendingCount']);
+        Route::post('shift-swaps/{swapId}/review', [ShiftSwapsController::class, 'review']);
     });
     Route::prefix('')->middleware('employee')->group(function () {
         Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);
@@ -69,5 +73,8 @@ Route::prefix('v1')->group(function () {
         Route::post('employee-availability', [EmployeeAvailabilityController::class, 'storeAvailability']);
         Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
         Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);
+        Route::post('shift-swaps', [ShiftSwapsController::class, 'store']);
+        Route::get('shift-swaps/{swapId}', [ShiftSwapsController::class, 'show']);
+        Route::post('shift-swaps/{swapId}/cancel', [ShiftSwapsController::class, 'cancel']);
     });
 });
