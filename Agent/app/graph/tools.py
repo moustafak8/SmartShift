@@ -182,6 +182,67 @@ class LaravelAPIClient:
                 raise
     
    
+    
+    async def get_employee(self, employee_id: int) -> Dict[str, Any]:
+        """
+        Fetch employee details by ID.
+        
+        Returns:
+            Dict with id, first_name, last_name, email, role, department_id
+        """
+        logger.debug(f"Fetching employee {employee_id}")
+        return await self._get(f"employees/{employee_id}")
+    
+    async def get_employee_availability(self, employee_id: int, date: str) -> Dict[str, Any]:
+        """
+        Check if employee is available on a specific date.
+        
+        Args:
+            employee_id: The employee's ID
+            date: Date in YYYY-MM-DD format
+            
+        Returns:
+            Dict with employee_id, date, is_available, reason, preferred_shift_type
+        """
+        logger.debug(f"Checking availability for employee {employee_id} on {date}")
+        return await self._get(f"employees/{employee_id}/availability?date={date}")
+    
+    async def get_fatigue_score(self, employee_id: int, date: str = None) -> Dict[str, Any]:
+        """
+        Get employee's fatigue score (latest or for specific date).
+        
+        Args:
+            employee_id: The employee's ID
+            date: Optional date in YYYY-MM-DD format
+            
+        Returns:
+            Dict with employee_id, total_score, risk_level, breakdown
+        """
+        logger.debug(f"Fetching fatigue score for employee {employee_id}")
+        return await self._get(f"fatigue-scores/{employee_id}")
+    
+   
+    
+    async def get_shift(self, shift_id: int) -> Dict[str, Any]:
+        """
+        Fetch shift details by ID.
+        
+        Returns:
+            Dict with id, department_id, shift_date, start_time, end_time,
+            shift_type, required_staff_count, status
+        """
+        logger.debug(f"Fetching shift {shift_id}")
+        return await self._get(f"shifts/{shift_id}")
+    
+    async def get_shift_assignments(self, shift_id: int) -> Dict[str, Any]:
+        """
+        Get all employees assigned to a specific shift.
+        
+        Returns:
+            Dict with shift_id and data array containing assignments
+        """
+        logger.debug(f"Fetching assignments for shift {shift_id}")
+        return await self._get(f"shifts/{shift_id}/assignments")
 
 
 # Singleton instance
