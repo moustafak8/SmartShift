@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 async def startup_event():
-    """Pre-authenticate on startup to avoid first-request delay"""
     logger.info("Starting SmartShift AI Agent...")
     try:
         await laravel_client.token_manager.get_valid_token()
@@ -43,7 +42,6 @@ async def startup_event():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
     token_valid = laravel_client.token_manager.is_token_valid()
     
     return {
@@ -56,7 +54,6 @@ async def health_check():
 
 @app.get("/api/auth/status")
 async def auth_status():
-    """Check authentication status"""
     token_valid = laravel_client.token_manager.is_token_valid()
     
     return {
@@ -68,7 +65,6 @@ async def auth_status():
 
 @app.post("/api/auth/refresh")
 async def force_refresh():
-    """Force token refresh (for testing)"""
     try:
         await laravel_client.token_manager._login()
         return {
@@ -81,15 +77,6 @@ async def force_refresh():
 
 @app.post("/api/validate-swap", response_model=SwapValidationResponse)
 async def validate_swap(request: SwapValidationRequest):
-    """
-    Main endpoint: Validate a shift swap request using LangGraph agent.
-    
-    This endpoint:
-    1. Converts the request to workflow state
-    2. Runs the LangGraph validation workflow
-    3. Collects all check results
-    4. Returns the final decision with reasoning
-    """
     from app.graph.workflow import validation_app
     from app.models import ValidationCheckResult
     
