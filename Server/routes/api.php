@@ -75,9 +75,9 @@ Route::prefix('v1')->group(function () {
         Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
         Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);
         Route::post('shift-swaps', [ShiftSwapsController::class, 'store']);
+        Route::get('shift-swaps/incoming', [ShiftSwapsController::class, 'incomingSwaps']);
         Route::get('shift-swaps/{swapId}', [ShiftSwapsController::class, 'show']);
         Route::post('shift-swaps/{swapId}/cancel', [ShiftSwapsController::class, 'cancel']);
-        Route::get('shift-swaps/incoming', [ShiftSwapsController::class, 'incomingSwaps']);
         Route::post('shift-swaps/{swapId}/respond', [ShiftSwapsController::class, 'targetRespond']);
         Route::get('shifts/{shiftId}/swap-candidates', [ShiftSwapsController::class, 'eligibleCandidates']);
         Route::get('shifts/{shiftId}/swappable-shifts', [ShiftSwapsController::class, 'swappableShifts']);
