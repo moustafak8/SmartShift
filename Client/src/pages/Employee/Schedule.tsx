@@ -21,6 +21,7 @@ import { Card } from "../../components/ui/Card";
 import { Layout } from "../../components/Sidebar";
 import { useScheduleAssignments } from "../../hooks/Employee/useScheduleAssignments";
 import type { ShiftAssignment } from "../../hooks/Employee/useScheduleAssignments";
+import { SwapDialog } from "../../components/Employee/SwapDialog";
 
 type SelectedShiftDetails = {
   date: Date;
@@ -40,6 +41,13 @@ export function Schedule() {
   );
   const [selectedShift, setSelectedShift] =
     useState<SelectedShiftDetails | null>(null);
+  const [isSwapDialogOpen, setIsSwapDialogOpen] = useState(false);
+  const [swapShiftDetails, setSwapShiftDetails] = useState<{
+    date: string;
+    time: string;
+    type: string;
+    department: string;
+  } | null>(null);
 
   const formatDateForAPI = (date: Date) => {
     return date.toISOString().split("T")[0];
@@ -302,6 +310,18 @@ export function Schedule() {
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
+                        onClick={() => {
+                          if (selectedShift && selectedShift.assignments.length > 0) {
+                            const assignment = selectedShift.assignments[0];
+                            setSwapShiftDetails({
+                              date: formatShiftDate(selectedShift.date),
+                              time: assignment.label,
+                              type: assignment.type,
+                              department: assignment.department_name,
+                            });
+                            setIsSwapDialogOpen(true);
+                          }
+                        }}
                         className="bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
                       >
                         <Zap className="w-4 h-4" />
@@ -552,6 +572,15 @@ export function Schedule() {
           )}
         </div>
       </div>
+
+      
+      {swapShiftDetails && (
+        <SwapDialog
+          isOpen={isSwapDialogOpen}
+          onClose={() => setIsSwapDialogOpen(false)}
+          shiftDetails={swapShiftDetails}
+        />
+      )}
     </Layout>
   );
 }
