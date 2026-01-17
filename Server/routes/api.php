@@ -76,5 +76,6 @@ Route::prefix('v1')->group(function () {
         Route::post('shift-swaps', [ShiftSwapsController::class, 'store']);
         Route::get('shift-swaps/{swapId}', [ShiftSwapsController::class, 'show']);
         Route::post('shift-swaps/{swapId}/cancel', [ShiftSwapsController::class, 'cancel']);
+        Route::get('shifts/{shiftId}/swap-candidates', [ShiftSwapsController::class, 'eligibleCandidates']);
     });
 });

@@ -80,6 +80,7 @@ class ShiftSwapService
         return $swap->fresh();
     }
 
+    
     public function reviewSwap(int $swapId, int $reviewerId, string $decision, ?string $notes = null): ?ShiftSwaps
     {
         $swap = ShiftSwaps::find($swapId);
@@ -111,5 +112,35 @@ class ShiftSwapService
         }
 
         return $query->count();
+    }
+
+    public function getEligibleSwapCandidates(int $shiftId, int $requesterId): Collection
+    {
+        $requesterPosition = \App\Models\Employee_Department::where('employee_id', $requesterId)
+            ->where('is_primary', true)
+            ->value('position_id');
+
+        if (!$requesterPosition) {
+            return collect([]);
+        }
+
+        $eligibleEmployeeIds = \App\Models\Employee_Department::where('position_id', $requesterPosition)
+            ->where('employee_id', '!=', $requesterId)
+            ->pluck('employee_id');
+
+        return \App\Models\Shift_Assigments::where('shift_id', $shiftId)
+            ->whereIn('employee_id', $eligibleEmployeeIds)
+            ->whereIn('status', ['assigned', 'confirmed'])
+            ->with(['employee:id,full_name,email', 'shift:id,shift_date,shift_type'])
+            ->get()
+            ->map(fn ($assignment) => [
+                'employee_id' => $assignment->employee_id,
+                'full_name' => $assignment->employee?->full_name,
+                'email' => $assignment->employee?->email,
+                'assignment_id' => $assignment->id,
+                'shift_id' => $assignment->shift_id,
+                'shift_date' => $assignment->shift?->shift_date,
+                'shift_type' => $assignment->shift?->shift_type,
+            ]);
     }
 }

@@ -84,4 +84,12 @@ class ShiftSwapsController extends Controller
 
         return $this->responseJSON(['count' => $count], 'success', 200);
     }
+
+    public function eligibleCandidates(int $shiftId)
+    {
+        $userId = auth()->id();
+        $candidates = $this->swapService->getEligibleSwapCandidates($shiftId, $userId);
+
+        return $this->responseJSON($candidates, 'success', 200);
+    }
 }
