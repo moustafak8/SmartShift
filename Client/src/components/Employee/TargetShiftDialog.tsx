@@ -8,7 +8,7 @@ import {
 } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Calendar, Clock, User, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
-import { useSwapCandidates, useCreateSwap } from "../../hooks/Employee/useShiftSwap";
+import { useSwapCandidates, useCreateSwap, useSwappableShifts } from "../../hooks/Employee/useShiftSwap";
 
 interface TargetShiftDialogProps {
   isOpen: boolean;
@@ -16,11 +16,6 @@ interface TargetShiftDialogProps {
   onBack: () => void;
   requesterShiftId: number;
   swapReason: string;
-  availableShifts: Array<{
-    shift_id: number;
-    shift_date: string;
-    shift_type: string;
-  }>;
 }
 
 export function TargetShiftDialog({
@@ -29,13 +24,13 @@ export function TargetShiftDialog({
   onBack,
   requesterShiftId,
   swapReason,
-  availableShifts,
 }: TargetShiftDialogProps) {
   const [selectedShiftId, setSelectedShiftId] = useState<number | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null);
   const [step, setStep] = useState<"shift" | "employee" | "confirm">("shift");
 
-  const { candidates, isLoading: loadingCandidates, isError } = useSwapCandidates(selectedShiftId);
+  const { shifts: availableShifts, isLoading: loadingShifts, isError: shiftsError } = useSwappableShifts(requesterShiftId);
+  const { candidates, isLoading: loadingCandidates, isError: candidatesError } = useSwapCandidates(selectedShiftId);
   const createSwap = useCreateSwap();
 
   useEffect(() => {
@@ -101,15 +96,31 @@ export function TargetShiftDialog({
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Step 1: Select Target Shift */}
+         
           {step === "shift" && (
             <div className="space-y-3">
-              {availableShifts.length === 0 ? (
+              {loadingShifts && (
+                <div className="text-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#3B82F6] mb-3" />
+                  <p className="text-sm text-[#6B7280]">Loading available shifts...</p>
+                </div>
+              )}
+
+              {shiftsError && (
+                <div className="text-center py-8">
+                  <AlertCircle className="w-12 h-12 mx-auto text-[#EF4444] mb-3" />
+                  <p className="text-sm text-[#EF4444]">Failed to load shifts</p>
+                </div>
+              )}
+
+              {!loadingShifts && !shiftsError && availableShifts.length === 0 && (
                 <div className="text-center py-8 text-[#6B7280]">
                   <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No available shifts to swap with</p>
+                  <p>No available shifts to swap with on this date</p>
                 </div>
-              ) : (
+              )}
+
+              {!loadingShifts && !shiftsError && availableShifts.length > 0 && (
                 availableShifts.map((shift) => (
                   <button
                     key={shift.shift_id}
@@ -140,7 +151,7 @@ export function TargetShiftDialog({
             </div>
           )}
 
-          {/* Step 2: Select Employee */}
+          
           {step === "employee" && (
             <div className="space-y-4">
               <div className="p-3 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB]">
@@ -157,14 +168,14 @@ export function TargetShiftDialog({
                 </div>
               )}
 
-              {isError && (
+              {candidatesError && (
                 <div className="text-center py-8">
                   <AlertCircle className="w-12 h-12 mx-auto text-[#EF4444] mb-3" />
                   <p className="text-sm text-[#EF4444]">Failed to load employees</p>
                 </div>
               )}
 
-              {!loadingCandidates && !isError && candidates.length === 0 && (
+              {!loadingCandidates && !candidatesError && candidates.length === 0 && (
                 <div className="text-center py-8 text-[#6B7280]">
                   <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No eligible employees found for this shift</p>
@@ -204,7 +215,7 @@ export function TargetShiftDialog({
             </div>
           )}
 
-          {/* Step 3: Confirmation */}
+         
           {step === "confirm" && (
             <div className="space-y-4">
               <div className="p-4 rounded-lg bg-[#F0FDF4] border border-[#10B981]/30">
@@ -246,7 +257,7 @@ export function TargetShiftDialog({
           )}
         </div>
 
-        {/* Footer Actions */}
+        
         <div className="flex items-center justify-between pt-4 border-t border-[#E5E7EB]">
           <Button
             variant="secondary"

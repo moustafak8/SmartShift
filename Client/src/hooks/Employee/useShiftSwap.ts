@@ -7,6 +7,45 @@ import type {
   CreateSwapResponse 
 } from "../types/shiftSwap";
 
+export interface SwappableShift {
+  shift_id: number;
+  shift_date: string;
+  shift_type: string;
+  start_time: string;
+  end_time: string;
+}
+
+interface SwappableShiftsResponse {
+  status: string;
+  message: string;
+  payload: SwappableShift[];
+}
+
+const fetchSwappableShifts = async (shiftId: number): Promise<SwappableShift[]> => {
+  const response = await api.get<SwappableShiftsResponse>(
+    `shifts/${shiftId}/swappable-shifts`
+  );
+  return response.data.payload;
+};
+
+export const useSwappableShifts = (requesterShiftId: number | null) => {
+  const query = useQuery({
+    queryKey: ["swappableShifts", requesterShiftId],
+    queryFn: () => fetchSwappableShifts(requesterShiftId!),
+    enabled: !!requesterShiftId,
+    retry: 1,
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    shifts: query.data || [],
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
+};
+
 const fetchSwapCandidates = async (shiftId: number): Promise<SwapCandidate[]> => {
   const response = await api.get<SwapCandidatesResponse>(
     `shifts/${shiftId}/swap-candidates`
@@ -49,3 +88,4 @@ export const useCreateSwap = () => {
 };
 
 export type { SwapCandidate, CreateSwapRequest } from "../types/shiftSwap";
+

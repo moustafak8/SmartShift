@@ -181,6 +181,7 @@ class AssigmentsService
             $shiftType = $assignment->shift->shift_type ?? 'day';
             $days[$date][$shiftType][] = [
                 'assignment_id' => $assignment->id,
+                'shift_id' => $assignment->shift_id,
                 'employee_id' => $assignment->employee_id,
                 'full_name' => $assignment->employee?->full_name ?? '',
                 'department_name' => $assignment->shift?->department?->name ?? '',

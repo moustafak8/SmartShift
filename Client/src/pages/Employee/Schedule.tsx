@@ -22,10 +22,11 @@ import { Layout } from "../../components/Sidebar";
 import { useScheduleAssignments } from "../../hooks/Employee/useScheduleAssignments";
 import type { ShiftAssignment } from "../../hooks/Employee/useScheduleAssignments";
 import { SwapDialog } from "../../components/Employee/SwapDialog";
+import { TargetShiftDialog } from "../../components/Employee/TargetShiftDialog";
 
 type SelectedShiftDetails = {
   date: Date;
-  assignments: (ShiftAssignment & { type: string; label: string })[];
+  assignments: (ShiftAssignment & { type: string; label: string; shiftId?: number })[];
 };
 
 export function Schedule() {
@@ -42,11 +43,15 @@ export function Schedule() {
   const [selectedShift, setSelectedShift] =
     useState<SelectedShiftDetails | null>(null);
   const [isSwapDialogOpen, setIsSwapDialogOpen] = useState(false);
+  const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
+  const [swapReason, setSwapReason] = useState("");
+  const [requesterShiftId, setRequesterShiftId] = useState<number | null>(null);
   const [swapShiftDetails, setSwapShiftDetails] = useState<{
     date: string;
     time: string;
     type: string;
     department: string;
+    shiftId?: number;
   } | null>(null);
 
   const formatDateForAPI = (date: Date) => {
@@ -318,6 +323,7 @@ export function Schedule() {
                               time: assignment.label,
                               type: assignment.type,
                               department: assignment.department_name,
+                              shiftId: assignment.shift_id,
                             });
                             setIsSwapDialogOpen(true);
                           }
@@ -579,6 +585,29 @@ export function Schedule() {
           isOpen={isSwapDialogOpen}
           onClose={() => setIsSwapDialogOpen(false)}
           shiftDetails={swapShiftDetails}
+          onContinue={(reason) => {
+            setSwapReason(reason);
+            setRequesterShiftId(swapShiftDetails.shiftId || null);
+            setIsSwapDialogOpen(false);
+            setIsTargetDialogOpen(true);
+          }}
+        />
+      )}
+
+      {requesterShiftId && (
+        <TargetShiftDialog
+          isOpen={isTargetDialogOpen}
+          onClose={() => {
+            setIsTargetDialogOpen(false);
+            setRequesterShiftId(null);
+            setSwapReason("");
+          }}
+          onBack={() => {
+            setIsTargetDialogOpen(false);
+            setIsSwapDialogOpen(true);
+          }}
+          requesterShiftId={requesterShiftId}
+          swapReason={swapReason}
         />
       )}
     </Layout>

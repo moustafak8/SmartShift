@@ -92,4 +92,11 @@ class ShiftSwapsController extends Controller
 
         return $this->responseJSON($candidates, 'success', 200);
     }
+
+    public function swappableShifts(int $shiftId)
+    {
+        $shifts = $this->swapService->getSwappableShiftsForDate($shiftId);
+
+        return $this->responseJSON($shifts, 'success', 200);
+    }
 }

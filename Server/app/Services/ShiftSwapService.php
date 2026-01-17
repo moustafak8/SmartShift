@@ -4,6 +4,9 @@ namespace App\Services;
 
 use App\Jobs\ValidateShiftSwap;
 use App\Models\ShiftSwaps;
+use App\Models\Shifts;
+use App\Models\Shift_Assigments;
+use App\Models\Employee_Department;
 use Illuminate\Support\Collection;
 
 class ShiftSwapService
@@ -114,9 +117,38 @@ class ShiftSwapService
         return $query->count();
     }
 
+    public function getSwappableShiftsForDate(int $assignmentId): Collection
+    {
+        $assignment = Shift_Assigments::find($assignmentId);
+        
+        if (!$assignment) {
+            return collect([]);
+        }
+
+        $requesterShift = Shifts::find($assignment->shift_id);
+        
+        if (!$requesterShift) {
+            return collect([]);
+        }
+
+        return Shifts::where('shift_date', $requesterShift->shift_date)
+            ->where('id', '!=', $requesterShift->id)
+            ->where('department_id', $requesterShift->department_id)
+            ->whereIn('status', ['open', 'understaffed', 'filled'])
+            ->select(['id', 'shift_date', 'shift_type', 'start_time', 'end_time', 'department_id'])
+            ->get()
+            ->map(fn ($shift) => [
+                'shift_id' => $shift->id,
+                'shift_date' => $shift->shift_date,
+                'shift_type' => $shift->shift_type,
+                'start_time' => $shift->start_time,
+                'end_time' => $shift->end_time,
+            ]);
+    }
+
     public function getEligibleSwapCandidates(int $shiftId, int $requesterId): Collection
     {
-        $requesterPosition = \App\Models\Employee_Department::where('employee_id', $requesterId)
+        $requesterPosition = Employee_Department::where('employee_id', $requesterId)
             ->where('is_primary', true)
             ->value('position_id');
 
@@ -124,11 +156,11 @@ class ShiftSwapService
             return collect([]);
         }
 
-        $eligibleEmployeeIds = \App\Models\Employee_Department::where('position_id', $requesterPosition)
+        $eligibleEmployeeIds = Employee_Department::where('position_id', $requesterPosition)
             ->where('employee_id', '!=', $requesterId)
             ->pluck('employee_id');
 
-        return \App\Models\Shift_Assigments::where('shift_id', $shiftId)
+        return Shift_Assigments::where('shift_id', $shiftId)
             ->whereIn('employee_id', $eligibleEmployeeIds)
             ->whereIn('status', ['assigned', 'confirmed'])
             ->with(['employee:id,full_name,email', 'shift:id,shift_date,shift_type'])
@@ -144,3 +176,4 @@ class ShiftSwapService
             ]);
     }
 }
+
