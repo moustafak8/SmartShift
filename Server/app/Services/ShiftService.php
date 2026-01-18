@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Shifts;
-use App\Models\Shift_Position_Requirement;
 use App\Models\Shift_Assigments;
+use App\Models\Shift_Position_Requirement;
+use App\Models\Shifts;
 use Illuminate\Support\Collection;
 
 class ShiftService
@@ -98,7 +98,7 @@ class ShiftService
         )->get();
 
         foreach ($templateRequirements as $req) {
-           Shift_Position_Requirement::create([
+            Shift_Position_Requirement::create([
                 'shift_id' => $shift->id,
                 'position_id' => $req->position_id,
                 'required_count' => $req->required_count,

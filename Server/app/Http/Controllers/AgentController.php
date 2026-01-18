@@ -45,4 +45,3 @@ class AgentController extends Controller
         return $this->responseJSON($this->employeeShiftsService->getEmployeeShifts($employeeId), 'success', 200);
     }
 }
-

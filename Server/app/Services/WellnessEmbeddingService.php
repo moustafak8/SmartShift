@@ -4,8 +4,8 @@ namespace App\Services;
 
 use App\Models\FatigueScore;
 use App\Models\Shift_Assigments;
-use App\Models\WellnessEntryVector;
 use App\Models\WellnessEntryExtraction;
+use App\Models\WellnessEntryVector;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class WellnessEmbeddingService
