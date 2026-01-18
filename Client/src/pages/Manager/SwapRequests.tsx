@@ -105,9 +105,9 @@ function ValidationCheckItem({ check }: { check: ValidationCheck }) {
 
       {expanded && hasDetails && (
         <div className="px-4 py-3 border-t border-[#E5E7EB] bg-white/50">
-          {check.details?.ai_analysis && (
+          {check.details && typeof check.details['ai_analysis'] === 'string' && (
             <p className="text-sm text-[#374151] mb-3">
-              {String(check.details.ai_analysis)}
+              {check.details['ai_analysis']}
             </p>
           )}
           <div className="grid grid-cols-2 gap-3 text-xs">
