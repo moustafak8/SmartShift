@@ -31,6 +31,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('agent')->middleware('jwt')->group(function () {
         Route::get('employees/{id}', [AgentController::class, 'getEmployee']);
         Route::get('employees/{employeeId}/availability', [AgentController::class, 'getEmployeeAvailability']);
+        Route::get('employees/{employeeId}/shifts', [AgentController::class, 'getEmployeeShifts']);
         Route::get('fatigue-scores/{employeeId}', [AgentController::class, 'getFatigueScore']);
         Route::get('shifts/{id}', [AgentController::class, 'getShift']);
         Route::get('shifts/{shiftId}/assignments', [AgentController::class, 'getShiftAssignments']);

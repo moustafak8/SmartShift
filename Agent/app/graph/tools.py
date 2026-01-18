@@ -298,10 +298,12 @@ class LaravelAPIClient:
         return result
     
     async def get_shift_assignments(self, shift_id: int) -> Dict[str, Any]:
-        """Fetch shift assignments (not cached - needs real-time data)."""
         logger.debug(f"Fetching assignments for shift {shift_id}")
         return await self._get(f"agent/shifts/{shift_id}/assignments")
+    
+    async def get_employee_shifts_stats(self, employee_id: int) -> Dict[str, Any]:
+        logger.debug(f"Fetching shifts stats for employee {employee_id}")
+        return await self._get(f"agent/employees/{employee_id}/shifts")
 
 
-# Singleton instance
 laravel_client = LaravelAPIClient()

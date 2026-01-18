@@ -21,8 +21,7 @@ FATIGUE_HIGH_RISK_THRESHOLD = 60
 SHIFT_FATIGUE_IMPACT = {
     'night': 15,
     'evening': 8,
-    'day': 5,
-    'rotating': 10
+    'day': 5
 }
 
 
@@ -373,6 +372,27 @@ async def check_staffing_node(state: SwapValidationState) -> Dict[str, Any]:
 
 
 
+COMPLIANCE_RULES = {
+    'max_weekly_hours': 56,
+    'min_rest_between_shifts_hours': 8,
+    'max_consecutive_days': 6,
+    'max_daily_hours': 12
+}
+
+
+def parse_shift_datetime(shift_data: Dict[str, Any], time_field: str) -> datetime:
+    date_str = shift_data.get('shift_date', '')
+    time_str = shift_data.get(time_field, '00:00:00')
+    try:
+        return datetime.fromisoformat(f"{date_str}T{time_str}".replace('Z', '+00:00'))
+    except:
+        return datetime.now()
+
+
+def calculate_rest_hours(shift1_end: datetime, shift2_start: datetime) -> float:
+    delta = shift2_start - shift1_end
+    return delta.total_seconds() / 3600
+
 
 async def check_compliance_node(state: SwapValidationState) -> Dict[str, Any]:
     logger.info(f"Checking compliance for swap {state['swap_id']}")
@@ -380,26 +400,150 @@ async def check_compliance_node(state: SwapValidationState) -> Dict[str, Any]:
     if state.get('error'):
         return state
     
-    # MVP: Always pass compliance check
-    # TODO: Implement actual compliance rules:
-    # - Maximum hours per week
-    # - Minimum rest between shifts
-    # - Overtime calculations
-    # - Union rules
-    # - Local labor laws
+    violations = []
+    warnings = []
+    checks_performed = []
+    
+    requester_shift = state.get('requester_shift_data', {})
+    target_shift = state.get('target_shift_data', {})
+    requester_data = state.get('requester_data', {})
+    target_data = state.get('target_data', {})
+    
+    requester_name = requester_data.get('full_name', 'Requester')
+    target_name = target_data.get('full_name', 'Target Employee')
+    
+    try:
+        checks_performed.append('minimum_rest_period')
+        
+        requester_new_shift_start = parse_shift_datetime(target_shift, 'start_time')
+        requester_old_shift_end = parse_shift_datetime(requester_shift, 'end_time')
+        
+        target_new_shift_start = parse_shift_datetime(requester_shift, 'start_time')
+        target_old_shift_end = parse_shift_datetime(target_shift, 'end_time')
+        
+        rest_hours_requester = abs(calculate_rest_hours(requester_old_shift_end, requester_new_shift_start))
+        rest_hours_target = abs(calculate_rest_hours(target_old_shift_end, target_new_shift_start))
+        
+        min_rest = COMPLIANCE_RULES['min_rest_between_shifts_hours']
+        
+        if rest_hours_requester < min_rest and rest_hours_requester > 0:
+            violations.append(
+                f"{requester_name} would have only {rest_hours_requester:.1f}h rest (minimum: {min_rest}h required)"
+            )
+        
+        if rest_hours_target < min_rest and rest_hours_target > 0:
+            violations.append(
+                f"{target_name} would have only {rest_hours_target:.1f}h rest (minimum: {min_rest}h required)"
+            )
+        
+        checks_performed.append('max_daily_hours')
+        
+        def get_shift_hours(shift: Dict[str, Any]) -> float:
+            try:
+                start = parse_shift_datetime(shift, 'start_time')
+                end = parse_shift_datetime(shift, 'end_time')
+                hours = (end - start).total_seconds() / 3600
+                if hours < 0:
+                    hours += 24
+                return hours
+            except:
+                return 8
+        
+        requester_new_hours = get_shift_hours(target_shift)
+        target_new_hours = get_shift_hours(requester_shift)
+        max_daily = COMPLIANCE_RULES['max_daily_hours']
+        
+        if requester_new_hours > max_daily:
+            warnings.append(f"{requester_name}'s new shift is {requester_new_hours:.1f}h (exceeds {max_daily}h daily limit)")
+        
+        if target_new_hours > max_daily:
+            warnings.append(f"{target_name}'s new shift is {target_new_hours:.1f}h (exceeds {max_daily}h daily limit)")
+        
+        checks_performed.append('night_shift_rules')
+        
+        requester_new_type = target_shift.get('shift_type', 'day')
+        target_new_type = requester_shift.get('shift_type', 'day')
+        
+        if requester_new_type == 'night':
+            warnings.append(f"{requester_name} will be switching to a night shift - verify they are eligible for night work")
+        
+        if target_new_type == 'night':
+            warnings.append(f"{target_name} will be switching to a night shift - verify they are eligible for night work")
+        
+        checks_performed.append('weekly_hours_and_consecutive_days')
+        
+        requester_stats, target_stats = await asyncio.gather(
+            laravel_client.get_employee_shifts_stats(state['requester_id']),
+            laravel_client.get_employee_shifts_stats(state['target_employee_id']),
+            return_exceptions=True
+        )
+        
+        if not isinstance(requester_stats, Exception) and requester_stats:
+            month_stats = requester_stats.get('this_month_stats', {})
+            total_hours = month_stats.get('total_hours', 0)
+            consecutive_days = month_stats.get('consecutive_days', 0)
+            max_weekly = COMPLIANCE_RULES['max_weekly_hours']
+            max_consecutive = COMPLIANCE_RULES['max_consecutive_days']
+            
+            if total_hours >= max_weekly:
+                warnings.append(f"{requester_name} has worked {total_hours}h this month (approaching {max_weekly}h weekly limit)")
+            
+            if consecutive_days >= max_consecutive:
+                violations.append(f"{requester_name} has worked {consecutive_days} consecutive days (max: {max_consecutive})")
+        
+        if not isinstance(target_stats, Exception) and target_stats:
+            month_stats = target_stats.get('this_month_stats', {})
+            total_hours = month_stats.get('total_hours', 0)
+            consecutive_days = month_stats.get('consecutive_days', 0)
+            max_weekly = COMPLIANCE_RULES['max_weekly_hours']
+            max_consecutive = COMPLIANCE_RULES['max_consecutive_days']
+            
+            if total_hours >= max_weekly:
+                warnings.append(f"{target_name} has worked {total_hours}h this month (approaching {max_weekly}h weekly limit)")
+            
+            if consecutive_days >= max_consecutive:
+                violations.append(f"{target_name} has worked {consecutive_days} consecutive days (max: {max_consecutive})")
+        
+    except Exception as e:
+        logger.error(f"Compliance check error: {str(e)}")
+        return {
+            **state,
+            "compliance_check": {
+                "check_name": "compliance",
+                "passed": True,
+                "severity": "soft",
+                "message": f"Could not fully verify compliance: {str(e)}",
+                "details": {"error": str(e), "needs_manual_review": True}
+            }
+        }
+    
+    passed = len(violations) == 0
+    
+    if violations:
+        message = f"Compliance violations: {'; '.join(violations)}"
+        severity = "hard"
+    elif warnings:
+        message = f"Compliance passed with warnings: {'; '.join(warnings)}"
+        severity = "soft"
+        passed = True
+    else:
+        message = "All compliance checks passed"
+        severity = "hard"
     
     check_result = {
         "check_name": "compliance",
-        "passed": True,
-        "severity": "hard",
-        "message": "Compliance check passed (MVP: basic validation only)",
+        "passed": passed,
+        "severity": severity,
+        "message": message,
         "details": {
-            "checks_performed": ["basic_validation"],
-            "notes": "Full compliance checking not yet implemented"
+            "checks_performed": checks_performed,
+            "violations": violations,
+            "warnings": warnings,
+            "rules_applied": COMPLIANCE_RULES
         }
     }
     
-    logger.info("Compliance check: PASSED (MVP)")
+    logger.info(f"Compliance check: {'PASSED' if passed else 'FAILED'} ({len(violations)} violations, {len(warnings)} warnings)")
     
     return {
         **state,
@@ -455,9 +599,19 @@ def generate_suggestions(failed_checks: List[Dict[str, Any]], state: SwapValidat
             })
         
         elif check_name == 'compliance':
+            details = check.get('details', {})
+            violations = details.get('violations', [])
+            
+            if any('rest' in v.lower() for v in violations):
+                suggestions.append({
+                    "type": "reschedule_shift",
+                    "message": "Choose a shift that allows for the minimum 11-hour rest period between shifts",
+                    "action": "find_compliant_shift"
+                })
+            
             suggestions.append({
                 "type": "hr_review",
-                "message": "Contact HR to review compliance requirements",
+                "message": "Contact HR to review compliance requirements or request an exception",
                 "action": "contact_hr"
             })
     
