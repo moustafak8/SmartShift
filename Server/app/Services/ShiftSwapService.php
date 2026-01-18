@@ -3,10 +3,10 @@
 namespace App\Services;
 
 use App\Jobs\ValidateShiftSwap;
-use App\Models\ShiftSwaps;
-use App\Models\Shifts;
-use App\Models\Shift_Assigments;
 use App\Models\Employee_Department;
+use App\Models\Shift_Assigments;
+use App\Models\Shifts;
+use App\Models\ShiftSwaps;
 use Illuminate\Support\Collection;
 
 class ShiftSwapService
@@ -23,7 +23,7 @@ class ShiftSwapService
         if ($employeeId) {
             $query->where(function ($q) use ($employeeId) {
                 $q->where('requester_id', $employeeId)
-                  ->orWhere('target_employee_id', $employeeId);
+                    ->orWhere('target_employee_id', $employeeId);
             });
         }
 
@@ -66,7 +66,7 @@ class ShiftSwapService
     {
         $swap = ShiftSwaps::find($swapId);
 
-        if (!$swap) {
+        if (! $swap) {
             return null;
         }
 
@@ -74,7 +74,7 @@ class ShiftSwapService
             return null;
         }
 
-        if (!in_array($swap->status, ['pending'])) {
+        if (! in_array($swap->status, ['pending'])) {
             return null;
         }
 
@@ -83,12 +83,11 @@ class ShiftSwapService
         return $swap->fresh();
     }
 
-    
     public function reviewSwap(int $swapId, int $reviewerId, string $decision, ?string $notes = null): ?ShiftSwaps
     {
         $swap = ShiftSwaps::find($swapId);
 
-        if (!$swap || $swap->status !== 'awaiting_manager') {
+        if (! $swap || $swap->status !== 'awaiting_manager') {
             return null;
         }
 
@@ -115,7 +114,7 @@ class ShiftSwapService
     {
         $swap = ShiftSwaps::find($swapId);
 
-        if (!$swap || $swap->status !== 'awaiting_target') {
+        if (! $swap || $swap->status !== 'awaiting_target') {
             return null;
         }
 
@@ -125,7 +124,7 @@ class ShiftSwapService
 
         if ($response === 'accept') {
             $this->executeSwap($swap);
-            
+
             $swap->update([
                 'status' => 'approved',
                 'target_responded_at' => now(),
@@ -223,14 +222,14 @@ class ShiftSwapService
     public function getSwappableShiftsForDate(int $assignmentId): Collection
     {
         $assignment = Shift_Assigments::find($assignmentId);
-        
-        if (!$assignment) {
+
+        if (! $assignment) {
             return collect([]);
         }
 
         $requesterShift = Shifts::find($assignment->shift_id);
-        
-        if (!$requesterShift) {
+
+        if (! $requesterShift) {
             return collect([]);
         }
 
@@ -255,7 +254,7 @@ class ShiftSwapService
             ->where('is_primary', true)
             ->value('position_id');
 
-        if (!$requesterPosition) {
+        if (! $requesterPosition) {
             return collect([]);
         }
 
@@ -279,4 +278,3 @@ class ShiftSwapService
             ]);
     }
 }
-

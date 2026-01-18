@@ -27,7 +27,7 @@ Route::prefix('v1')->group(function () {
     Route::delete('positions/{positionId}', [PositionController::class, 'deletePosition']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
     Route::get('me', [AuthController::class, 'me'])->middleware('jwt');
-    
+
     Route::prefix('agent')->middleware('jwt')->group(function () {
         Route::get('employees/{id}', [AgentController::class, 'getEmployee']);
         Route::get('employees/{employeeId}/availability', [AgentController::class, 'getEmployeeAvailability']);

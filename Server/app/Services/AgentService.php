@@ -26,7 +26,7 @@ class AgentService
             'phone' => $employee->phone,
             'is_active' => $employee->is_active,
             'user_type' => $employee->userType?->role_name,
-            'departments' => $employee->employeeDepartments->map(fn($ed) => [
+            'departments' => $employee->employeeDepartments->map(fn ($ed) => [
                 'department_id' => $ed->department_id,
                 'department_name' => $ed->department?->name,
                 'is_primary' => $ed->is_primary,
@@ -100,7 +100,7 @@ class AgentService
             'shift_id' => $shiftId,
             'required_staff_count' => $shift->required_staff_count,
             'current_staff_count' => $assignments->count(),
-            'data' => $assignments->map(fn($a) => [
+            'data' => $assignments->map(fn ($a) => [
                 'id' => $a->id,
                 'employee_id' => $a->employee_id,
                 'assignment_type' => $a->assignment_type,

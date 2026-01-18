@@ -13,6 +13,7 @@ class ValidateShiftSwap implements ShouldQueue
     use Queueable;
 
     public $tries = 3;
+
     public $backoff = [10, 30, 60];
 
     public function __construct(
@@ -23,7 +24,7 @@ class ValidateShiftSwap implements ShouldQueue
     {
         $swap = $this->getShiftSwap();
 
-        if (!$swap) {
+        if (! $swap) {
             return;
         }
 
@@ -42,7 +43,7 @@ class ValidateShiftSwap implements ShouldQueue
     {
         $swap = ShiftSwaps::find($this->swapId);
 
-        if (!$swap) {
+        if (! $swap) {
             Log::warning("Shift swap {$this->swapId} not found for validation");
         }
 
@@ -64,7 +65,7 @@ class ValidateShiftSwap implements ShouldQueue
                 'swap_reason' => $swap->swap_reason,
             ]);
 
-        if (!$response->successful()) {
+        if (! $response->successful()) {
             throw new \RuntimeException("Agent returned error: {$response->status()} - {$response->body()}");
         }
 
@@ -93,21 +94,22 @@ class ValidateShiftSwap implements ShouldQueue
     private function extractFatigueScore(array $response, string $type): ?int
     {
         $checks = $response['checks'] ?? [];
-        
+
         foreach ($checks as $check) {
             if (($check['check_name'] ?? '') === 'fatigue') {
                 $details = $check['details'] ?? [];
+
                 return $details["{$type}_after_swap"] ?? null;
             }
         }
-        
+
         return null;
     }
 
     private function determineNewStatus(array $response): string
     {
         $decision = $response['decision'] ?? 'requires_review';
-        
+
         return match ($decision) {
             'auto_approve' => 'awaiting_target',
             'auto_reject' => 'rejected',

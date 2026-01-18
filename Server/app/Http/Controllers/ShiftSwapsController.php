@@ -24,7 +24,7 @@ class ShiftSwapsController extends Controller
     {
         $swap = $this->swapService->getSwap($swapId);
 
-        if (!$swap) {
+        if (! $swap) {
             return $this->responseJSON(null, 'Swap not found', 404);
         }
 
@@ -48,7 +48,7 @@ class ShiftSwapsController extends Controller
         $userId = auth()->id();
         $swap = $this->swapService->cancelSwap($swapId, $userId);
 
-        if (!$swap) {
+        if (! $swap) {
             return $this->responseJSON(null, 'Cannot cancel this swap', 400);
         }
 
@@ -70,7 +70,7 @@ class ShiftSwapsController extends Controller
             $request->input('notes')
         );
 
-        if (!$swap) {
+        if (! $swap) {
             return $this->responseJSON(null, 'Cannot review this swap', 400);
         }
 
@@ -113,12 +113,12 @@ class ShiftSwapsController extends Controller
             $request->input('response')
         );
 
-        if (!$swap) {
+        if (! $swap) {
             return $this->responseJSON(null, 'Cannot respond to this swap request', 400);
         }
 
-        $message = $request->input('response') === 'accept' 
-            ? 'Swap request accepted' 
+        $message = $request->input('response') === 'accept'
+            ? 'Swap request accepted'
             : 'Swap request declined';
 
         return $this->responseJSON($swap, $message, 200);

@@ -24,6 +24,7 @@ class AgentController extends Controller
     public function getEmployeeAvailability(Request $request, int $employeeId)
     {
         $date = $request->query('date');
+
         return $this->responseJSON($this->agentService->getEmployeeAvailability($employeeId, $date), 'success', 200);
     }
 
