@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, CheckCircle } from "lucide-react";
 import { Button } from "../ui/Button";
 import { ManageAssignmentsDialog } from "./ManageAssignmentsDialog";
 import type { Shift, ShiftAssignmentsPayload } from "../../hooks/types/shifts";
@@ -160,31 +160,42 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange, on
 
   return (
     <div className="bg-white">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB]">
+      <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-[#E5E7EB]">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              className="px-2"
+          <div className="flex items-center bg-white rounded-lg border border-[#E5E7EB] shadow-sm overflow-hidden">
+            <button
               onClick={goToPreviousWeek}
+              className="px-3 py-2 hover:bg-gray-50 transition-colors border-r border-[#E5E7EB]"
             >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="px-2"
+              <ChevronLeft className="w-4 h-4 text-[#6B7280]" />
+            </button>
+            <button
               onClick={goToNextWeek}
+              className="px-3 py-2 hover:bg-gray-50 transition-colors"
             >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+              <ChevronRight className="w-4 h-4 text-[#6B7280]" />
+            </button>
           </div>
-          <h2 className="text-lg font-semibold text-[#111827]">
-            {formatDateRange()}
-          </h2>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+              <span className="text-sm font-bold text-[#3B82F6]">
+                {currentWeekStart.getDate()}
+              </span>
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-[#111827]">
+                {formatDateRange()}
+              </h2>
+              <p className="text-xs text-[#6B7280]">Week view</p>
+            </div>
+          </div>
         </div>
-        <Button variant="secondary" size="sm" onClick={goToToday}>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          onClick={goToToday}
+          className="border-[#3B82F6] text-[#3B82F6] hover:bg-blue-50 font-medium"
+        >
           Today
         </Button>
       </div>
@@ -261,13 +272,18 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange, on
                             const isFilled = assignedCount >= requiredCount;
                             const fillPercentage = requiredCount > 0 ? (assignedCount / requiredCount) * 100 : 0;
 
+                            // Check if this shift is in the past
+                            const shiftDate = new Date(dateStr);
+                            shiftDate.setHours(23, 59, 59, 999);
+                            const isPastShift = shiftDate < new Date();
+
                             return (
                               <div
                                 key={shift.id}
                                 onClick={() => handleShiftClick(shift, day, shiftTypeAssignments)}
                                 className={`p-3 rounded-lg border-2 ${getShiftColor(
                                   shift.shift_type
-                                )} cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200`}
+                                )} cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200 ${isPastShift ? 'opacity-75' : ''}`}
                               >
 
                                 <div className="flex items-center justify-between mb-2">
@@ -279,12 +295,16 @@ export function ShiftCalendar({ shifts, isLoading, assignments, onWeekChange, on
                                   </div>
 
 
-                                  {!isFilled && (
+                                  {isPastShift ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-300">
+                                      <CheckCircle className="w-3 h-3 mr-1" />
+                                      Completed
+                                    </span>
+                                  ) : !isFilled ? (
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
                                       {shift.status}
                                     </span>
-                                  )}
-                                  {isFilled && (
+                                  ) : (
                                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
                                       filled
                                     </span>
