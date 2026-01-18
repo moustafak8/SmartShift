@@ -1,8 +1,8 @@
 import Landingpage from "./pages/Landingpage";
 import { Route, Routes } from "react-router-dom";
 import { LoginPage } from "./pages/Loginpage";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { RoleBasedRoute } from "./components/RoleBasedRoute";
+import { ProtectedRoute } from "./routes/ProtectedRoute";
+import { RoleBasedRoute } from "./routes/RoleBasedRoute";
 import { Dashboard as EmployeeDashboard } from "./pages/Employee/Dashboard";
 import { Dashboard as ManagerDashboard } from "./pages/Manager/Dashboard";
 import { Wellness } from "./pages/Employee/Wellness";
