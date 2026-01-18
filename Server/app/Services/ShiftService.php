@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Shifts;
+use App\Models\Shift_Position_Requirement;
+use App\Models\Shift_Assigments;
 use Illuminate\Support\Collection;
 
 class ShiftService
@@ -90,13 +92,13 @@ class ShiftService
             return;
         }
 
-        $templateRequirements = \App\Models\Shift_Position_Requirement::where(
+        $templateRequirements = Shift_Position_Requirement::where(
             'shift_template_id',
             $shift->shift_template_id
         )->get();
 
         foreach ($templateRequirements as $req) {
-            \App\Models\Shift_Position_Requirement::create([
+           Shift_Position_Requirement::create([
                 'shift_id' => $shift->id,
                 'position_id' => $req->position_id,
                 'required_count' => $req->required_count,
@@ -108,7 +110,7 @@ class ShiftService
     private function createPositionRequirements(Shifts $shift, array $requirements): void
     {
         foreach ($requirements as $requirement) {
-            \App\Models\Shift_Position_Requirement::create([
+            Shift_Position_Requirement::create([
                 'shift_id' => $shift->id,
                 'position_id' => $requirement['position_id'],
                 'required_count' => $requirement['required_count'],
@@ -145,7 +147,7 @@ class ShiftService
         $shifts = Shifts::whereIn('id', $shiftIds)->get();
 
         foreach ($shifts as $shift) {
-            $assignedCount = \App\Models\Shift_Assigments::where('shift_id', $shift->id)->count();
+            $assignedCount = Shift_Assigments::where('shift_id', $shift->id)->count();
             $requiredCount = $shift->required_staff_count ?? 0;
 
             if ($requiredCount === 0) {
