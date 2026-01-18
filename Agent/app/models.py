@@ -14,7 +14,7 @@ class SwapValidationRequest(BaseModel):
 class ValidationCheckResult(BaseModel):
     check_name: str
     passed: bool
-    severity: str  # "critical", "warning", "info"
+    severity: str  # "hard", "soft"
     message: str
     details: Optional[Dict[str, Any]] = None
 
@@ -27,5 +27,7 @@ class SwapValidationResponse(BaseModel):
     validation_passed: bool
     checks: List[ValidationCheckResult]
     risk_factors: List[str]
-    suggestions: List[str]
+    suggestions: List[Any]  # Can be strings or suggestion objects
     processing_time_ms: int
+    correlation_id: Optional[str] = None  # For request tracing
+

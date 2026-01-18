@@ -248,7 +248,7 @@ async def check_fatigue_node(state: SwapValidationState) -> Dict[str, Any]:
         """
         
         ai_response = await openai_client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -375,15 +375,6 @@ async def check_staffing_node(state: SwapValidationState) -> Dict[str, Any]:
 
 
 async def check_compliance_node(state: SwapValidationState) -> Dict[str, Any]:
-    """
-    Verify labor law and policy compliance.
-    
-    MVP Implementation: Always passes.
-    Future: Check max hours/week, required rest periods, overtime limits, etc.
-    
-    Returns:
-        Updated state with compliance_check result
-    """
     logger.info(f"Checking compliance for swap {state['swap_id']}")
     
     if state.get('error'):
@@ -416,9 +407,8 @@ async def check_compliance_node(state: SwapValidationState) -> Dict[str, Any]:
     }
 
 
-# ==========================================
 # Node 6: Make Decision
-# ==========================================
+
 
 def generate_suggestions(failed_checks: List[Dict[str, Any]], state: SwapValidationState) -> List[Dict[str, Any]]:
     suggestions = []
@@ -568,7 +558,7 @@ Keep it professional but friendly, 2-3 sentences max.
     
     try:
         ai_response = await openai_client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -587,7 +577,6 @@ Keep it professional but friendly, 2-3 sentences max.
         
     except Exception as e:
         logger.error(f"Failed to generate AI reasoning: {str(e)}")
-        # Fallback to rule-based reasoning
         if decision == "auto_approve":
             reasoning = "All validation checks passed. This shift swap can be automatically approved."
         elif decision == "auto_reject":
@@ -613,7 +602,6 @@ Keep it professional but friendly, 2-3 sentences max.
     }
 
 def should_continue_after_availability(state: SwapValidationState) -> str:
-    """Determine next node after availability check."""
     check = state.get('availability_check') or {}  # Handle None
     if not check.get('passed', True) and check.get('severity') == 'hard':
         return "make_decision"  # Skip to decision on hard failure
