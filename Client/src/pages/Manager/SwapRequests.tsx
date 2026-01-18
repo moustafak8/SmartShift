@@ -1,5 +1,8 @@
 import { useState } from "react";
-import type {  ManagerSwapRequest , ValidationCheck} from "../../hooks/types/swaprequests";
+import type {
+  ManagerSwapRequest,
+  ValidationCheck,
+} from "../../hooks/types/swaprequests";
 import {
   Loader2,
   AlertCircle,
@@ -19,6 +22,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
 import { Badge } from "../../components/ui";
 import { Layout } from "../../components/Sidebar";
+import { useToast } from "../../components/ui/Toast";
 import { useAuth } from "../../hooks/context/AuthContext";
 import {
   useManagerSwaps,
@@ -105,11 +109,12 @@ function ValidationCheckItem({ check }: { check: ValidationCheck }) {
 
       {expanded && hasDetails && (
         <div className="px-4 py-3 border-t border-[#E5E7EB] bg-white/50">
-          {check.details && typeof check.details['ai_analysis'] === 'string' && (
-            <p className="text-sm text-[#374151] mb-3">
-              {check.details['ai_analysis']}
-            </p>
-          )}
+          {check.details &&
+            typeof check.details["ai_analysis"] === "string" && (
+              <p className="text-sm text-[#374151] mb-3">
+                {check.details["ai_analysis"]}
+              </p>
+            )}
           <div className="grid grid-cols-2 gap-3 text-xs">
             {Object.entries(check.details || {})
               .filter(([key]) => key !== "ai_analysis")
@@ -391,6 +396,7 @@ export function SwapRequests() {
   );
   const reviewMutation = useReviewSwap();
   const [reviewingId, setReviewingId] = useState<number | null>(null);
+  const toast = useToast();
 
   const handleReview = async (
     swapId: number,
@@ -399,8 +405,14 @@ export function SwapRequests() {
     setReviewingId(swapId);
     try {
       await reviewMutation.mutateAsync({ swapId, decision });
+      if (decision === "approve") {
+        toast.success("Swap request approved successfully");
+      } else {
+        toast.success("Swap request rejected");
+      }
     } catch (error) {
       console.error("Failed to review swap:", error);
+      toast.error("Failed to process swap request. Please try again.");
     } finally {
       setReviewingId(null);
     }
@@ -408,27 +420,24 @@ export function SwapRequests() {
 
   return (
     <Layout>
-      <div className="bg-[#F9FAFB] min-h-screen">
-        <div className="border-b border-[#E5E7EB] bg-white sticky top-0 z-10">
-          <div className="px-6 py-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-[#111827]">
-                  Swap Requests
-                </h1>
-                <p className="text-sm text-[#6B7280] mt-1">
-                  Review and approve shift swap requests requiring manager
-                  attention
-                </p>
-              </div>
-              {swaps.length > 0 && (
-                <div className="px-4 py-2 rounded-full bg-[#FEF3C7] text-[#D97706] font-semibold">
-                  {swaps.length} awaiting review
-                </div>
-              )}
-            </div>
+      <div className="bg-white min-h-screen">
+        <div className="border-b border-[#E5E7EB] bg-white">
+          <div className="px-6 py-4">
+            <h1 className="text-2xl font-semibold text-[#111827]">
+              Swap Requests
+            </h1>
+            <p className="text-sm text-[#6B7280] mt-1">
+              Review and approve shift swap requests requiring manager attention
+            </p>
           </div>
         </div>
+        {swaps.length > 0 && (
+          <div className="px-6 py-3 bg-[#FFFBEB] border-b border-[#FEF3C7]">
+            <span className="text-sm font-medium text-[#D97706]">
+              {swaps.length} swap request{swaps.length > 1 ? 's' : ''} awaiting review
+            </span>
+          </div>
+        )}
 
         <div className="p-6">
           {isLoading && (
