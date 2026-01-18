@@ -5,13 +5,14 @@ namespace App\Services;
 use App\Models\FatigueScore;
 use App\Models\Shift_Assigments;
 use App\Models\WellnessEntryExtraction;
+use App\Models\WellnessEntryVector;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class WellnessEmbeddingService
 {
     private const EMBEDDING_MODEL = 'text-embedding-3-small';
 
-    private const SENTIMENT_MODEL = 'gpt-4.1';
+    private const SENTIMENT_MODEL = 'gpt-4o';
 
     private const CRITICAL_KEYWORDS = ['suicide', 'harm', 'crisis', 'emergency'];
 
@@ -253,7 +254,7 @@ class WellnessEmbeddingService
 
     private function getWeeklySentimentData(int $employeeId, string $date): ?array
     {
-        $sentimentData = \App\Models\WellnessEntryVector::whereHas('entry', function ($query) use ($employeeId) {
+        $sentimentData = WellnessEntryVector::whereHas('entry', function ($query) use ($employeeId) {
             $query->where('employee_id', $employeeId);
         })
             ->whereBetween('created_at', [

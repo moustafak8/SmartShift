@@ -13,7 +13,7 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 class GenerateScheduleService
 {
-    private const OPENAI_CHAT_MODEL = 'gpt-4.1';
+    private const OPENAI_CHAT_MODEL = 'gpt-4o';
 
     private const OPENAI_TEMPERATURE = 0.3;
 

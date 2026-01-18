@@ -53,8 +53,6 @@ class WellnessService
     {
         $data['word_count'] = str_word_count($data['entry_text']);
         $entry = WellnessEntries::create($data);
-
-        // Dispatch background job to process entry with OpenAI
         ProcessWellnessEntry::dispatch($entry->id);
 
         return $entry;

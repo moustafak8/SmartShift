@@ -1,22 +1,3 @@
-"""
-LangGraph workflow graph definition.
-
-This module constructs the validation workflow using LangGraph's StateGraph.
-The workflow executes validation nodes with conditional routing based on
-check results.
-
-Flow:
-    START → load_context → check_availability
-                               ↓ pass         ↓ fail
-                         check_fatigue    make_decision (reject)
-                               ↓ pass         ↓ fail
-                         check_staffing   make_decision (reject)
-                               ↓
-                         check_compliance
-                               ↓
-                         make_decision → END
-"""
-
 from langgraph.graph import StateGraph, END
 from app.graph.state import SwapValidationState
 from app.graph.nodes import (

@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Services\AgentService;
+use App\Services\EmployeeShifts;
 use Illuminate\Http\Request;
 
 class AgentController extends Controller
 {
     public function __construct(
-        protected AgentService $agentService
+        protected AgentService $agentService,
+        protected EmployeeShifts $employeeShiftsService
     ) {}
 
     public function getEmployee(int $id)
@@ -36,5 +38,10 @@ class AgentController extends Controller
     public function getShiftAssignments(int $shiftId)
     {
         return $this->responseJSON($this->agentService->getShiftAssignments($shiftId), 'success', 200);
+    }
+
+    public function getEmployeeShifts(int $employeeId)
+    {
+        return $this->responseJSON($this->employeeShiftsService->getEmployeeShifts($employeeId), 'success', 200);
     }
 }

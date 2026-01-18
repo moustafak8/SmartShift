@@ -6,9 +6,11 @@ import logging
 import jwt
 import asyncio
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from app.utils.cache import get_cache, CacheKeys
+from app.utils.request_context import get_logger
 
 settings = get_settings()
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class CircuitBreaker:
@@ -226,33 +228,82 @@ class LaravelAPIClient:
             logger.error(f"API GET error for {endpoint}: {str(e)}")
             raise
     
-   
-    
     async def get_employee(self, employee_id: int) -> Dict[str, Any]:
-        logger.debug(f"Fetching employee {employee_id}")
-        return await self._get(f"agent/employees/{employee_id}")
+        """Fetch employee data with caching (10 min TTL)."""
+        cache = get_cache()
+        cache_key = CacheKeys.employee(employee_id)
+        
+        # Check cache first
+        cached = await cache.get(cache_key)
+        if cached is not None:
+            logger.debug(f"Employee {employee_id} from cache")
+            return cached
+        
+        logger.debug(f"Fetching employee {employee_id} from API")
+        result = await self._get(f"agent/employees/{employee_id}")
+        
+        # Cache for 10 minutes (employee data rarely changes)
+        await cache.set(cache_key, result, ttl=600)
+        return result
     
     async def get_employee_availability(self, employee_id: int, date: str) -> Dict[str, Any]:
-     
+        """Fetch employee availability with caching (2 min TTL)."""
+        cache = get_cache()
+        cache_key = CacheKeys.availability(employee_id, date)
+        
+        cached = await cache.get(cache_key)
+        if cached is not None:
+            logger.debug(f"Availability for {employee_id} on {date} from cache")
+            return cached
+        
         logger.debug(f"Checking availability for employee {employee_id} on {date}")
-        return await self._get(f"agent/employees/{employee_id}/availability?date={date}")
+        result = await self._get(f"agent/employees/{employee_id}/availability?date={date}")
+        
+        # Cache for 2 minutes (availability can change)
+        await cache.set(cache_key, result, ttl=120)
+        return result
     
     async def get_fatigue_score(self, employee_id: int, date: str = None) -> Dict[str, Any]:
+        """Fetch fatigue score with caching (5 min TTL)."""
+        cache = get_cache()
+        cache_key = CacheKeys.fatigue(employee_id)
+        
+        cached = await cache.get(cache_key)
+        if cached is not None:
+            logger.debug(f"Fatigue score for {employee_id} from cache")
+            return cached
+        
         logger.debug(f"Fetching fatigue score for employee {employee_id}")
-        return await self._get(f"agent/fatigue-scores/{employee_id}")
-    
-   
+        result = await self._get(f"agent/fatigue-scores/{employee_id}")
+        
+        # Cache for 5 minutes
+        await cache.set(cache_key, result, ttl=300)
+        return result
     
     async def get_shift(self, shift_id: int) -> Dict[str, Any]:
-       
+        """Fetch shift data with caching (5 min TTL)."""
+        cache = get_cache()
+        cache_key = CacheKeys.shift(shift_id)
+        
+        cached = await cache.get(cache_key)
+        if cached is not None:
+            logger.debug(f"Shift {shift_id} from cache")
+            return cached
+        
         logger.debug(f"Fetching shift {shift_id}")
-        return await self._get(f"agent/shifts/{shift_id}")
+        result = await self._get(f"agent/shifts/{shift_id}")
+        
+        # Cache for 5 minutes
+        await cache.set(cache_key, result, ttl=300)
+        return result
     
     async def get_shift_assignments(self, shift_id: int) -> Dict[str, Any]:
-    
         logger.debug(f"Fetching assignments for shift {shift_id}")
         return await self._get(f"agent/shifts/{shift_id}/assignments")
+    
+    async def get_employee_shifts_stats(self, employee_id: int) -> Dict[str, Any]:
+        logger.debug(f"Fetching shifts stats for employee {employee_id}")
+        return await self._get(f"agent/employees/{employee_id}/shifts")
 
 
-# Singleton instance
 laravel_client = LaravelAPIClient()

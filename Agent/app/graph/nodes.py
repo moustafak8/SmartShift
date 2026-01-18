@@ -21,8 +21,7 @@ FATIGUE_HIGH_RISK_THRESHOLD = 60
 SHIFT_FATIGUE_IMPACT = {
     'night': 15,
     'evening': 8,
-    'day': 5,
-    'rotating': 10
+    'day': 5
 }
 
 
@@ -248,7 +247,7 @@ async def check_fatigue_node(state: SwapValidationState) -> Dict[str, Any]:
         """
         
         ai_response = await openai_client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -373,42 +372,178 @@ async def check_staffing_node(state: SwapValidationState) -> Dict[str, Any]:
 
 
 
+COMPLIANCE_RULES = {
+    'max_weekly_hours': 56,
+    'min_rest_between_shifts_hours': 8,
+    'max_consecutive_days': 6,
+    'max_daily_hours': 12
+}
+
+
+def parse_shift_datetime(shift_data: Dict[str, Any], time_field: str) -> datetime:
+    date_str = shift_data.get('shift_date', '')
+    time_str = shift_data.get(time_field, '00:00:00')
+    try:
+        return datetime.fromisoformat(f"{date_str}T{time_str}".replace('Z', '+00:00'))
+    except:
+        return datetime.now()
+
+
+def calculate_rest_hours(shift1_end: datetime, shift2_start: datetime) -> float:
+    delta = shift2_start - shift1_end
+    return delta.total_seconds() / 3600
+
 
 async def check_compliance_node(state: SwapValidationState) -> Dict[str, Any]:
-    """
-    Verify labor law and policy compliance.
-    
-    MVP Implementation: Always passes.
-    Future: Check max hours/week, required rest periods, overtime limits, etc.
-    
-    Returns:
-        Updated state with compliance_check result
-    """
     logger.info(f"Checking compliance for swap {state['swap_id']}")
     
     if state.get('error'):
         return state
     
-    # MVP: Always pass compliance check
-    # TODO: Implement actual compliance rules:
-    # - Maximum hours per week
-    # - Minimum rest between shifts
-    # - Overtime calculations
-    # - Union rules
-    # - Local labor laws
+    violations = []
+    warnings = []
+    checks_performed = []
+    
+    requester_shift = state.get('requester_shift_data', {})
+    target_shift = state.get('target_shift_data', {})
+    requester_data = state.get('requester_data', {})
+    target_data = state.get('target_data', {})
+    
+    requester_name = requester_data.get('full_name', 'Requester')
+    target_name = target_data.get('full_name', 'Target Employee')
+    
+    try:
+        checks_performed.append('minimum_rest_period')
+        
+        requester_new_shift_start = parse_shift_datetime(target_shift, 'start_time')
+        requester_old_shift_end = parse_shift_datetime(requester_shift, 'end_time')
+        
+        target_new_shift_start = parse_shift_datetime(requester_shift, 'start_time')
+        target_old_shift_end = parse_shift_datetime(target_shift, 'end_time')
+        
+        rest_hours_requester = abs(calculate_rest_hours(requester_old_shift_end, requester_new_shift_start))
+        rest_hours_target = abs(calculate_rest_hours(target_old_shift_end, target_new_shift_start))
+        
+        min_rest = COMPLIANCE_RULES['min_rest_between_shifts_hours']
+        
+        if rest_hours_requester < min_rest and rest_hours_requester > 0:
+            violations.append(
+                f"{requester_name} would have only {rest_hours_requester:.1f}h rest (minimum: {min_rest}h required)"
+            )
+        
+        if rest_hours_target < min_rest and rest_hours_target > 0:
+            violations.append(
+                f"{target_name} would have only {rest_hours_target:.1f}h rest (minimum: {min_rest}h required)"
+            )
+        
+        checks_performed.append('max_daily_hours')
+        
+        def get_shift_hours(shift: Dict[str, Any]) -> float:
+            try:
+                start = parse_shift_datetime(shift, 'start_time')
+                end = parse_shift_datetime(shift, 'end_time')
+                hours = (end - start).total_seconds() / 3600
+                if hours < 0:
+                    hours += 24
+                return hours
+            except:
+                return 8
+        
+        requester_new_hours = get_shift_hours(target_shift)
+        target_new_hours = get_shift_hours(requester_shift)
+        max_daily = COMPLIANCE_RULES['max_daily_hours']
+        
+        if requester_new_hours > max_daily:
+            warnings.append(f"{requester_name}'s new shift is {requester_new_hours:.1f}h (exceeds {max_daily}h daily limit)")
+        
+        if target_new_hours > max_daily:
+            warnings.append(f"{target_name}'s new shift is {target_new_hours:.1f}h (exceeds {max_daily}h daily limit)")
+        
+        checks_performed.append('night_shift_rules')
+        
+        requester_new_type = target_shift.get('shift_type', 'day')
+        target_new_type = requester_shift.get('shift_type', 'day')
+        
+        if requester_new_type == 'night':
+            warnings.append(f"{requester_name} will be switching to a night shift - verify they are eligible for night work")
+        
+        if target_new_type == 'night':
+            warnings.append(f"{target_name} will be switching to a night shift - verify they are eligible for night work")
+        
+        checks_performed.append('weekly_hours_and_consecutive_days')
+        
+        requester_stats, target_stats = await asyncio.gather(
+            laravel_client.get_employee_shifts_stats(state['requester_id']),
+            laravel_client.get_employee_shifts_stats(state['target_employee_id']),
+            return_exceptions=True
+        )
+        
+        if not isinstance(requester_stats, Exception) and requester_stats:
+            month_stats = requester_stats.get('this_month_stats', {})
+            total_hours = month_stats.get('total_hours', 0)
+            consecutive_days = month_stats.get('consecutive_days', 0)
+            max_weekly = COMPLIANCE_RULES['max_weekly_hours']
+            max_consecutive = COMPLIANCE_RULES['max_consecutive_days']
+            
+            if total_hours >= max_weekly:
+                warnings.append(f"{requester_name} has worked {total_hours}h this month (approaching {max_weekly}h weekly limit)")
+            
+            if consecutive_days >= max_consecutive:
+                violations.append(f"{requester_name} has worked {consecutive_days} consecutive days (max: {max_consecutive})")
+        
+        if not isinstance(target_stats, Exception) and target_stats:
+            month_stats = target_stats.get('this_month_stats', {})
+            total_hours = month_stats.get('total_hours', 0)
+            consecutive_days = month_stats.get('consecutive_days', 0)
+            max_weekly = COMPLIANCE_RULES['max_weekly_hours']
+            max_consecutive = COMPLIANCE_RULES['max_consecutive_days']
+            
+            if total_hours >= max_weekly:
+                warnings.append(f"{target_name} has worked {total_hours}h this month (approaching {max_weekly}h weekly limit)")
+            
+            if consecutive_days >= max_consecutive:
+                violations.append(f"{target_name} has worked {consecutive_days} consecutive days (max: {max_consecutive})")
+        
+    except Exception as e:
+        logger.error(f"Compliance check error: {str(e)}")
+        return {
+            **state,
+            "compliance_check": {
+                "check_name": "compliance",
+                "passed": True,
+                "severity": "soft",
+                "message": f"Could not fully verify compliance: {str(e)}",
+                "details": {"error": str(e), "needs_manual_review": True}
+            }
+        }
+    
+    passed = len(violations) == 0
+    
+    if violations:
+        message = f"Compliance violations: {'; '.join(violations)}"
+        severity = "hard"
+    elif warnings:
+        message = f"Compliance passed with warnings: {'; '.join(warnings)}"
+        severity = "soft"
+        passed = True
+    else:
+        message = "All compliance checks passed"
+        severity = "hard"
     
     check_result = {
         "check_name": "compliance",
-        "passed": True,
-        "severity": "hard",
-        "message": "Compliance check passed (MVP: basic validation only)",
+        "passed": passed,
+        "severity": severity,
+        "message": message,
         "details": {
-            "checks_performed": ["basic_validation"],
-            "notes": "Full compliance checking not yet implemented"
+            "checks_performed": checks_performed,
+            "violations": violations,
+            "warnings": warnings,
+            "rules_applied": COMPLIANCE_RULES
         }
     }
     
-    logger.info("Compliance check: PASSED (MVP)")
+    logger.info(f"Compliance check: {'PASSED' if passed else 'FAILED'} ({len(violations)} violations, {len(warnings)} warnings)")
     
     return {
         **state,
@@ -416,67 +551,145 @@ async def check_compliance_node(state: SwapValidationState) -> Dict[str, Any]:
     }
 
 
-# ==========================================
 # Node 6: Make Decision
-# ==========================================
 
-def generate_suggestions(failed_checks: List[Dict[str, Any]], state: SwapValidationState) -> List[Dict[str, Any]]:
+def generate_suggestions(failed_checks: List[Dict[str, Any]], state: SwapValidationState, all_checks: List[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     suggestions = []
-    
     for check in failed_checks:
         check_name = check.get('check_name')
+        details = check.get('details', {})
+        message = check.get('message', '')
         
         if check_name == 'availability':
-            suggestions.append({
-                "type": "alternative_dates",
-                "message": "Consider requesting a swap for a different date when both employees are available",
-                "action": "check_calendar"
-            })
-            suggestions.append({
-                "type": "alternative_employee",
-                "message": "Try finding another colleague who is available for this shift",
-                "action": "find_available_employees"
-            })
+            if not details.get('requester_available', True):
+                suggestions.append({
+                    "type": "alternative_dates",
+                    "message": "You have marked yourself as unavailable on the target date. Update your availability first.",
+                    "action": "update_availability"
+                })
+            if not details.get('target_available', True):
+                suggestions.append({
+                    "type": "alternative_employee",
+                    "message": "The target employee is unavailable. Try finding another colleague who can cover this shift.",
+                    "action": "find_available_employees"
+                })
         
         elif check_name == 'fatigue':
-            requester_score = state.get('fatigue_check', {}).get('details', {}).get('requester_current', 0)
-            days_to_recover = max(2, (requester_score - 40) // 10) if requester_score > 40 else 1
-            suggestions.append({
-                "type": "delay_swap",
-                "message": f"Wait {days_to_recover} days for fatigue levels to recover before swapping",
-                "action": "reschedule_later"
-            })
+            requester_current = details.get('requester_current', 0)
+            target_current = details.get('target_current', 0)
+            
+            if requester_current > 50:
+                days_to_recover = max(2, (requester_current - 40) // 10)
+                suggestions.append({
+                    "type": "delay_swap",
+                    "message": f"Your fatigue score is high ({requester_current}). Wait {days_to_recover} days for recovery.",
+                    "action": "reschedule_later"
+                })
+            
+            if target_current > 50:
+                suggestions.append({
+                    "type": "alternative_employee",
+                    "message": f"Target employee has high fatigue ({target_current}). Consider swapping with someone else.",
+                    "action": "find_available_employees"
+                })
+            
             suggestions.append({
                 "type": "shorter_shift",
-                "message": "Consider swapping for a shorter or less demanding shift",
+                "message": "Consider swapping for a shorter or less demanding shift type.",
                 "action": "find_easier_shift"
             })
         
         elif check_name == 'staffing':
+            requester_count = details.get('requester_shift_current', 0)
+            requester_required = details.get('requester_shift_required', 0)
+            
+            if requester_count < requester_required:
+                suggestions.append({
+                    "type": "find_coverage",
+                    "message": f"Your shift needs {requester_required - requester_count} more staff. Find coverage first.",
+                    "action": "request_coverage"
+                })
+            
             suggestions.append({
                 "type": "manager_justification",
-                "message": "Provide business justification for the swap despite staffing concerns",
+                "message": "Provide a business justification to your manager for this swap.",
                 "action": "submit_justification"
-            })
-            suggestions.append({
-                "type": "find_coverage",
-                "message": "Arrange for additional coverage before proceeding with swap",
-                "action": "request_coverage"
             })
         
         elif check_name == 'compliance':
-            suggestions.append({
-                "type": "hr_review",
-                "message": "Contact HR to review compliance requirements",
-                "action": "contact_hr"
-            })
+            violations = details.get('violations', [])
+            warnings = details.get('warnings', [])
+            
+            if any('rest' in v.lower() for v in violations):
+                suggestions.append({
+                    "type": "different_shift",
+                    "message": "This swap violates minimum rest requirements. Choose a shift with more gap time.",
+                    "action": "find_compliant_shift"
+                })
+            
+            if any('consecutive' in v.lower() for v in violations):
+                suggestions.append({
+                    "type": "take_day_off",
+                    "message": "You've worked too many consecutive days. Request a day off before this swap.",
+                    "action": "request_day_off"
+                })
+            
+            if any('hours' in v.lower() or 'hours' in w.lower() for v in violations for w in warnings):
+                suggestions.append({
+                    "type": "reduce_hours",
+                    "message": "You're approaching weekly hour limits. Consider a shorter shift.",
+                    "action": "find_shorter_shift"
+                })
+            
+            if any('night' in w.lower() for w in warnings):
+                suggestions.append({
+                    "type": "night_eligibility",
+                    "message": "Verify you are eligible for night shift work with HR.",
+                    "action": "check_eligibility"
+                })
+            
+            if violations:
+                suggestions.append({
+                    "type": "hr_review",
+                    "message": "Contact HR to review compliance requirements or request an exception.",
+                    "action": "contact_hr"
+                })
     
- 
+   
     if failed_checks:
         suggestions.append({
             "type": "manager_override",
-            "message": "Request manual review and approval from your manager",
+            "message": "Request manual review and approval from your manager.",
             "action": "escalate_to_manager"
+        })
+    
+   
+    if not failed_checks and all_checks:
+        requester_shift = state.get('requester_shift_data', {})
+        target_shift = state.get('target_shift_data', {})
+        
+        
+        requester_type = requester_shift.get('shift_type', 'day')
+        target_type = target_shift.get('shift_type', 'day')
+        
+        if requester_type != target_type:
+            if target_type == 'night':
+                suggestions.append({
+                    "type": "transition_tip",
+                    "message": "Tip: Adjust your sleep schedule 2-3 days before your night shift.",
+                    "action": "none"
+                })
+            elif target_type == 'day' and requester_type == 'night':
+                suggestions.append({
+                    "type": "transition_tip", 
+                    "message": "Tip: Get sunlight exposure in the morning to help reset your body clock.",
+                    "action": "none"
+                })
+        
+        suggestions.append({
+            "type": "confirmation_tip",
+            "message": "Remember to confirm the swap with your colleague before it's finalized.",
+            "action": "confirm_with_colleague"
         })
     
     return suggestions
@@ -568,7 +781,7 @@ Keep it professional but friendly, 2-3 sentences max.
     
     try:
         ai_response = await openai_client.chat.completions.create(
-            model="gpt-4.1",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "system",
@@ -587,7 +800,6 @@ Keep it professional but friendly, 2-3 sentences max.
         
     except Exception as e:
         logger.error(f"Failed to generate AI reasoning: {str(e)}")
-        # Fallback to rule-based reasoning
         if decision == "auto_approve":
             reasoning = "All validation checks passed. This shift swap can be automatically approved."
         elif decision == "auto_reject":
@@ -595,10 +807,9 @@ Keep it professional but friendly, 2-3 sentences max.
         else:
             reasoning = f"Some concerns were identified that require manager review: {', '.join([c['check_name'] for c in soft_failures])}."
     
-    suggestions = []
-    if decision != "auto_approve":
-        all_failures = hard_failures + soft_failures
-        suggestions = generate_suggestions(all_failures, state)
+   
+    all_failures = hard_failures + soft_failures
+    suggestions = generate_suggestions(all_failures, state, all_checks)
     
     logger.info(f"Decision: {decision} (confidence: {confidence}, suggestions: {len(suggestions)})")
     
@@ -613,7 +824,6 @@ Keep it professional but friendly, 2-3 sentences max.
     }
 
 def should_continue_after_availability(state: SwapValidationState) -> str:
-    """Determine next node after availability check."""
     check = state.get('availability_check') or {}  # Handle None
     if not check.get('passed', True) and check.get('severity') == 'hard':
         return "make_decision"  # Skip to decision on hard failure

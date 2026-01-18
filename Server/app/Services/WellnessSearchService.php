@@ -14,7 +14,7 @@ class WellnessSearchService
 
     private const DEFAULT_PREVIEW_LENGTH = 150;
 
-    private const OPENAI_CHAT_MODEL = 'gpt-4.1';
+    private const OPENAI_CHAT_MODEL = 'gpt-4o';
 
     private const OPENAI_TEMPERATURE = 0.3;
 
