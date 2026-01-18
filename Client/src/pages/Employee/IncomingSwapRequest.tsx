@@ -194,82 +194,72 @@ export function IncomingSwapRequest() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[#111827]">
+      <div className="bg-white min-h-screen">
+        <div className="border-b border-[#E5E7EB] bg-white">
+          <div className="px-6 py-4">
+            <h1 className="text-2xl font-semibold text-[#111827]">
               Incoming Swap Requests
             </h1>
-            <p className="text-[#6B7280] mt-1">
+            <p className="text-sm text-[#6B7280] mt-1">
               Review and respond to shift swap requests from your colleagues
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => refetch()}
-              disabled={isLoading}
-              className="border-[#E5E7EB]"
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                "Refresh"
-              )}
-            </Button>
-          </div>
         </div>
 
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-16">
-            <Loader2 className="w-10 h-10 animate-spin text-[#3B82F6] mb-4" />
-            <p className="text-[#6B7280]">Loading swap requests...</p>
-          </div>
-        )}
+        <div className="p-6">
+          {isLoading && (
+            <Card className="p-12 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#3B82F6] border-r-transparent"></div>
+              <p className="mt-4 text-sm text-[#6B7280]">
+                Loading swap requests...
+              </p>
+            </Card>
+          )}
 
-        {isError && (
-          <Card className="p-8 text-center border border-[#EF4444]/30 bg-[#FEF2F2]">
-            <AlertCircle className="w-12 h-12 mx-auto text-[#EF4444] mb-4" />
-            <h3 className="text-lg font-semibold text-[#111827] mb-2">
-              Failed to Load Requests
-            </h3>
-            <p className="text-[#6B7280] mb-4">
-              Something went wrong while fetching swap requests.
-            </p>
-            <Button onClick={() => refetch()} variant="secondary">
-              Try Again
-            </Button>
-          </Card>
-        )}
+          {isError && (
+            <Card className="p-12 text-center border border-[#EF4444]/30 bg-[#FEF2F2]">
+              <AlertCircle className="w-12 h-12 mx-auto text-[#EF4444] mb-4" />
+              <h3 className="text-lg font-semibold text-[#111827] mb-2">
+                Failed to Load Requests
+              </h3>
+              <p className="text-[#6B7280] mb-4">
+                Something went wrong while fetching swap requests.
+              </p>
+              <Button onClick={() => refetch()} variant="secondary">
+                Try Again
+              </Button>
+            </Card>
+          )}
 
-        {!isLoading && !isError && swaps.length === 0 && (
-          <Card className="p-12 text-center border border-[#E5E7EB]">
-            <div className="w-16 h-16 rounded-full bg-[#F3F4F6] flex items-center justify-center mx-auto mb-4">
-              <ArrowLeftRight className="w-8 h-8 text-[#9CA3AF]" />
+          {!isLoading && !isError && swaps.length === 0 && (
+            <Card className="p-12 text-center border border-[#E5E7EB]">
+              <div className="w-16 h-16 rounded-full bg-[#F3F4F6] flex items-center justify-center mx-auto mb-4">
+                <ArrowLeftRight className="w-8 h-8 text-[#9CA3AF]" />
+              </div>
+              <h3 className="text-lg font-semibold text-[#111827] mb-2">
+                No Pending Requests
+              </h3>
+              <p className="text-[#6B7280] max-w-md mx-auto">
+                You don't have any incoming swap requests at the moment. Check
+                back later or refresh to see new requests.
+              </p>
+            </Card>
+          )}
+
+          {!isLoading && !isError && swaps.length > 0 && (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+              {swaps.map((swap) => (
+                <SwapRequestCard
+                  key={swap.id}
+                  swap={swap}
+                  onAccept={() => handleResponse(swap.id, "accept")}
+                  onDecline={() => handleResponse(swap.id, "decline")}
+                  isResponding={respondingId === swap.id}
+                />
+              ))}
             </div>
-            <h3 className="text-lg font-semibold text-[#111827] mb-2">
-              No Pending Requests
-            </h3>
-            <p className="text-[#6B7280] max-w-md mx-auto">
-              You don't have any incoming swap requests at the moment. Check
-              back later or refresh to see new requests.
-            </p>
-          </Card>
-        )}
-
-        {!isLoading && !isError && swaps.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-            {swaps.map((swap) => (
-              <SwapRequestCard
-                key={swap.id}
-                swap={swap}
-                onAccept={() => handleResponse(swap.id, "accept")}
-                onDecline={() => handleResponse(swap.id, "decline")}
-                isResponding={respondingId === swap.id}
-              />
-            ))}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </Layout>
   );
