@@ -40,6 +40,7 @@ Route::prefix('v1')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
         Route::get('employees/{departmentId}', [EmployeeDepartmentController::class, 'getemployees']);
         Route::get('shifts/{departmentId}', [ShiftsController::class, 'getShifts']);
+        Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
         Route::post('shifts', [ShiftsController::class, 'createShift']);
         Route::get('shift-templates', [ShiftTemplatesController::class, 'getTemplates']);
         Route::post('shift-assignments', [ShiftAssigmentsController::class, 'createAssignment']);
@@ -64,7 +65,6 @@ Route::prefix('v1')->group(function () {
     Route::prefix('')->middleware('employee')->group(function () {
         Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);
         Route::get('employees/{id}/wellness-entries', [WellnessEntriesController::class, 'getByEmployee']);
-        Route::get('employee/{id}/shifts', [ShiftsController::class, 'getEmployeeShifts']);
         Route::get('/fatigue-scores/{employeeId}', [FatigueScoreController::class, 'getEmployeeScore']);
         Route::get('employee-preferences', [EmployeePreferencesController::class, 'listPreferences']);
         Route::get('employees/{employeeId}/preferences', [EmployeePreferencesController::class, 'getPreference']);

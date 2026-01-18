@@ -106,7 +106,7 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
 
 
                     <div className="border-t border-[#E5E7EB] pt-6">
-                        {hasFatigueScore ? (
+                        {hasFatigueScore && fatigueScore ? (
                             <div className={`p-4 rounded-lg ${riskColors.bg} border-2 ${riskColors.border}`}>
                                 <div className="flex items-center justify-between mb-2">
                                     <span className="font-medium text-[#111827] flex items-center gap-2">
@@ -114,30 +114,30 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                                         Fatigue Score
                                     </span>
                                     <Badge className={`${riskColors.badge} text-white`}>
-                                        {fatigueScore.risk_level.toUpperCase()} RISK
+                                        {fatigueScore.risk_level?.toUpperCase() || 'UNKNOWN'} RISK
                                     </Badge>
                                 </div>
                                 <div className="text-3xl font-bold text-[#111827] mb-3">
-                                    {fatigueScore.total_score}/100
+                                    {fatigueScore.total_score ?? 0}/100
                                 </div>
 
 
                                 <div className="mt-4 space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-[#6B7280]">Quantitative</span>
-                                        <span className="font-medium text-[#111827]">{fatigueScore.breakdown.quantitative}</span>
+                                        <span className="font-medium text-[#111827]">{fatigueScore.breakdown?.quantitative ?? 0}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-[#6B7280]">Qualitative</span>
-                                        <span className="font-medium text-[#111827]">{fatigueScore.breakdown.qualitative}</span>
+                                        <span className="font-medium text-[#111827]">{fatigueScore.breakdown?.qualitative ?? 0}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span className="text-[#6B7280]">Psychological</span>
-                                        <span className="font-medium text-[#111827]">{fatigueScore.breakdown.psychological}</span>
+                                        <span className="font-medium text-[#111827]">{fatigueScore.breakdown?.psychological ?? 0}</span>
                                     </div>
                                 </div>
                                 <p className="text-xs text-[#6B7280] mt-3">
-                                    Last updated: {new Date(fatigueScore.score_date).toLocaleDateString()}
+                                    Last updated: {fatigueScore.score_date ? new Date(fatigueScore.score_date).toLocaleDateString() : 'N/A'}
                                 </p>
                             </div>
                         ) : (
@@ -161,25 +161,25 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="p-4 bg-[#F9FAFB] rounded-lg">
                                 <div className="text-2xl font-bold text-[#111827]">
-                                    {employeeDetails.this_month_stats.total_shifts}
+                                    {employeeDetails.this_month_stats?.total_shifts ?? 0}
                                 </div>
                                 <div className="text-sm text-[#6B7280]">Shifts</div>
                             </div>
                             <div className="p-4 bg-[#F9FAFB] rounded-lg">
                                 <div className="text-2xl font-bold text-[#111827]">
-                                    {employeeDetails.this_month_stats.total_hours}h
+                                    {employeeDetails.this_month_stats?.total_hours ?? 0}h
                                 </div>
                                 <div className="text-sm text-[#6B7280]">Hours</div>
                             </div>
                             <div className="p-4 bg-[#F9FAFB] rounded-lg">
                                 <div className="text-2xl font-bold text-[#111827]">
-                                    {employeeDetails.this_month_stats.night_shifts}
+                                    {employeeDetails.this_month_stats?.night_shifts ?? 0}
                                 </div>
                                 <div className="text-sm text-[#6B7280]">Night shifts</div>
                             </div>
                             <div className="p-4 bg-[#F9FAFB] rounded-lg">
                                 <div className="text-2xl font-bold text-[#111827]">
-                                    {employeeDetails.this_month_stats.consecutive_days}
+                                    {employeeDetails.this_month_stats?.consecutive_days ?? 0}
                                 </div>
                                 <div className="text-sm text-[#6B7280]">Consecutive days</div>
                             </div>
@@ -190,9 +190,9 @@ export function EmployeeDetail({ employeeId, onClose }: EmployeeDetailProps) {
                     <div className="border-t border-[#E5E7EB] pt-6">
                         <h4 className="font-semibold text-[#111827] mb-4 flex items-center gap-2">
                             <CalendarDays className="w-5 h-5" />
-                            Upcoming Shifts ({employeeDetails.upcoming_shifts.length})
+                            Upcoming Shifts ({employeeDetails.upcoming_shifts?.length ?? 0})
                         </h4>
-                        {employeeDetails.upcoming_shifts.length > 0 ? (
+                        {(employeeDetails.upcoming_shifts?.length ?? 0) > 0 ? (
                             <div className="space-y-3">
                                 {employeeDetails.upcoming_shifts.map((shift) => (
                                     <div
