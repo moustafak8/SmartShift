@@ -15,6 +15,7 @@ import {
   Building2,
   Tag,
   Calendar,
+  RefreshCw,
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -22,10 +23,16 @@ import { Layout } from "../../components/Sidebar";
 import { useScheduleAssignments } from "../../hooks/Employee/useScheduleAssignments";
 import type { ShiftAssignment } from "../../hooks/Employee/useScheduleAssignments";
 import { SwapDialog } from "../../components/Employee/SwapDialog";
+import { TargetShiftDialog } from "../../components/Employee/TargetShiftDialog";
+import { useOutgoingSwaps } from "../../hooks/Employee/useShiftSwap";
 
 type SelectedShiftDetails = {
   date: Date;
-  assignments: (ShiftAssignment & { type: string; label: string })[];
+  assignments: (ShiftAssignment & {
+    type: string;
+    label: string;
+    shiftId?: number;
+  })[];
 };
 
 export function Schedule() {
@@ -37,29 +44,41 @@ export function Schedule() {
   };
 
   const [currentWeekStart, setCurrentWeekStart] = useState(
-    getWeekStart(new Date())
+    getWeekStart(new Date()),
   );
   const [selectedShift, setSelectedShift] =
     useState<SelectedShiftDetails | null>(null);
   const [isSwapDialogOpen, setIsSwapDialogOpen] = useState(false);
+  const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
+  const [swapReason, setSwapReason] = useState("");
+  const [requesterShiftId, setRequesterShiftId] = useState<number | null>(null);
+  const [requesterAssignmentId, setRequesterAssignmentId] = useState<
+    number | null
+  >(null);
   const [swapShiftDetails, setSwapShiftDetails] = useState<{
     date: string;
     time: string;
     type: string;
     department: string;
+    shiftId?: number;
+    assignmentId?: number;
   } | null>(null);
 
   const formatDateForAPI = (date: Date) => {
-    return date.toISOString().split("T")[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   const { weekAssignments, isLoading, isError } = useScheduleAssignments(
-    formatDateForAPI(currentWeekStart)
+    formatDateForAPI(currentWeekStart),
   );
+
+  const { swaps: outgoingSwaps } = useOutgoingSwaps();
 
   const weekDays = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
- 
   const navigateWeek = (direction: "prev" | "next") => {
     const newDate = new Date(currentWeekStart);
     newDate.setDate(newDate.getDate() + (direction === "next" ? 7 : -7));
@@ -67,7 +86,6 @@ export function Schedule() {
     setSelectedShift(null);
   };
 
-  
   const weekDates = useMemo(() => {
     const dates = [];
     for (let i = 0; i < 7; i++) {
@@ -78,7 +96,6 @@ export function Schedule() {
     return dates;
   }, [currentWeekStart]);
 
- 
   const getAssignmentsForDate = (date: Date) => {
     const dateStr = formatDateForAPI(date);
     const dayData = weekAssignments?.days[dateStr];
@@ -86,6 +103,7 @@ export function Schedule() {
 
     const assignments = [];
     if (dayData.day.length > 0)
+      //@ts-ignore
       assignments.push({
         type: "day",
         ...dayData.day[0],
@@ -107,7 +125,6 @@ export function Schedule() {
     return assignments;
   };
 
- 
   const isToday = (date: Date) => {
     const today = new Date();
     return (
@@ -117,7 +134,6 @@ export function Schedule() {
     );
   };
 
-     
   useEffect(() => {
     if (weekAssignments && !selectedShift) {
       const today = new Date();
@@ -126,7 +142,6 @@ export function Schedule() {
         setSelectedShift({ date: today, assignments: todayAssignments });
       }
     }
-    
   }, [weekAssignments]);
 
   const handleDateClick = (date: Date) => {
@@ -166,13 +181,29 @@ export function Schedule() {
     });
   };
 
+  const hasPendingSwap = (shiftId?: number) => {
+    if (!shiftId || !outgoingSwaps) return false;
+    return outgoingSwaps.some((swap) => swap.requester_shift_id === shiftId);
+  };
+
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+
+    return compareDate.getTime() < today.getTime();
+  };
+
   return (
     <Layout>
       <div className="bg-white min-h-screen">
-        
         <div className="border-b border-[#E5E7EB] bg-white">
           <div className="px-6 py-4">
-            <h1 className="text-2xl font-semibold text-[#111827]">My Schedule</h1>
+            <h1 className="text-2xl font-semibold text-[#111827]">
+              My Schedule
+            </h1>
             <p className="text-sm text-[#6B7280] mt-1">
               View your weekly shift assignments
             </p>
@@ -196,20 +227,23 @@ export function Schedule() {
                   className="flex items-center gap-2 px-4 py-2 border border-[#E5E7EB] bg-white hover:bg-[#F9FAFB] rounded-lg transition-all shadow-sm hover:shadow-md"
                 >
                   <ChevronLeft className="w-4 h-4 text-[#6B7280]" />
-                  <span className="text-sm font-medium text-[#6B7280]">Previous</span>
+                  <span className="text-sm font-medium text-[#6B7280]">
+                    Previous
+                  </span>
                 </button>
                 <button
                   onClick={() => navigateWeek("next")}
                   className="flex items-center gap-2 px-4 py-2 border border-[#E5E7EB] bg-white hover:bg-[#F9FAFB] rounded-lg transition-all shadow-sm hover:shadow-md"
                 >
-                  <span className="text-sm font-medium text-[#6B7280]">Next</span>
+                  <span className="text-sm font-medium text-[#6B7280]">
+                    Next
+                  </span>
                   <ChevronRight className="w-4 h-4 text-[#6B7280]" />
                 </button>
               </div>
             </div>
           </Card>
 
-            
           {isLoading && (
             <Card className="p-12 text-center">
               <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#3B82F6] mb-4" />
@@ -217,7 +251,6 @@ export function Schedule() {
             </Card>
           )}
 
-          
           {isError && (
             <Card className="p-12 text-center">
               <AlertCircle className="w-12 h-12 mx-auto text-[#EF4444] mb-4" />
@@ -230,10 +263,8 @@ export function Schedule() {
             </Card>
           )}
 
-            
           {!isLoading && !isError && weekAssignments && (
             <>
-              
               <Card className="p-6 border border-[#E5E7EB] shadow-sm">
                 <div className="grid grid-cols-7 gap-4">
                   {weekDays.map((day, index) => {
@@ -246,39 +277,53 @@ export function Schedule() {
                         formatDateForAPI(date);
                     const hasShifts = assignments.length > 0;
 
+                    const dayHasPendingSwap = assignments.some((a) =>
+                      hasPendingSwap(a.shift_id),
+                    );
+
                     return (
                       <button
                         key={day}
                         onClick={() => handleDateClick(date)}
                         disabled={!hasShifts}
                         className={`relative flex flex-col items-center p-5 rounded-xl transition-all duration-200 ${
-                          hasShifts 
-                            ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer" 
+                          hasShifts
+                            ? "hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
                             : "cursor-default opacity-50"
                         } ${
                           isSelected
                             ? "bg-gradient-to-br from-[#3B82F6] to-[#2563EB] shadow-lg scale-105"
                             : today
-                            ? "bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] border-2 border-[#3B82F6] shadow-md"
-                            : "bg-white border-2 border-[#E5E7EB] hover:border-[#3B82F6]"
+                              ? "bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] border-2 border-[#3B82F6] shadow-md"
+                              : "bg-white border-2 border-[#E5E7EB] hover:border-[#3B82F6]"
                         }`}
                       >
-                       
                         {hasShifts && (
-                          <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
-                            isSelected 
-                              ? "bg-white text-[#3B82F6]" 
-                              : "bg-[#3B82F6] text-white"
-                          }`}>
+                          <div
+                            className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-md ${
+                              isSelected
+                                ? "bg-white text-[#3B82F6]"
+                                : "bg-[#3B82F6] text-white"
+                            }`}
+                          >
                             {assignments.length}
                           </div>
                         )}
-                        
-                        <div className={`text-xs font-semibold mb-2 tracking-wide ${
-                          isSelected 
-                            ? "text-white" 
-                            : "text-[#6B7280]"
-                        }`}>
+
+                        {dayHasPendingSwap && (
+                          <div className="absolute top-2 right-2">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                            </span>
+                          </div>
+                        )}
+
+                        <div
+                          className={`text-xs font-semibold mb-2 tracking-wide ${
+                            isSelected ? "text-white" : "text-[#6B7280]"
+                          }`}
+                        >
                           {day.charAt(0) + day.slice(1).toLowerCase()}
                         </div>
                         <div
@@ -286,8 +331,8 @@ export function Schedule() {
                             isSelected
                               ? "text-white"
                               : today
-                              ? "text-[#3B82F6]"
-                              : "text-[#111827]"
+                                ? "text-[#3B82F6]"
+                                : "text-[#111827]"
                           }`}
                         >
                           {date.getDate()}
@@ -298,7 +343,6 @@ export function Schedule() {
                 </div>
               </Card>
 
-                
               {selectedShift && selectedShift.assignments.length > 0 && (
                 <Card className="p-6 border border-[#E5E7EB]">
                   <div className="flex items-start justify-between mb-6">
@@ -310,22 +354,58 @@ export function Schedule() {
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
+                        disabled={
+                          hasPendingSwap(
+                            selectedShift.assignments[0].shift_id,
+                          ) || isPastDate(selectedShift.date)
+                        }
                         onClick={() => {
-                          if (selectedShift && selectedShift.assignments.length > 0) {
+                          if (
+                            selectedShift &&
+                            selectedShift.assignments.length > 0
+                          ) {
                             const assignment = selectedShift.assignments[0];
                             setSwapShiftDetails({
                               date: formatShiftDate(selectedShift.date),
                               time: assignment.label,
                               type: assignment.type,
                               department: assignment.department_name,
+                              shiftId: assignment.shift_id,
+                              assignmentId: assignment.assignment_id,
                             });
                             setIsSwapDialogOpen(true);
                           }
                         }}
-                        className="bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                        className={`inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all ${
+                          hasPendingSwap(
+                            selectedShift.assignments[0].shift_id,
+                          ) || isPastDate(selectedShift.date)
+                            ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                            : "bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white"
+                        }`}
                       >
-                        <Zap className="w-4 h-4" />
-                        Request Swap
+                        {hasPendingSwap(
+                          selectedShift.assignments[0].shift_id,
+                        ) ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin md:animate-none" />
+                            <span className="hidden md:inline">
+                              Under Review
+                            </span>
+                          </>
+                        ) : isPastDate(selectedShift.date) ? (
+                          <>
+                            <Clock className="w-4 h-4" />
+                            <span className="hidden md:inline">
+                              Shift Completed
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="w-4 h-4" />
+                            Request Swap
+                          </>
+                        )}
                       </Button>
                       <button
                         onClick={() => setSelectedShift(null)}
@@ -341,102 +421,122 @@ export function Schedule() {
                       {formatShiftDate(selectedShift.date).toUpperCase()}
                     </div>
 
-                    {selectedShift.assignments.map((assignment, idx) => (
-                      <div
-                        key={idx}
-                        className="pb-6 border-b border-[#E5E7EB] last:border-b-0 last:pb-0"
-                      >
-                        
-                        <div className="flex items-center gap-3 mb-5">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] flex items-center justify-center shadow-sm">
-                            {getShiftIcon(assignment.type)}
-                          </div>
-                          <div>
-                            <div className="font-bold text-[#111827] text-xl capitalize">
-                              {assignment.type} Shift
-                            </div>
-                            <div className="text-xs text-[#6B7280] mt-0.5">
-                              {formatShiftDate(selectedShift.date)}
-                            </div>
-                          </div>
-                        </div>
+                    {selectedShift.assignments.map((assignment, idx) => {
+                      const isPendingSwap = hasPendingSwap(assignment.shift_id);
 
-                        
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          
-                          <div className="bg-[#F9FAFB] rounded-lg p-3 space-y-2.5 border border-[#E5E7EB]">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
-                                <Clock className="w-3.5 h-3.5 text-[#3B82F6]" />
+                      return (
+                        <div
+                          key={idx}
+                          className="pb-6 border-b border-[#E5E7EB] last:border-b-0 last:pb-0"
+                        >
+                          <div className="flex items-center justify-between mb-5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] flex items-center justify-center shadow-sm">
+                                {getShiftIcon(assignment.type)}
                               </div>
                               <div>
-                                <div className="text-xs text-[#6B7280] font-medium">Time</div>
-                                <div className="text-sm font-semibold text-[#111827]">
-                                  {assignment.label}
+                                <div className="font-bold text-[#111827] text-xl capitalize">
+                                  {assignment.type} Shift
+                                </div>
+                                <div className="text-xs text-[#6B7280] mt-0.5">
+                                  {formatShiftDate(selectedShift.date)}
                                 </div>
                               </div>
                             </div>
 
-                            <div className="h-px bg-[#E5E7EB]"></div>
-
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
-                                <Building2 className="w-3.5 h-3.5 text-[#3B82F6]" />
-                              </div>
-                              <div>
-                                <div className="text-xs text-[#6B7280] font-medium">Department</div>
-                                <div className="text-sm font-semibold text-[#111827]">
-                                  {assignment.department_name}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          
-                          <div className="bg-[#F9FAFB] rounded-lg p-3 space-y-2.5 border border-[#E5E7EB]">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
-                                <Tag className="w-3.5 h-3.5 text-[#3B82F6]" />
-                              </div>
-                              <div>
-                                <div className="text-xs text-[#6B7280] font-medium">Type</div>
-                                <div className="text-sm font-semibold text-[#111827] capitalize">
-                                  {assignment.assignment_type}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="h-px bg-[#E5E7EB]"></div>
-
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
-                                <span className="text-xs">
-                                  {assignment.status === "confirmed" ? "✓" : 
-                                   assignment.status === "pending" ? "⏱" : "✕"}
+                            {isPendingSwap && (
+                              <div className="flex items-center gap-2 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200">
+                                <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
+                                <span className="text-xs font-semibold">
+                                  Swap Request Under Review
                                 </span>
                               </div>
-                              <div>
-                                <div className="text-xs text-[#6B7280] font-medium">Status</div>
-                                <div
-                                  className={`text-sm font-bold ${
-                                    assignment.status === "confirmed"
-                                      ? "text-[#10B981]"
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className="bg-[#F9FAFB] rounded-lg p-3 space-y-2.5 border border-[#E5E7EB]">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
+                                  <Clock className="w-3.5 h-3.5 text-[#3B82F6]" />
+                                </div>
+                                <div>
+                                  <div className="text-xs text-[#6B7280] font-medium">
+                                    Time
+                                  </div>
+                                  <div className="text-sm font-semibold text-[#111827]">
+                                    {assignment.label}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="h-px bg-[#E5E7EB]"></div>
+
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
+                                  <Building2 className="w-3.5 h-3.5 text-[#3B82F6]" />
+                                </div>
+                                <div>
+                                  <div className="text-xs text-[#6B7280] font-medium">
+                                    Department
+                                  </div>
+                                  <div className="text-sm font-semibold text-[#111827]">
+                                    {assignment.department_name}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="bg-[#F9FAFB] rounded-lg p-3 space-y-2.5 border border-[#E5E7EB]">
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
+                                  <Tag className="w-3.5 h-3.5 text-[#3B82F6]" />
+                                </div>
+                                <div>
+                                  <div className="text-xs text-[#6B7280] font-medium">
+                                    Type
+                                  </div>
+                                  <div className="text-sm font-semibold text-[#111827] capitalize">
+                                    {assignment.assignment_type}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="h-px bg-[#E5E7EB]"></div>
+
+                              <div className="flex items-center gap-2">
+                                <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center">
+                                  <span className="text-xs">
+                                    {assignment.status === "confirmed"
+                                      ? "✓"
                                       : assignment.status === "pending"
-                                      ? "text-[#F59E0B]"
-                                      : "text-[#EF4444]"
-                                  }`}
-                                >
-                                  {assignment.status.charAt(0).toUpperCase() +
-                                    assignment.status.slice(1)}
+                                        ? "⏱"
+                                        : "✕"}
+                                  </span>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-[#6B7280] font-medium">
+                                    Status
+                                  </div>
+                                  <div
+                                    className={`text-sm font-bold ${
+                                      assignment.status === "confirmed"
+                                        ? "text-[#10B981]"
+                                        : assignment.status === "pending"
+                                          ? "text-[#F59E0B]"
+                                          : "text-[#EF4444]"
+                                    }`}
+                                  >
+                                    {assignment.status.charAt(0).toUpperCase() +
+                                      assignment.status.slice(1)}
+                                  </div>
                                 </div>
                               </div>
                             </div>
                           </div>
                         </div>
-
-
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </Card>
               )}
@@ -450,12 +550,13 @@ export function Schedule() {
                     <h3 className="text-xl font-bold text-[#111827]">
                       Week Summary
                     </h3>
-                    <p className="text-xs text-[#6B7280]">Your weekly overview</p>
+                    <p className="text-xs text-[#6B7280]">
+                      Your weekly overview
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-3 gap-4">
-                 
                   <div className="relative overflow-hidden p-5 rounded-xl bg-white border-2 border-[#3B82F6]/30 shadow-sm hover:shadow-md transition-all">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-10 h-10 rounded-lg bg-[#EFF6FF] flex items-center justify-center shadow-sm">
@@ -471,28 +572,44 @@ export function Schedule() {
                     <div className="text-4xl font-bold text-[#3B82F6] mb-2">
                       {(() => {
                         let totalShifts = 0;
+                        //@ts-ignore
                         Object.values(weekAssignments.days).forEach((day) => {
-                          totalShifts += day.day.length + day.evening.length + day.night.length;
+                          //@ts-ignore
+                          totalShifts +=
+                            day.day.length +
+                            day.evening.length +
+                            day.night.length;
                         });
                         return totalShifts * 8;
                       })()}
                       <span className="text-xl ml-1">hrs</span>
                     </div>
                     <div className="h-1.5 bg-white/60 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-[#3B82F6] to-[#2563EB] rounded-full"
-                        style={{ width: `${Math.min(((() => {
-                          let totalShifts = 0;
-                          Object.values(weekAssignments.days).forEach((day) => {
-                            totalShifts += day.day.length + day.evening.length + day.night.length;
-                          });
-                          return totalShifts * 8;
-                        })() / 40) * 100, 100)}%` }}
+                        style={{
+                          width: `${Math.min(
+                            ((() => {
+                              let totalShifts = 0;
+                              Object.values(weekAssignments.days).forEach(
+                                (day) => {
+                                  totalShifts +=
+                                    day.day.length +
+                                    day.evening.length +
+                                    day.night.length;
+                                },
+                              );
+                              return totalShifts * 8;
+                            })() /
+                              40) *
+                              100,
+                            100,
+                          )}%`,
+                        }}
                       ></div>
                     </div>
                   </div>
 
-                 
                   <div className="relative overflow-hidden p-5 rounded-xl bg-white border-2 border-[#10B981]/30 shadow-sm hover:shadow-md transition-all">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-10 h-10 rounded-lg bg-[#DCFCE7] flex items-center justify-center shadow-sm">
@@ -509,22 +626,37 @@ export function Schedule() {
                       {(() => {
                         let totalShifts = 0;
                         Object.values(weekAssignments.days).forEach((day) => {
-                          totalShifts += day.day.length + day.evening.length + day.night.length;
+                          totalShifts +=
+                            day.day.length +
+                            day.evening.length +
+                            day.night.length;
                         });
                         return totalShifts;
                       })()}
                       <span className="text-xl ml-1">shifts</span>
                     </div>
                     <div className="h-1.5 bg-white/60 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-[#10B981] to-[#059669] rounded-full"
-                        style={{ width: `${Math.min(((() => {
-                          let totalShifts = 0;
-                          Object.values(weekAssignments.days).forEach((day) => {
-                            totalShifts += day.day.length + day.evening.length + day.night.length;
-                          });
-                          return totalShifts;
-                        })() / 7) * 100, 100)}%` }}
+                        style={{
+                          width: `${Math.min(
+                            ((() => {
+                              let totalShifts = 0;
+                              Object.values(weekAssignments.days).forEach(
+                                (day) => {
+                                  totalShifts +=
+                                    day.day.length +
+                                    day.evening.length +
+                                    day.night.length;
+                                },
+                              );
+                              return totalShifts;
+                            })() /
+                              7) *
+                              100,
+                            100,
+                          )}%`,
+                        }}
                       ></div>
                     </div>
                   </div>
@@ -545,7 +677,10 @@ export function Schedule() {
                       {(() => {
                         let daysOff = 7;
                         Object.values(weekAssignments.days).forEach((day) => {
-                          const hasShift = day.day.length > 0 || day.evening.length > 0 || day.night.length > 0;
+                          const hasShift =
+                            day.day.length > 0 ||
+                            day.evening.length > 0 ||
+                            day.night.length > 0;
                           if (hasShift) daysOff--;
                         });
                         return daysOff;
@@ -553,16 +688,27 @@ export function Schedule() {
                       <span className="text-xl ml-1">days</span>
                     </div>
                     <div className="h-1.5 bg-[#F3F4F6] rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className="h-full bg-gradient-to-r from-[#A855F7] to-[#9333EA] rounded-full"
-                        style={{ width: `${((() => {
-                          let daysOff = 7;
-                          Object.values(weekAssignments.days).forEach((day) => {
-                            const hasShift = day.day.length > 0 || day.evening.length > 0 || day.night.length > 0;
-                            if (hasShift) daysOff--;
-                          });
-                          return daysOff;
-                        })() / 7) * 100}%` }}
+                        style={{
+                          width: `${
+                            ((() => {
+                              let daysOff = 7;
+                              Object.values(weekAssignments.days).forEach(
+                                (day) => {
+                                  const hasShift =
+                                    day.day.length > 0 ||
+                                    day.evening.length > 0 ||
+                                    day.night.length > 0;
+                                  if (hasShift) daysOff--;
+                                },
+                              );
+                              return daysOff;
+                            })() /
+                              7) *
+                            100
+                          }%`,
+                        }}
                       ></div>
                     </div>
                   </div>
@@ -573,12 +719,37 @@ export function Schedule() {
         </div>
       </div>
 
-      
       {swapShiftDetails && (
         <SwapDialog
           isOpen={isSwapDialogOpen}
           onClose={() => setIsSwapDialogOpen(false)}
           shiftDetails={swapShiftDetails}
+          onContinue={(reason) => {
+            setSwapReason(reason);
+            setRequesterShiftId(swapShiftDetails.shiftId || null);
+            setRequesterAssignmentId(swapShiftDetails.assignmentId || null);
+            setIsSwapDialogOpen(false);
+            setIsTargetDialogOpen(true);
+          }}
+        />
+      )}
+
+      {requesterShiftId && (
+        <TargetShiftDialog
+          isOpen={isTargetDialogOpen}
+          onClose={() => {
+            setIsTargetDialogOpen(false);
+            setRequesterShiftId(null);
+            setRequesterAssignmentId(null);
+            setSwapReason("");
+          }}
+          onBack={() => {
+            setIsTargetDialogOpen(false);
+            setIsSwapDialogOpen(true);
+          }}
+          requesterShiftId={requesterShiftId}
+          requesterAssignmentId={requesterAssignmentId}
+          swapReason={swapReason}
         />
       )}
     </Layout>

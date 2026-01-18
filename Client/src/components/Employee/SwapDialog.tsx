@@ -8,7 +8,7 @@ import {
 } from "../ui/Dialog";
 import { Button } from "../ui/Button";
 import { Textarea } from "../ui/Textarea";
-import { Calendar, Clock, Users } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 
 interface SwapDialogProps {
   isOpen: boolean;
@@ -17,13 +17,14 @@ interface SwapDialogProps {
     date: string;
     time: string;
     type: string;
+    shiftId?: number;
   };
+  onContinue: (reason: string, additionalDetails: string) => void;
 }
 
-export function SwapDialog({ isOpen, onClose, shiftDetails }: SwapDialogProps) {
+export function SwapDialog({ isOpen, onClose, shiftDetails, onContinue }: SwapDialogProps) {
   const [selectedReason, setSelectedReason] = useState<string>("family");
   const [additionalDetails, setAdditionalDetails] = useState<string>("");
-  const [whoCanCover, setWhoCanCover] = useState<string>("anyone");
 
   const reasons = [
     { id: "family", label: "Family emergency" },
@@ -33,14 +34,12 @@ export function SwapDialog({ isOpen, onClose, shiftDetails }: SwapDialogProps) {
     { id: "other", label: "Other (please explain)" },
   ];
 
-  const coverOptions = [
-    { id: "anyone", label: "Find anyone available" },
-    { id: "specific", label: "Request specific person" },
-  ];
-
   const handleSubmit = () => {
-    
-    onClose();
+    const reasonLabel = reasons.find(r => r.id === selectedReason)?.label || selectedReason;
+    const fullReason = additionalDetails 
+      ? `${reasonLabel}: ${additionalDetails}` 
+      : reasonLabel;
+    onContinue(fullReason, additionalDetails);
   };
 
   return (
@@ -51,7 +50,7 @@ export function SwapDialog({ isOpen, onClose, shiftDetails }: SwapDialogProps) {
             Request Shift Swap
           </DialogTitle>
           <DialogDescription className="text-sm text-[#6B7280]">
-            Find someone to cover your shift
+            Step 1: Tell us why you need to swap
           </DialogDescription>
         </DialogHeader>
 
@@ -113,32 +112,6 @@ export function SwapDialog({ isOpen, onClose, shiftDetails }: SwapDialogProps) {
               className="min-h-[100px] resize-none"
             />
           </div>
-
-         
-          <div>
-            <h3 className="text-sm font-semibold text-[#111827] mb-3 flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              Who can cover?
-            </h3>
-            <div className="space-y-2">
-              {coverOptions.map((option) => (
-                <label
-                  key={option.id}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-[#E5E7EB] hover:bg-[#F9FAFB] cursor-pointer transition-colors"
-                >
-                  <input
-                    type="radio"
-                    name="cover"
-                    value={option.id}
-                    checked={whoCanCover === option.id}
-                    onChange={(e) => setWhoCanCover(e.target.value)}
-                    className="w-4 h-4 text-[#3B82F6] focus:ring-[#3B82F6] focus:ring-2"
-                  />
-                  <span className="text-sm text-[#111827]">{option.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
         </div>
 
         
@@ -161,3 +134,4 @@ export function SwapDialog({ isOpen, onClose, shiftDetails }: SwapDialogProps) {
     </Dialog>
   );
 }
+

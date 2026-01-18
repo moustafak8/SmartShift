@@ -1,5 +1,6 @@
 export type ShiftAssignment = {
   assignment_id: number;
+  shift_id: number;
   employee_id: number;
   full_name: string;
   department_name: string;

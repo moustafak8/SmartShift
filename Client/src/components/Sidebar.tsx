@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -21,6 +21,7 @@ import {
 import { Badge } from "./ui/Badge";
 import { useAuth } from "../hooks/context/AuthContext";
 import { useLogout } from "../hooks/useLogout";
+import { usePendingSwapsCount } from "../hooks/Manager/useManagerSwaps";
 import { cn } from "./ui/utils";
 
 interface LayoutProps {
@@ -76,7 +77,7 @@ const ManagerNavigationItems: NavigationItem[] = [
     id: "swaps",
     icon: RefreshCw,
     label: "Shift Swaps",
-    badge: 5,
+    badge: null,
     path: "/manager/swaps",
   },
   {
@@ -122,7 +123,7 @@ const EmployeeNavigationItems: NavigationItem[] = [
     icon: RefreshCw,
     label: "Shift Swaps",
     badge: null,
-    path: "/employee/swaps",
+    path: "/employee/swap-request",
   },
   {
     id: "wellness",
@@ -149,13 +150,26 @@ const EmployeeNavigationItems: NavigationItem[] = [
 
 export function Layout({ children, notificationCount = 8 }: LayoutProps) {
   const [isOpen, setIsOpen] = useState(true);
-  const { isManager, user } = useAuth();
+  const { isManager, user, departmentId } = useAuth();
   const { logout, loading: logoutLoading } = useLogout();
   const location = useLocation();
+  
 
-  const navigationItems = isManager()
-    ? ManagerNavigationItems
-    : EmployeeNavigationItems;
+  const { count: pendingSwapsCount } = usePendingSwapsCount(
+    isManager() ? departmentId || undefined : undefined
+  );
+
+  const navigationItems = useMemo(() => {
+    if (isManager()) {
+      return ManagerNavigationItems.map(item => {
+        if (item.id === "swaps") {
+          return { ...item, badge: pendingSwapsCount > 0 ? pendingSwapsCount : null };
+        }
+        return item;
+      });
+    }
+    return EmployeeNavigationItems;
+  }, [isManager, pendingSwapsCount]);
   const getUserInitials = () => {
     if (!user?.full_name) return "U";
 

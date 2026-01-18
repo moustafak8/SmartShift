@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeAvailabilityController;
 use App\Http\Controllers\EmployeeDepartmentController;
@@ -9,6 +10,7 @@ use App\Http\Controllers\GenerateScheduleController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
+use App\Http\Controllers\ShiftSwapsController;
 use App\Http\Controllers\ShiftTemplatesController;
 use App\Http\Controllers\WellnessEntriesController;
 use App\Http\Controllers\WellnessSearchController;
@@ -25,6 +27,14 @@ Route::prefix('v1')->group(function () {
     Route::delete('positions/{positionId}', [PositionController::class, 'deletePosition']);
     Route::post('logout', [AuthController::class, 'logout'])->middleware('jwt');
     Route::get('me', [AuthController::class, 'me'])->middleware('jwt');
+
+    Route::prefix('agent')->middleware('jwt')->group(function () {
+        Route::get('employees/{id}', [AgentController::class, 'getEmployee']);
+        Route::get('employees/{employeeId}/availability', [AgentController::class, 'getEmployeeAvailability']);
+        Route::get('fatigue-scores/{employeeId}', [AgentController::class, 'getFatigueScore']);
+        Route::get('shifts/{id}', [AgentController::class, 'getShift']);
+        Route::get('shifts/{shiftId}/assignments', [AgentController::class, 'getShiftAssignments']);
+    });
 
     Route::prefix('')->middleware('manager')->group(function () {
         Route::post('register', [AuthController::class, 'register']);
@@ -46,6 +56,10 @@ Route::prefix('v1')->group(function () {
         Route::post('schedules/save-reviewed', [GenerateScheduleController::class, 'saveReviewed']);
         Route::get('departments/{departmentId}/positions', [PositionController::class, 'getPositionsByDepartment']);
         Route::get('positions/{positionId}', [PositionController::class, 'getPositionById']);
+        Route::get('shift-swaps', [ShiftSwapsController::class, 'index']);
+        Route::get('shift-swaps/pending-count', [ShiftSwapsController::class, 'pendingCount']);
+        Route::get('shift-swaps/awaiting-manager', [ShiftSwapsController::class, 'awaitingManager']);
+        Route::post('shift-swaps/{swapId}/review', [ShiftSwapsController::class, 'review']);
     });
     Route::prefix('')->middleware('employee')->group(function () {
         Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);
@@ -60,5 +74,13 @@ Route::prefix('v1')->group(function () {
         Route::post('employee-availability', [EmployeeAvailabilityController::class, 'storeAvailability']);
         Route::put('employee-availability/{id}', [EmployeeAvailabilityController::class, 'updateAvailability']);
         Route::delete('employee-availability/{id}', [EmployeeAvailabilityController::class, 'deleteAvailability']);
+        Route::post('shift-swaps', [ShiftSwapsController::class, 'store']);
+        Route::get('shift-swaps/incoming', [ShiftSwapsController::class, 'incomingSwaps']);
+        Route::get('shift-swaps/outgoing', [ShiftSwapsController::class, 'outgoingSwaps']);
+        Route::get('shift-swaps/{swapId}', [ShiftSwapsController::class, 'show']);
+        Route::post('shift-swaps/{swapId}/cancel', [ShiftSwapsController::class, 'cancel']);
+        Route::post('shift-swaps/{swapId}/respond', [ShiftSwapsController::class, 'targetRespond']);
+        Route::get('shifts/{shiftId}/swap-candidates', [ShiftSwapsController::class, 'eligibleCandidates']);
+        Route::get('shifts/{shiftId}/swappable-shifts', [ShiftSwapsController::class, 'swappableShifts']);
     });
 });

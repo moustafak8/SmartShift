@@ -40,35 +40,40 @@ export function Shifts() {
   return (
     <Layout notificationCount={8}>
       <div className="bg-white min-h-screen">
-        <div className="border-b border-[#E5E7EB] bg-white">
-          <div className="px-6 py-4">
-            <h1 className="text-2xl font-semibold text-[#111827]">
-              Shift Schedule
-            </h1>
-            <p className="text-sm text-[#6B7280] mt-1">
-              View and manage shift schedules for your team
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center justify-between px-6 py-4">
-          <div />
-          <div className="flex gap-2">
-            <Button
-              onClick={() => setIsGenerateScheduleOpen(true)}
-              className="bg-[#3B82F6] hover:bg-[#2563EB] text-white flex items-center"
-              size="sm"
-            >
-              <Calendar className="w-4 h-4 mr-2" />
-              Generate Schedule
-            </Button>
-            <Button
-              onClick={() => setIsAddShiftOpen(true)}
-              className="bg-[#10B981] hover:bg-[#059669] text-white flex items-center"
-              size="sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Create New Shift
-            </Button>
+        {/* Header Section */}
+        <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 border-b border-[#E5E7EB]">
+          <div className="px-6 py-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-[#111827] flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-lg">
+                    <Calendar className="w-5 h-5 text-white" />
+                  </div>
+                  Shift Schedule
+                </h1>
+                <p className="text-sm text-[#6B7280] mt-1.5 ml-[52px]">
+                  View and manage shift schedules for your team
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={() => setIsGenerateScheduleOpen(true)}
+                  className="bg-gradient-to-r from-[#3B82F6] to-[#2563EB] hover:from-[#2563EB] hover:to-[#1D4ED8] text-white flex items-center shadow-md hover:shadow-lg transition-all"
+                  size="sm"
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Generate Schedule
+                </Button>
+                <Button
+                  onClick={() => setIsAddShiftOpen(true)}
+                  className="bg-gradient-to-r from-[#10B981] to-[#059669] hover:from-[#059669] hover:to-[#047857] text-white flex items-center shadow-md hover:shadow-lg transition-all"
+                  size="sm"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Shift
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 

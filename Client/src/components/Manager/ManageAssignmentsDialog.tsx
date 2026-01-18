@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { UserPlus, Trash2, Users, Clock, Calendar } from "lucide-react";
+import { useState, useMemo } from "react";
+import { UserPlus, Trash2, Users, Clock, Calendar, CheckCircle, Lock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -57,11 +57,20 @@ export function ManageAssignmentsDialog({
     date
   );
 
+
+  const isPastShift = useMemo(() => {
+    if (!date) return false;
+    const shiftDate = new Date(date);
+    shiftDate.setHours(23, 59, 59, 999); 
+    const today = new Date();
+    return shiftDate < today;
+  }, [date]);
+
   if (!shift) return null;
 
   const assignedCount = assignments.length;
   const requiredCount = shift.required_staff_count;
-  const canAddMore = assignedCount < requiredCount;
+  const canAddMore = assignedCount < requiredCount && !isPastShift;
   const assignedEmployeeIds = assignments.map((a) => a.employee_id);
   const availableEmployees = employees.filter(
     (emp) => !assignedEmployeeIds.includes(emp.id)
@@ -184,13 +193,21 @@ export function ManageAssignmentsDialog({
                   {formatDate(date)}
                 </span>
               </div>
-              <span
-                className={`px-3 py-1 rounded-full text-xs font-medium border ${getShiftTypeColor(
-                  shift.shift_type
-                )}`}
-              >
-                {shift.shift_type}
-              </span>
+              <div className="flex items-center gap-2">
+                {isPastShift && (
+                  <span className="px-3 py-1 rounded-full text-xs font-medium border bg-gray-100 text-gray-600 border-gray-300 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    Completed
+                  </span>
+                )}
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-medium border ${getShiftTypeColor(
+                    shift.shift_type
+                  )}`}
+                >
+                  {shift.shift_type}
+                </span>
+              </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-blue-800">
               <Clock className="w-4 h-4" />
@@ -255,20 +272,27 @@ export function ManageAssignmentsDialog({
                         </p>
                       </div>
                     </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() =>
-                        handleRemoveAssignment(
-                          assignment.assignment_id,
-                          assignment.full_name
-                        )
-                      }
-                      disabled={isDeleting}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    {isPastShift ? (
+                      <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <Lock className="w-3 h-3" />
+                        Locked
+                      </span>
+                    ) : (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          handleRemoveAssignment(
+                            assignment.assignment_id,
+                            assignment.full_name
+                          )
+                        }
+                        disabled={isDeleting}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -370,7 +394,19 @@ export function ManageAssignmentsDialog({
             </div>
           )}
 
-          {!canAddMore && assignedCount >= requiredCount && (
+          {isPastShift && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+              <p className="text-sm text-gray-700 font-medium flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                This shift has been completed
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Past shifts cannot be modified. View only mode.
+              </p>
+            </div>
+          )}
+
+          {!isPastShift && !canAddMore && assignedCount >= requiredCount && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <p className="text-sm text-green-800 font-medium">
                 ✓ This shift is fully staffed

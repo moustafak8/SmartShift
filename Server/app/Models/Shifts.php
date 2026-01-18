@@ -22,10 +22,6 @@ class Shifts extends Model
         'status',
     ];
 
-    protected $casts = [
-        'shift_date' => 'date',
-    ];
-
     public function department()
     {
         return $this->belongsTo(Department::class);
@@ -41,5 +37,15 @@ class Shifts extends Model
     public function positionRequirements()
     {
         return $this->hasMany(Shift_Position_Requirement::class, 'shift_id');
+    }
+
+    public function shiftAssigments()
+    {
+        return $this->hasMany(Shift_Assigments::class, 'shift_id');
+    }
+
+    public function shiftTemplate()
+    {
+        return $this->belongsTo(Shift_Template::class, 'shift_template_id');
     }
 }
