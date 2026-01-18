@@ -15,6 +15,7 @@ import { Shifts } from "./pages/Manager/Shifts";
 import { TeamWellness } from "./pages/Manager/TeamWellness";
 import { Schedule } from "./pages/Employee/Schedule";
 import { IncomingSwapRequest } from "./pages/Employee/IncomingSwapRequest";
+import { SwapRequests } from "./pages/Manager/SwapRequests";
 import { Roles } from "./hooks/types/Roles";
 
 export default function App() {
@@ -129,6 +130,16 @@ export default function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
                 <TeamWellness />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+          <Route
+          path="/manager/swaps"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
+                <SwapRequests />
               </RoleBasedRoute>
             </ProtectedRoute>
           }

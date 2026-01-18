@@ -75,7 +75,7 @@ class ValidateShiftSwap implements ShouldQueue
     {
         $swap->update([
             'validation_passed' => $response['validation_passed'] ?? null,
-            'validation_notes' => json_encode([
+            'validation_notes' => [
                 'decision' => $response['decision'] ?? 'unknown',
                 'confidence' => $response['confidence'] ?? 0,
                 'reasoning' => $response['reasoning'] ?? null,
@@ -83,7 +83,7 @@ class ValidateShiftSwap implements ShouldQueue
                 'risk_factors' => $response['risk_factors'] ?? [],
                 'suggestions' => $response['suggestions'] ?? [],
                 'processing_time_ms' => $response['processing_time_ms'] ?? null,
-            ]),
+            ],
             'requester_new_fatigue_score' => $this->extractFatigueScore($response, 'requester'),
             'target_new_fatigue_score' => $this->extractFatigueScore($response, 'target'),
             'status' => $this->determineNewStatus($response),
