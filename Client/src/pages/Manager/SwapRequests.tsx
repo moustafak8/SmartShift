@@ -132,11 +132,11 @@ function ValidationCheckItem({ check }: { check: ValidationCheck }) {
 
 function parseValidationNotes(
   notes: unknown,
-): import("../../hooks/Manager/useManagerSwaps").ValidationNotes | null {
+): import("../../hooks/types/swaprequests").ValidationNotes | null {
   if (!notes) return null;
 
   if (typeof notes === "object" && notes !== null && "decision" in notes) {
-    return notes as import("../../hooks/Manager/useManagerSwaps").ValidationNotes;
+    return notes as import("../../hooks/types/swaprequests").ValidationNotes;
   }
 
   if (typeof notes === "string") {
