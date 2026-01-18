@@ -132,6 +132,14 @@ class ShiftSwapsController extends Controller
         return $this->responseJSON($swaps, 'success', 200);
     }
 
+    public function outgoingSwaps()
+    {
+        $userId = auth()->id();
+        $swaps = $this->swapService->getOutgoingSwaps($userId);
+
+        return $this->responseJSON($swaps, 'success', 200);
+    }
+
     public function awaitingManager(Request $request)
     {
         $departmentId = $request->query('department_id');

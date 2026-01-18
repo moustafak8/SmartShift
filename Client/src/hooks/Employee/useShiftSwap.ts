@@ -83,6 +83,7 @@ export const useCreateSwap = () => {
     mutationFn: createSwapRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["scheduleAssignments"] });
+      queryClient.invalidateQueries({ queryKey: ["outgoingSwaps"] });
     },
   });
 };
@@ -163,3 +164,42 @@ export const useRespondToSwap = () => {
 
 export type { SwapCandidate, CreateSwapRequest } from "../types/shiftSwap";
 
+import { useAuth } from "../context/AuthContext";
+
+interface OutgoingSwapsResponse {
+  status: string;
+  message: string;
+  payload: IncomingSwap[];
+}
+
+const fetchOutgoingSwaps = async (): Promise<IncomingSwap[]> => {
+  try {
+    const response = await api.get<OutgoingSwapsResponse>(`shift-swaps/outgoing`);
+    return response.data?.payload || [];
+  } catch {
+    return [];
+  }
+};
+
+export const useOutgoingSwaps = () => {
+  const { user } = useAuth();
+  const isLoggedIn = !!user?.id;
+
+  const query = useQuery({
+    queryKey: ["outgoingSwaps"],
+    queryFn: fetchOutgoingSwaps,
+    enabled: isLoggedIn,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+    retry: 1,
+  });
+
+  return {
+    swaps: query.data || [],
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    refetch: query.refetch,
+  };
+};

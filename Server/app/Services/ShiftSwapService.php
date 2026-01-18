@@ -176,6 +176,19 @@ class ShiftSwapService
             ->get();
     }
 
+    public function getOutgoingSwaps(int $requesterId): Collection
+    {
+        return ShiftSwaps::with([
+            'targetEmployee:id,full_name',
+            'requesterShift:id,shift_date,shift_type',
+            'targetShift:id,shift_date,shift_type',
+        ])
+            ->where('requester_id', $requesterId)
+            ->whereIn('status', ['pending', 'awaiting_target', 'awaiting_manager', 'approved_by_target'])
+            ->orderByDesc('created_at')
+            ->get();
+    }
+
     public function getSwapsAwaitingManager(?int $departmentId = null): Collection
     {
         $query = ShiftSwaps::with([

@@ -9,6 +9,7 @@ import {
 import { Button } from "../ui/Button";
 import { Calendar, Clock, User, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useSwapCandidates, useCreateSwap, useSwappableShifts } from "../../hooks/Employee/useShiftSwap";
+import { useToast } from "../ui/Toast";
 
 interface TargetShiftDialogProps {
   isOpen: boolean;
@@ -29,7 +30,8 @@ export function TargetShiftDialog({
 }: TargetShiftDialogProps) {
   const [selectedShiftId, setSelectedShiftId] = useState<number | null>(null);
   const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null);
-  const [step, setStep] = useState<"shift" | "employee" | "confirm">("shift");
+  const [step, setStep] = useState<"shift" | "employee" | "confirm" | "success">("shift");
+  const toast = useToast();
 
   const { shifts: availableShifts, isLoading: loadingShifts, isError: shiftsError } = useSwappableShifts(requesterAssignmentId);
   const { candidates, isLoading: loadingCandidates, isError: candidatesError } = useSwapCandidates(selectedShiftId);
@@ -64,9 +66,12 @@ export function TargetShiftDialog({
         target_shift_id: selectedShiftId,
         swap_reason: swapReason,
       });
+      
+      toast.success("Swap Request Submitted. Your request is now under review.");
       onClose();
     } catch (error) {
       console.error("Failed to create swap:", error);
+      toast.error("Submission Failed. Please try again.");
     }
   };
 
@@ -257,17 +262,20 @@ export function TargetShiftDialog({
               </div>
             </div>
           )}
+
         </div>
 
         
         <div className="flex items-center justify-between pt-4 border-t border-[#E5E7EB]">
-          <Button
-            variant="secondary"
-            onClick={step === "shift" ? onBack : () => setStep(step === "confirm" ? "employee" : "shift")}
-            className="px-6"
-          >
-            Back
-          </Button>
+          {step !== "success" && (
+            <Button
+              variant="secondary"
+              onClick={step === "shift" ? onBack : () => setStep(step === "confirm" ? "employee" : "shift")}
+              className="px-6"
+            >
+              Back
+            </Button>
+          )}
           
           {step === "confirm" ? (
             <Button
