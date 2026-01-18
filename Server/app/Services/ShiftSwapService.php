@@ -11,6 +11,10 @@ use Illuminate\Support\Collection;
 
 class ShiftSwapService
 {
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {}
+
     public function listSwaps(?int $employeeId = null): Collection
     {
         $query = ShiftSwaps::with([
@@ -54,17 +58,29 @@ class ShiftSwapService
 
         ValidateShiftSwap::dispatch($swap->id);
 
-        return $swap->load([
+        $swap->load([
             'requester:id,full_name',
             'targetEmployee:id,full_name',
             'requesterShift:id,shift_date,shift_type',
             'targetShift:id,shift_date,shift_type',
         ]);
+
+        $this->notificationService->send(
+            $data['target_employee_id'],
+            NotificationService::TYPE_SWAP_REQUEST,
+            'New Shift Swap Request',
+            "{$swap->requester->full_name} has requested to swap shifts with you.",
+            'high',
+            'shift_swap',
+            $swap->id
+        );
+
+        return $swap;
     }
 
     public function cancelSwap(int $swapId, int $userId): ?ShiftSwaps
     {
-        $swap = ShiftSwaps::find($swapId);
+        $swap = ShiftSwaps::with('requester:id,full_name')->find($swapId);
 
         if (! $swap) {
             return null;
@@ -80,12 +96,22 @@ class ShiftSwapService
 
         $swap->update(['status' => 'cancelled']);
 
+        $this->notificationService->send(
+            $swap->target_employee_id,
+            NotificationService::TYPE_SWAP_CANCELLED,
+            'Shift Swap Cancelled',
+            "{$swap->requester->full_name} has cancelled their swap request.",
+            'low',
+            'shift_swap',
+            $swap->id
+        );
+
         return $swap->fresh();
     }
 
     public function reviewSwap(int $swapId, int $reviewerId, string $decision, ?string $notes = null): ?ShiftSwaps
     {
-        $swap = ShiftSwaps::find($swapId);
+        $swap = ShiftSwaps::with('requester:id,full_name')->find($swapId);
 
         if (! $swap || $swap->status !== 'awaiting_manager') {
             return null;
@@ -98,6 +124,16 @@ class ShiftSwapService
                 'reviewed_at' => now(),
                 'review_notes' => $notes,
             ]);
+
+            $this->notificationService->send(
+                $swap->target_employee_id,
+                NotificationService::TYPE_SWAP_AWAITING,
+                'Shift Swap Awaiting Your Response',
+                "{$swap->requester->full_name}'s swap request has been approved. Please accept or decline.",
+                'high',
+                'shift_swap',
+                $swap->id
+            );
         } else {
             $swap->update([
                 'status' => 'rejected',
@@ -105,6 +141,21 @@ class ShiftSwapService
                 'reviewed_at' => now(),
                 'review_notes' => $notes,
             ]);
+
+            $message = 'Your shift swap request has been rejected.';
+            if ($notes) {
+                $message .= " Reason: {$notes}";
+            }
+
+            $this->notificationService->send(
+                $swap->requester_id,
+                NotificationService::TYPE_SWAP_REJECTED,
+                'Shift Swap Rejected',
+                $message,
+                'normal',
+                'shift_swap',
+                $swap->id
+            );
         }
 
         return $swap->fresh();
@@ -112,7 +163,7 @@ class ShiftSwapService
 
     public function targetRespond(int $swapId, int $targetUserId, string $response): ?ShiftSwaps
     {
-        $swap = ShiftSwaps::find($swapId);
+        $swap = ShiftSwaps::with('targetEmployee:id,full_name')->find($swapId);
 
         if (! $swap || $swap->status !== 'awaiting_target') {
             return null;
@@ -129,11 +180,31 @@ class ShiftSwapService
                 'status' => 'approved',
                 'target_responded_at' => now(),
             ]);
+
+            $this->notificationService->send(
+                $swap->requester_id,
+                NotificationService::TYPE_SWAP_APPROVED,
+                'Shift Swap Approved',
+                'Your shift swap request has been approved!',
+                'normal',
+                'shift_swap',
+                $swap->id
+            );
         } else {
             $swap->update([
                 'status' => 'rejected',
                 'target_responded_at' => now(),
             ]);
+
+            $this->notificationService->send(
+                $swap->requester_id,
+                NotificationService::TYPE_SWAP_REJECTED,
+                'Shift Swap Declined',
+                "{$swap->targetEmployee->full_name} has declined your swap request.",
+                'normal',
+                'shift_swap',
+                $swap->id
+            );
         }
 
         return $swap->fresh();

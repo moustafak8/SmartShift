@@ -7,6 +7,7 @@ use App\Http\Controllers\EmployeeDepartmentController;
 use App\Http\Controllers\EmployeePreferencesController;
 use App\Http\Controllers\FatigueScoreController;
 use App\Http\Controllers\GenerateScheduleController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
@@ -84,4 +85,8 @@ Route::prefix('v1')->group(function () {
         Route::get('shifts/{shiftId}/swap-candidates', [ShiftSwapsController::class, 'eligibleCandidates']);
         Route::get('shifts/{shiftId}/swappable-shifts', [ShiftSwapsController::class, 'swappableShifts']);
     });
+
+   
+ 
 });
+
