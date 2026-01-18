@@ -553,74 +553,143 @@ async def check_compliance_node(state: SwapValidationState) -> Dict[str, Any]:
 
 # Node 6: Make Decision
 
-
-def generate_suggestions(failed_checks: List[Dict[str, Any]], state: SwapValidationState) -> List[Dict[str, Any]]:
+def generate_suggestions(failed_checks: List[Dict[str, Any]], state: SwapValidationState, all_checks: List[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
     suggestions = []
-    
     for check in failed_checks:
         check_name = check.get('check_name')
+        details = check.get('details', {})
+        message = check.get('message', '')
         
         if check_name == 'availability':
-            suggestions.append({
-                "type": "alternative_dates",
-                "message": "Consider requesting a swap for a different date when both employees are available",
-                "action": "check_calendar"
-            })
-            suggestions.append({
-                "type": "alternative_employee",
-                "message": "Try finding another colleague who is available for this shift",
-                "action": "find_available_employees"
-            })
+            if not details.get('requester_available', True):
+                suggestions.append({
+                    "type": "alternative_dates",
+                    "message": "You have marked yourself as unavailable on the target date. Update your availability first.",
+                    "action": "update_availability"
+                })
+            if not details.get('target_available', True):
+                suggestions.append({
+                    "type": "alternative_employee",
+                    "message": "The target employee is unavailable. Try finding another colleague who can cover this shift.",
+                    "action": "find_available_employees"
+                })
         
         elif check_name == 'fatigue':
-            requester_score = state.get('fatigue_check', {}).get('details', {}).get('requester_current', 0)
-            days_to_recover = max(2, (requester_score - 40) // 10) if requester_score > 40 else 1
-            suggestions.append({
-                "type": "delay_swap",
-                "message": f"Wait {days_to_recover} days for fatigue levels to recover before swapping",
-                "action": "reschedule_later"
-            })
+            requester_current = details.get('requester_current', 0)
+            target_current = details.get('target_current', 0)
+            
+            if requester_current > 50:
+                days_to_recover = max(2, (requester_current - 40) // 10)
+                suggestions.append({
+                    "type": "delay_swap",
+                    "message": f"Your fatigue score is high ({requester_current}). Wait {days_to_recover} days for recovery.",
+                    "action": "reschedule_later"
+                })
+            
+            if target_current > 50:
+                suggestions.append({
+                    "type": "alternative_employee",
+                    "message": f"Target employee has high fatigue ({target_current}). Consider swapping with someone else.",
+                    "action": "find_available_employees"
+                })
+            
             suggestions.append({
                 "type": "shorter_shift",
-                "message": "Consider swapping for a shorter or less demanding shift",
+                "message": "Consider swapping for a shorter or less demanding shift type.",
                 "action": "find_easier_shift"
             })
         
         elif check_name == 'staffing':
-            suggestions.append({
-                "type": "manager_justification",
-                "message": "Provide business justification for the swap despite staffing concerns",
-                "action": "submit_justification"
-            })
-            suggestions.append({
-                "type": "find_coverage",
-                "message": "Arrange for additional coverage before proceeding with swap",
-                "action": "request_coverage"
-            })
-        
-        elif check_name == 'compliance':
-            details = check.get('details', {})
-            violations = details.get('violations', [])
+            requester_count = details.get('requester_shift_current', 0)
+            requester_required = details.get('requester_shift_required', 0)
             
-            if any('rest' in v.lower() for v in violations):
+            if requester_count < requester_required:
                 suggestions.append({
-                    "type": "reschedule_shift",
-                    "message": "Choose a shift that allows for the minimum 11-hour rest period between shifts",
-                    "action": "find_compliant_shift"
+                    "type": "find_coverage",
+                    "message": f"Your shift needs {requester_required - requester_count} more staff. Find coverage first.",
+                    "action": "request_coverage"
                 })
             
             suggestions.append({
-                "type": "hr_review",
-                "message": "Contact HR to review compliance requirements or request an exception",
-                "action": "contact_hr"
+                "type": "manager_justification",
+                "message": "Provide a business justification to your manager for this swap.",
+                "action": "submit_justification"
             })
+        
+        elif check_name == 'compliance':
+            violations = details.get('violations', [])
+            warnings = details.get('warnings', [])
+            
+            if any('rest' in v.lower() for v in violations):
+                suggestions.append({
+                    "type": "different_shift",
+                    "message": "This swap violates minimum rest requirements. Choose a shift with more gap time.",
+                    "action": "find_compliant_shift"
+                })
+            
+            if any('consecutive' in v.lower() for v in violations):
+                suggestions.append({
+                    "type": "take_day_off",
+                    "message": "You've worked too many consecutive days. Request a day off before this swap.",
+                    "action": "request_day_off"
+                })
+            
+            if any('hours' in v.lower() or 'hours' in w.lower() for v in violations for w in warnings):
+                suggestions.append({
+                    "type": "reduce_hours",
+                    "message": "You're approaching weekly hour limits. Consider a shorter shift.",
+                    "action": "find_shorter_shift"
+                })
+            
+            if any('night' in w.lower() for w in warnings):
+                suggestions.append({
+                    "type": "night_eligibility",
+                    "message": "Verify you are eligible for night shift work with HR.",
+                    "action": "check_eligibility"
+                })
+            
+            if violations:
+                suggestions.append({
+                    "type": "hr_review",
+                    "message": "Contact HR to review compliance requirements or request an exception.",
+                    "action": "contact_hr"
+                })
     
- 
+   
     if failed_checks:
         suggestions.append({
             "type": "manager_override",
-            "message": "Request manual review and approval from your manager",
+            "message": "Request manual review and approval from your manager.",
             "action": "escalate_to_manager"
+        })
+    
+   
+    if not failed_checks and all_checks:
+        requester_shift = state.get('requester_shift_data', {})
+        target_shift = state.get('target_shift_data', {})
+        
+        
+        requester_type = requester_shift.get('shift_type', 'day')
+        target_type = target_shift.get('shift_type', 'day')
+        
+        if requester_type != target_type:
+            if target_type == 'night':
+                suggestions.append({
+                    "type": "transition_tip",
+                    "message": "Tip: Adjust your sleep schedule 2-3 days before your night shift.",
+                    "action": "none"
+                })
+            elif target_type == 'day' and requester_type == 'night':
+                suggestions.append({
+                    "type": "transition_tip", 
+                    "message": "Tip: Get sunlight exposure in the morning to help reset your body clock.",
+                    "action": "none"
+                })
+        
+        suggestions.append({
+            "type": "confirmation_tip",
+            "message": "Remember to confirm the swap with your colleague before it's finalized.",
+            "action": "confirm_with_colleague"
         })
     
     return suggestions
@@ -738,10 +807,9 @@ Keep it professional but friendly, 2-3 sentences max.
         else:
             reasoning = f"Some concerns were identified that require manager review: {', '.join([c['check_name'] for c in soft_failures])}."
     
-    suggestions = []
-    if decision != "auto_approve":
-        all_failures = hard_failures + soft_failures
-        suggestions = generate_suggestions(all_failures, state)
+   
+    all_failures = hard_failures + soft_failures
+    suggestions = generate_suggestions(all_failures, state, all_checks)
     
     logger.info(f"Decision: {decision} (confidence: {confidence}, suggestions: {len(suggestions)})")
     
