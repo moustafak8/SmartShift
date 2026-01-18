@@ -87,6 +87,12 @@ Route::prefix('v1')->group(function () {
     });
 
    
- 
+    Route::prefix('notifications')->middleware('jwt')->group(function () {
+        Route::get('/{userId}', [NotificationController::class, 'index']);
+        Route::get('/{userId}/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/{userId}/{notificationId}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/{userId}/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('/{userId}/{notificationId}', [NotificationController::class, 'destroy']);
+    });
 });
 
