@@ -1,5 +1,13 @@
 import { useState, useMemo } from "react";
-import { UserPlus, Trash2, Users, Clock, Calendar, CheckCircle, Lock } from "lucide-react";
+import {
+  UserPlus,
+  Trash2,
+  Users,
+  Clock,
+  Calendar,
+  CheckCircle,
+  Lock,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -44,9 +52,12 @@ export function ManageAssignmentsDialog({
   const [assignmentStatus, setAssignmentStatus] = useState<
     "assigned" | "confirmed"
   >("assigned");
-  
+
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [assignmentToDelete, setAssignmentToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [assignmentToDelete, setAssignmentToDelete] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   const { mutate: createAssignment, isPending: isCreating } =
     useCreateAssignment();
@@ -54,17 +65,52 @@ export function ManageAssignmentsDialog({
     useDeleteAssignment();
   const { employees, isLoading: loadingEmployees } = useAvailableEmployees(
     departmentId || 0,
-    date
+    date,
   );
-
 
   const isPastShift = useMemo(() => {
     if (!date) return false;
     const shiftDate = new Date(date);
-    shiftDate.setHours(23, 59, 59, 999); 
+    shiftDate.setHours(23, 59, 59, 999);
     const today = new Date();
     return shiftDate < today;
   }, [date]);
+
+  const positionStats = useMemo<
+    Array<{
+      position_id: number;
+      position_name: string;
+      required: number;
+      filled: number;
+    }>
+  >(() => {
+    if (!shift) return [];
+
+    const requirements = (shift as any).position_requirements || [];
+
+    if (requirements.length === 0) {
+      return [];
+    }
+
+    const assignmentsByPosition = assignments.reduce(
+      (acc, assignment) => {
+        const posId = assignment.position_id;
+        if (posId) {
+          if (!acc[posId]) acc[posId] = [];
+          acc[posId].push(assignment);
+        }
+        return acc;
+      },
+      {} as Record<number, typeof assignments>,
+    );
+
+    return requirements.map((req: any) => ({
+      position_id: req.position_id,
+      position_name: req.position_name || "Unknown Position",
+      required: req.required_count,
+      filled: assignmentsByPosition[req.position_id]?.length || 0,
+    }));
+  }, [shift, assignments]);
 
   if (!shift) return null;
 
@@ -73,7 +119,7 @@ export function ManageAssignmentsDialog({
   const canAddMore = assignedCount < requiredCount && !isPastShift;
   const assignedEmployeeIds = assignments.map((a) => a.employee_id);
   const availableEmployees = employees.filter(
-    (emp) => !assignedEmployeeIds.includes(emp.id)
+    (emp) => !assignedEmployeeIds.includes(emp.id),
   );
 
   const handleAddAssignment = () => {
@@ -105,22 +151,22 @@ export function ManageAssignmentsDialog({
           setAssignmentType("regular");
           setAssignmentStatus("assigned");
           onAssignmentChange();
-          onClose(); 
+          onClose();
         },
         onError: (error: any) => {
           toast.error(
             error.response?.data?.payload?.message ||
               error.response?.data?.message ||
-              "Failed to add assignment"
+              "Failed to add assignment",
           );
         },
-      }
+      },
     );
   };
 
   const handleRemoveAssignment = (
     assignmentId: number,
-    employeeName: string
+    employeeName: string,
   ) => {
     setAssignmentToDelete({ id: assignmentId, name: employeeName });
     setIsConfirmOpen(true);
@@ -128,7 +174,7 @@ export function ManageAssignmentsDialog({
 
   const confirmDelete = () => {
     if (!assignmentToDelete) return;
-    
+
     deleteAssignment(assignmentToDelete.id, {
       onSuccess: () => {
         toast.success(`Removed ${assignmentToDelete.name} from shift`);
@@ -141,7 +187,7 @@ export function ManageAssignmentsDialog({
         toast.error(
           error.response?.data?.payload?.message ||
             error.response?.data?.message ||
-            "Failed to remove assignment"
+            "Failed to remove assignment",
         );
         setIsConfirmOpen(false);
         setAssignmentToDelete(null);
@@ -202,7 +248,7 @@ export function ManageAssignmentsDialog({
                 )}
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-medium border ${getShiftTypeColor(
-                    shift.shift_type
+                    shift.shift_type,
                   )}`}
                 >
                   {shift.shift_type}
@@ -216,30 +262,63 @@ export function ManageAssignmentsDialog({
                 {shift.end_time.substring(0, 5)}
               </span>
             </div>
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-sm text-blue-900">
-                <span className="font-semibold">
-                  {assignedCount}/{requiredCount}
-                </span>{" "}
-                positions filled
-              </span>
-              <div className="w-32 bg-blue-200 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full transition-all ${
-                    assignedCount >= requiredCount
-                      ? "bg-green-500"
-                      : assignedCount >= requiredCount / 2
-                      ? "bg-amber-500"
-                      : "bg-red-500"
-                  }`}
-                  style={{
-                    width: `${Math.min(
-                      (assignedCount / requiredCount) * 100,
-                      100
-                    )}%`,
-                  }}
-                ></div>
-              </div>
+            <div className="mt-3">
+              {positionStats.length > 0 ? (
+                <div className="space-y-2">
+                  {positionStats.map((stat) => (
+                    <div
+                      key={stat.position_id}
+                      className="flex items-center justify-between"
+                    >
+                      <span className="text-sm text-blue-900">
+                        <span
+                          className={`font-semibold ${stat.filled >= stat.required ? "text-green-600" : "text-amber-600"}`}
+                        >
+                          {stat.filled}/{stat.required}
+                        </span>{" "}
+                        {stat.position_name} filled
+                      </span>
+                      <div className="w-24 bg-blue-200 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all ${
+                            stat.filled >= stat.required
+                              ? "bg-green-500"
+                              : stat.filled >= stat.required / 2
+                                ? "bg-amber-500"
+                                : "bg-red-500"
+                          }`}
+                          style={{
+                            width: `${Math.min((stat.filled / stat.required) * 100, 100)}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-blue-900">
+                    <span className="font-semibold">
+                      {assignedCount}/{requiredCount}
+                    </span>{" "}
+                    positions filled
+                  </span>
+                  <div className="w-32 bg-blue-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all ${
+                        assignedCount >= requiredCount
+                          ? "bg-green-500"
+                          : assignedCount >= requiredCount / 2
+                            ? "bg-amber-500"
+                            : "bg-red-500"
+                      }`}
+                      style={{
+                        width: `${Math.min((assignedCount / requiredCount) * 100, 100)}%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -284,7 +363,7 @@ export function ManageAssignmentsDialog({
                         onClick={() =>
                           handleRemoveAssignment(
                             assignment.assignment_id,
-                            assignment.full_name
+                            assignment.full_name,
                           )
                         }
                         disabled={isDeleting}
@@ -345,7 +424,7 @@ export function ManageAssignmentsDialog({
                     value={assignmentType}
                     onChange={(e) =>
                       setAssignmentType(
-                        e.target.value as "regular" | "overtime" | "cover"
+                        e.target.value as "regular" | "overtime" | "cover",
                       )
                     }
                     disabled={isCreating}
@@ -365,7 +444,7 @@ export function ManageAssignmentsDialog({
                     value={assignmentStatus}
                     onChange={(e) =>
                       setAssignmentStatus(
-                        e.target.value as "assigned" | "confirmed"
+                        e.target.value as "assigned" | "confirmed",
                       )
                     }
                     disabled={isCreating}
@@ -424,7 +503,7 @@ export function ManageAssignmentsDialog({
           </Button>
         </div>
       </DialogContent>
-      
+
       <ConfirmDialog
         open={isConfirmOpen}
         onOpenChange={setIsConfirmOpen}

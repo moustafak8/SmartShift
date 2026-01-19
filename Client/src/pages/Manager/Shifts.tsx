@@ -3,9 +3,13 @@ import { Calendar, Plus } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Layout } from "../../components/Sidebar";
 import { AddShiftDialog } from "../../components/Manager/AddShiftDialog";
-import {GenerateScheduleDialog} from "../../components/Manager/GenerateScheduleDialog";
+import { GenerateScheduleDialog } from "../../components/Manager/GenerateScheduleDialog";
 import { ShiftCalendar } from "../../components/Manager/ShiftCalendar";
-import { useShiftTemplates, useShifts, useShiftAssignments } from "../../hooks/Manager/useShifts";
+import {
+  useShiftTemplates,
+  useShifts,
+  useShiftAssignments,
+} from "../../hooks/Manager/useShifts";
 import { useAuth } from "../../hooks/context/AuthContext";
 
 export function Shifts() {
@@ -13,7 +17,11 @@ export function Shifts() {
   const [isGenerateScheduleOpen, setIsGenerateScheduleOpen] = useState(false);
   const { refetch } = useShiftTemplates();
   const { departmentId } = useAuth();
-  const { shifts, isLoading, refetch: refetchShifts } = useShifts(departmentId || 0);
+  const {
+    shifts,
+    isLoading,
+    refetch: refetchShifts,
+  } = useShifts(departmentId || 0);
 
   const [startDate, setStartDate] = useState(() => {
     const today = new Date();
@@ -21,15 +29,16 @@ export function Shifts() {
     const monday = new Date(today);
     monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
     const year = monday.getFullYear();
-    const month = String(monday.getMonth() + 1).padStart(2, '0');
-    const day = String(monday.getDate()).padStart(2, '0');
+    const month = String(monday.getMonth() + 1).padStart(2, "0");
+    const day = String(monday.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   });
-  
-  const { assignments, isLoading: assignmentsLoading, refetch: refetchAssignments } = useShiftAssignments(
-    startDate,
-    departmentId || 0
-  );
+
+  const {
+    assignments,
+    isLoading: assignmentsLoading,
+    refetch: refetchAssignments,
+  } = useShiftAssignments(startDate, departmentId || 0);
 
   const handleRefresh = () => {
     refetch();
@@ -73,10 +82,9 @@ export function Shifts() {
           </div>
         </div>
 
-       
-        <ShiftCalendar 
-          shifts={shifts} 
-          isLoading={isLoading || assignmentsLoading} 
+        <ShiftCalendar
+          shifts={shifts}
+          isLoading={isLoading || assignmentsLoading}
           assignments={assignments}
           onWeekChange={setStartDate}
           onAssignmentChange={refetchAssignments}

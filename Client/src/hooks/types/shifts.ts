@@ -15,6 +15,7 @@ export interface ShiftTemplatesResponse {
 
 export interface PositionRequirement {
   position_id: number;
+  position_name?: string;
   required_count: number;
 }
 
@@ -71,6 +72,8 @@ export interface ShiftAssignment {
   assignment_id: number;
   employee_id: number;
   full_name: string;
+  position_id?: number;
+  position_name?: string;
   assignment_type: "regular" | "overtime" | "on_call";
   status: "assigned" | "pending" | "confirmed" | "cancelled";
 }

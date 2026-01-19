@@ -434,7 +434,8 @@ export function SwapRequests() {
         {swaps.length > 0 && (
           <div className="px-6 py-3 bg-[#FFFBEB] border-b border-[#FEF3C7]">
             <span className="text-sm font-medium text-[#D97706]">
-              {swaps.length} swap request{swaps.length > 1 ? 's' : ''} awaiting review
+              {swaps.length} swap request{swaps.length > 1 ? "s" : ""} awaiting
+              review
             </span>
           </div>
         )}
