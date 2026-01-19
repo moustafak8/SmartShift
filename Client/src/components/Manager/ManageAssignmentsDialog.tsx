@@ -7,6 +7,7 @@ import {
   Calendar,
   CheckCircle,
   Lock,
+  AlertTriangle,
 } from "lucide-react";
 import {
   Dialog,
@@ -54,6 +55,7 @@ export function ManageAssignmentsDialog({
   const [assignmentStatus, setAssignmentStatus] = useState<
     "assigned" | "confirmed"
   >("assigned");
+  const [forceAssign, setForceAssign] = useState(false);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [assignmentToDelete, setAssignmentToDelete] = useState<{
@@ -131,7 +133,12 @@ export function ManageAssignmentsDialog({
     (emp) =>
       !assignedEmployeeIds.includes(emp.id) &&
       !filledPositionIds.includes(emp.position_id || 0) &&
-      !dailyAssignedEmployeeIds.includes(emp.id),
+      (forceAssign || !dailyAssignedEmployeeIds.includes(emp.id)),
+  );
+  const sameDayEmployees = employees.filter(
+    (emp) =>
+      dailyAssignedEmployeeIds.includes(emp.id) &&
+      !assignedEmployeeIds.includes(emp.id),
   );
 
   const handleAddAssignment = () => {
@@ -155,6 +162,7 @@ export function ManageAssignmentsDialog({
         position_id: selectedEmployee.position_id,
         assignment_type: assignmentType,
         status: assignmentStatus,
+        force_assign: dailyAssignedEmployeeIds.includes(employeeId) ? true : undefined,
       },
       {
         onSuccess: () => {
@@ -162,6 +170,7 @@ export function ManageAssignmentsDialog({
           setSelectedEmployeeId("");
           setAssignmentType("regular");
           setAssignmentStatus("assigned");
+          setForceAssign(false);
           onAssignmentChange();
           onClose();
         },
@@ -413,6 +422,24 @@ export function ManageAssignmentsDialog({
                 Add Employee to Shift
               </h3>
               <div className="space-y-3">
+                {sameDayEmployees.length > 0 && (
+                  <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="forceAssign"
+                      checked={forceAssign}
+                      onChange={(e) => setForceAssign(e.target.checked)}
+                      className="w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                    />
+                    <label htmlFor="forceAssign" className="flex items-center gap-2 text-sm text-amber-800 cursor-pointer">
+                      <AlertTriangle className="w-4 h-4" />
+                      <span>
+                        Allow assigning employees who already work on this day ({sameDayEmployees.length} employee{sameDayEmployees.length > 1 ? 's' : ''})
+                      </span>
+                    </label>
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
                     Employee
@@ -431,6 +458,7 @@ export function ManageAssignmentsDialog({
                     {availableEmployees.map((employee) => (
                       <option key={employee.id} value={employee.id}>
                         {employee.full_name} - {employee.position_name}
+                        {dailyAssignedEmployeeIds.includes(employee.id) ? " (already working today)" : ""}
                       </option>
                     ))}
                   </select>

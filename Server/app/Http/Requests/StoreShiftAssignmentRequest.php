@@ -26,6 +26,10 @@ class StoreShiftAssignmentRequest extends FormRequest
                     return $query->where('shift_id', $this->input('shift_id'));
                 }),
                 function ($attribute, $value, $fail) {
+                    if ($this->boolean('force_assign')) {
+                        return;
+                    }
+
                     $shiftId = $this->input('shift_id');
                     $shift = Shifts::find($shiftId);
                     
@@ -46,6 +50,7 @@ class StoreShiftAssignmentRequest extends FormRequest
             ],
             'assignment_type' => ['required', 'in:regular,overtime,swap,cover'],
             'status' => ['required', 'in:assigned,confirmed,completed,no_show,cancelled'],
+            'force_assign' => ['sometimes', 'boolean'],
         ];
     }
 }
