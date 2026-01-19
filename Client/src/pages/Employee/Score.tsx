@@ -17,7 +17,7 @@ export function Score() {
     };
 
     return (
-        <Layout notificationCount={3}>
+        <Layout>
             <div className="bg-white">
                 <div className="px-7 py-4 border-b border-gray-200">
                     <h1 className="text-2xl font-semibold text-gray-900 mb-1">

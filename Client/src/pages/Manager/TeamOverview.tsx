@@ -37,7 +37,7 @@ export function TeamOverview() {
   };
 
   return (
-    <Layout notificationCount={8}>
+    <Layout>
       <div className="bg-white min-h-screen">
       <div className="border-b border-[#E5E7EB] bg-white">
         <div className="px-6 py-4">

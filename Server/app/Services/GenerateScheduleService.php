@@ -45,13 +45,16 @@ class GenerateScheduleService
 
     private EmployeeWeeklyStatsCache $statsCache;
 
+    private NotificationService $notificationService;
+
     public function __construct(
         EmployeeAvailabilityService $availabilityService,
         EmployeePrefrenceService $preferenceService,
         ScoreService $scoreService,
         ShiftService $shiftService,
         AssigmentsService $assignmentsService,
-        EmployeeWeeklyStatsCache $statsCache
+        EmployeeWeeklyStatsCache $statsCache,
+        NotificationService $notificationService
     ) {
         $this->availabilityService = $availabilityService;
         $this->preferenceService = $preferenceService;
@@ -59,6 +62,7 @@ class GenerateScheduleService
         $this->shiftService = $shiftService;
         $this->assignmentsService = $assignmentsService;
         $this->statsCache = $statsCache;
+        $this->notificationService = $notificationService;
     }
 
     public function generateSchedule(int $departmentId, string $startDate, string $endDate): array
@@ -176,6 +180,8 @@ class GenerateScheduleService
 
             DB::commit();
 
+            $this->sendShiftAssignmentNotifications($createdAssignments);
+
             return [
                 'success' => true,
                 'message' => 'Schedule saved successfully',
@@ -193,6 +199,42 @@ class GenerateScheduleService
                 'message' => 'Failed to save schedule: '.$e->getMessage(),
                 'error' => $e,
             ];
+        }
+    }
+
+    private function sendShiftAssignmentNotifications(Collection $assignments): void
+    {
+        $shiftsCache = [];
+
+        foreach ($assignments as $assignment) {
+            $employeeId = $assignment->employee_id;
+            $shiftId = $assignment->shift_id;
+
+            // Cache shift data to avoid multiple queries
+            if (! isset($shiftsCache[$shiftId])) {
+                $shiftsCache[$shiftId] = Shifts::find($shiftId);
+            }
+
+            $shift = $shiftsCache[$shiftId];
+            if (! $shift) {
+                continue;
+            }
+
+            $shiftDate = Carbon::parse($shift->shift_date);
+            $startTime = Carbon::parse($shift->start_time)->format('g:ia');
+            $endTime = Carbon::parse($shift->end_time)->format('g:ia');
+            $dayName = $shiftDate->format('l');
+            $formattedDate = $shiftDate->format('M j');
+
+            $this->notificationService->send(
+                $employeeId,
+                NotificationService::TYPE_SHIFT_ASSIGNED,
+                'New Shift Scheduled',
+                "You're scheduled for {$dayName}, {$formattedDate}: {$startTime}-{$endTime} {$shift->shift_type} Shift",
+                'normal',
+                'shift',
+                $shiftId
+            );
         }
     }
 

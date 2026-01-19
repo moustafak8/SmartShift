@@ -7,6 +7,7 @@ use App\Http\Controllers\EmployeeDepartmentController;
 use App\Http\Controllers\EmployeePreferencesController;
 use App\Http\Controllers\FatigueScoreController;
 use App\Http\Controllers\GenerateScheduleController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ShiftAssigmentsController;
 use App\Http\Controllers\ShiftsController;
@@ -83,5 +84,13 @@ Route::prefix('v1')->group(function () {
         Route::post('shift-swaps/{swapId}/respond', [ShiftSwapsController::class, 'targetRespond']);
         Route::get('shifts/{shiftId}/swap-candidates', [ShiftSwapsController::class, 'eligibleCandidates']);
         Route::get('shifts/{shiftId}/swappable-shifts', [ShiftSwapsController::class, 'swappableShifts']);
+    });
+
+    Route::prefix('notifications')->middleware('jwt')->group(function () {
+        Route::get('/{userId}', [NotificationController::class, 'index']);
+        Route::get('/{userId}/unread-count', [NotificationController::class, 'unreadCount']);
+        Route::post('/{userId}/{notificationId}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('/{userId}/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('/{userId}/{notificationId}', [NotificationController::class, 'destroy']);
     });
 });

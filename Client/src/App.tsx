@@ -17,11 +17,20 @@ import { Schedule } from "./pages/Employee/Schedule";
 import { IncomingSwapRequest } from "./pages/Employee/IncomingSwapRequest";
 import { SwapRequests } from "./pages/Manager/SwapRequests";
 import { Roles } from "./hooks/types/Roles";
+import { Notifications } from "./pages/Notifications";
 
 export default function App() {
   return (
     <ToastProvider>
       <Routes>
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<Landingpage />} />
         <Route

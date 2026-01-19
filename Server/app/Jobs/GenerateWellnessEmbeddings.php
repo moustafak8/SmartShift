@@ -2,8 +2,12 @@
 
 namespace App\Jobs;
 
+use App\Models\Employee_Department;
+use App\Models\FatigueScore;
+use App\Models\User;
 use App\Models\WellnessEntries;
 use App\Models\WellnessEntryVector;
+use App\Services\NotificationService;
 use App\Services\QdrantService;
 use App\Services\WellnessEmbeddingService;
 use Exception;
@@ -21,7 +25,8 @@ class GenerateWellnessEmbeddings implements ShouldQueue
 
     public function handle(
         WellnessEmbeddingService $embeddingService,
-        QdrantService $qdrantService
+        QdrantService $qdrantService,
+        NotificationService $notificationService
     ): void {
         $entry = WellnessEntries::find($this->entryId);
 
@@ -50,7 +55,6 @@ class GenerateWellnessEmbeddings implements ShouldQueue
 
             $qdrantService->storeVector($entry->id, $vector, $payload);
 
-            // Save data to database with Qdrant reference
             WellnessEntryVector::updateOrCreate(
                 ['entry_id' => $entry->id],
                 [
@@ -64,15 +68,77 @@ class GenerateWellnessEmbeddings implements ShouldQueue
                 ]
             );
 
+            if ($flagging['is_flagged']) {
+                $this->notifyManagerOfFlaggedEntry($entry, $flagging, $notificationService);
+            }
+
             $embeddingService->calculateFatigueScore(
                 $entry->employee_id,
                 $entry->created_at->format('Y-m-d')
             );
+
+            $this->notifyEmployeeIfHighRisk($entry->employee_id, $notificationService);
         } catch (Exception $e) {
             Log::error(
                 "Failed to generate embeddings for wellness entry {$this->entryId}: {$e->getMessage()}"
             );
             throw $e;
         }
+    }
+
+    private function notifyManagerOfFlaggedEntry(
+        WellnessEntries $entry,
+        array $flagging,
+        NotificationService $notificationService
+    ): void {
+        $employee = User::find($entry->employee_id);
+        if (! $employee) {
+            return;
+        }
+        $departments = Employee_Department::where('employee_id', $entry->employee_id)->get();
+
+        foreach ($departments as $dept) {
+            $managers = User::whereHas('employeeDepartments', function ($q) use ($dept) {
+                $q->where('department_id', $dept->department_id);
+            })->where('role', 'manager')->get();
+
+            foreach ($managers as $manager) {
+                $severity = $flagging['flag_severity'] ?? 'medium';
+                $priority = $severity === 'critical' ? 'high' : 'normal';
+
+                $notificationService->send(
+                    $manager->id,
+                    NotificationService::TYPE_WELLNESS_ALERT,
+                    "Wellness Alert: {$employee->full_name}",
+                    "{$employee->full_name}'s wellness entry flagged as {$severity}. {$flagging['flag_reason']}",
+                    $priority,
+                    'wellness_entry',
+                    $entry->id
+                );
+            }
+        }
+    }
+
+    private function notifyEmployeeIfHighRisk(
+        int $employeeId,
+        NotificationService $notificationService
+    ): void {
+        $score = FatigueScore::where('employee_id', $employeeId)
+            ->orderByDesc('score_date')
+            ->first();
+
+        if (! $score || $score->risk_level !== 'high') {
+            return;
+        }
+
+        $notificationService->send(
+            $employeeId,
+            NotificationService::TYPE_FATIGUE_WARNING,
+            'Fatigue Score Alert',
+            "Your fatigue score is now {$score->total_score} (HIGH RISK). Please prioritize rest.",
+            'high',
+            'fatigue_score',
+            $score->id
+        );
     }
 }
