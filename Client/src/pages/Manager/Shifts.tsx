@@ -40,18 +40,14 @@ export function Shifts() {
   return (
     <Layout>
       <div className="bg-white min-h-screen">
-        {/* Header Section */}
-        <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 border-b border-[#E5E7EB]">
-          <div className="px-6 py-5">
+        <div className="border-b border-[#E5E7EB] bg-white">
+          <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-[#111827] flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-lg">
-                    <Calendar className="w-5 h-5 text-white" />
-                  </div>
+                <h1 className="text-2xl font-semibold text-[#111827]">
                   Shift Schedule
                 </h1>
-                <p className="text-sm text-[#6B7280] mt-1.5 ml-[52px]">
+                <p className="text-sm text-[#6B7280] mt-1">
                   View and manage shift schedules for your team
                 </p>
               </div>
