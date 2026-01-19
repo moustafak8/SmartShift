@@ -56,11 +56,12 @@ export const usePendingSwapsCount = (departmentId?: number) => {
   const query = useQuery({
     queryKey: ["pendingSwapsCount", departmentId],
     queryFn: () => fetchPendingCount(departmentId),
+    enabled: !!departmentId,
     refetchInterval: 60000, 
   });
 
   return {
-    count: query.data || 0,
+    count: query.data ?? 0,
     isLoading: query.isLoading,
   };
 };
