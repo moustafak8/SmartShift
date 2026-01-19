@@ -17,6 +17,7 @@ import {
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { Layout } from "../components/Sidebar";
+import { ConfirmDialog } from "../components/ui/ConfirmDialog";
 import { useAuth } from "../hooks/context/AuthContext";
 import {
   useNotifications,
@@ -30,6 +31,8 @@ type FilterType = "all" | "unread";
 
 export function Notifications() {
   const [filter, setFilter] = useState<FilterType>("all");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [notificationToDelete, setNotificationToDelete] = useState<number | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id;
@@ -100,11 +103,17 @@ export function Notifications() {
     }
   };
 
-  const handleDelete = (e: React.MouseEvent, notificationId: number) => {
+  const handleDeleteClick = (e: React.MouseEvent, notificationId: number) => {
     e.stopPropagation();
-    if (userId) {
-      deleteMutation.mutate({ userId, notificationId });
+    setNotificationToDelete(notificationId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (userId && notificationToDelete) {
+      deleteMutation.mutate({ userId, notificationId: notificationToDelete });
     }
+    setNotificationToDelete(null);
   };
 
   if (isLoading) {
@@ -224,7 +233,7 @@ export function Notifications() {
                         {formatTimeAgo(notification.created_at)}
                       </p>
                       <button
-                        onClick={(e) => handleDelete(e, notification.id)}
+                        onClick={(e) => handleDeleteClick(e, notification.id)}
                         disabled={deleteMutation.isPending}
                         className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
                       >
@@ -256,6 +265,17 @@ export function Notifications() {
         )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        title="Delete Notification"
+        description="Are you sure you want to delete this notification? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </Layout>
   );
 }
