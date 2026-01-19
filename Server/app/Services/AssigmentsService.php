@@ -3,11 +3,18 @@
 namespace App\Services;
 
 use App\Models\Shift_Assigments;
+use App\Models\Shifts;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 
 class AssigmentsService
 {
+    private NotificationService $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
     public function listAssignments(): Collection
     {
         return Shift_Assigments::select([
@@ -29,7 +36,34 @@ class AssigmentsService
 
     public function createAssignment(array $data): Shift_Assigments
     {
-        return Shift_Assigments::create($data);
+        $assignment = Shift_Assigments::create($data);
+        $this->sendSingleAssignmentNotification($assignment);
+
+        return $assignment;
+    }
+
+    private function sendSingleAssignmentNotification(Shift_Assigments $assignment): void
+    {
+        $shift = Shifts::find($assignment->shift_id);
+        if (!$shift) {
+            return;
+        }
+
+        $shiftDate = Carbon::parse($shift->shift_date);
+        $startTime = Carbon::parse($shift->start_time)->format('g:ia');
+        $endTime = Carbon::parse($shift->end_time)->format('g:ia');
+        $dayName = $shiftDate->format('l');
+        $formattedDate = $shiftDate->format('M j');
+
+        $this->notificationService->send(
+            $assignment->employee_id,
+            NotificationService::TYPE_SHIFT_ASSIGNED,
+            'New Shift Assigned',
+            "You've been assigned to {$dayName}, {$formattedDate}: {$startTime}-{$endTime} {$shift->shift_type} Shift",
+            'normal',
+            'shift',
+            $assignment->shift_id
+        );
     }
 
     public function createBulkAssignments(array $assignments): Collection
