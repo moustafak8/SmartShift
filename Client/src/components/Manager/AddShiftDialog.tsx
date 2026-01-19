@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock, FileText, Repeat, Briefcase } from "lucide-react";
+import { FileText, Repeat, Briefcase } from "lucide-react";
 import {
   Button,
   Input,
@@ -10,18 +10,23 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../ui";
-import { useShiftTemplates, useCreateShift } from "../../hooks/Manager/useShifts";
+import {
+  useShiftTemplates,
+  useCreateShift,
+} from "../../hooks/Manager/useShifts";
 import { usePositions } from "../../hooks/Manager/usePositions";
 import { useAuth } from "../../hooks/context/AuthContext";
 import { useToast } from "../ui/Toast";
-import type { ShiftFormData, PositionRequirement } from "../../hooks/types/shifts";
+import type {
+  ShiftFormData,
+  PositionRequirement,
+} from "../../hooks/types/shifts";
 
 interface AddShiftDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onRefresh: () => void;
 }
-
 
 export function AddShiftDialog({
   isOpen,
@@ -34,7 +39,9 @@ export function AddShiftDialog({
   const toast = useToast();
   const { mutate: createShift, isPending } = useCreateShift();
 
-  const [positionRequirements, setPositionRequirements] = useState<PositionRequirement[]>([]);
+  const [positionRequirements, setPositionRequirements] = useState<
+    PositionRequirement[]
+  >([]);
   const [isTemplateLoaded, setIsTemplateLoaded] = useState(false);
 
   const [formData, setFormData] = useState<ShiftFormData>({
@@ -52,7 +59,9 @@ export function AddShiftDialog({
     recurrence_end_date: "",
   });
 
-  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ShiftFormData, string>>>({});
+  const [formErrors, setFormErrors] = useState<
+    Partial<Record<keyof ShiftFormData, string>>
+  >({});
 
   // Auto-fill form when template is selected
   const handleTemplateChange = (templateId: string) => {
@@ -60,13 +69,16 @@ export function AddShiftDialog({
     if (template) {
       // Calculate total staff count from position requirements
       let totalStaffCount = 1;
-      if (template.position_requirements && template.position_requirements.length > 0) {
+      if (
+        template.position_requirements &&
+        template.position_requirements.length > 0
+      ) {
         totalStaffCount = template.position_requirements.reduce(
           (sum, req) => sum + req.required_count,
-          0
+          0,
         );
         setPositionRequirements(template.position_requirements);
-        setIsTemplateLoaded(true); // Mark as loaded from template
+        setIsTemplateLoaded(true);
       } else {
         setPositionRequirements([]);
         setIsTemplateLoaded(false);
@@ -75,7 +87,7 @@ export function AddShiftDialog({
       setFormData((prev) => ({
         ...prev,
         shift_template_id: template.id,
-        start_time: template.start_time.substring(0, 5), // HH:MM format
+        start_time: template.start_time.substring(0, 5),
         end_time: template.end_time.substring(0, 5),
         shift_type: template.shift_type,
         required_staff_count: totalStaffCount,
@@ -97,11 +109,16 @@ export function AddShiftDialog({
       if (exists) {
         newRequirements = prev.filter((req) => req.position_id !== positionId);
       } else {
-        newRequirements = [...prev, { position_id: positionId, required_count: 1 }];
+        newRequirements = [
+          ...prev,
+          { position_id: positionId, required_count: 1 },
+        ];
       }
 
-      // Update staff count
-      const totalStaffCount = newRequirements.reduce((sum, req) => sum + req.required_count, 0);
+      const totalStaffCount = newRequirements.reduce(
+        (sum, req) => sum + req.required_count,
+        0,
+      );
       setFormData((prevForm) => ({
         ...prevForm,
         required_staff_count: totalStaffCount || 1,
@@ -114,11 +131,15 @@ export function AddShiftDialog({
   const handleRequiredCountChange = (positionId: number, count: number) => {
     setPositionRequirements((prev) => {
       const newRequirements = prev.map((req) =>
-        req.position_id === positionId ? { ...req, required_count: count } : req
+        req.position_id === positionId
+          ? { ...req, required_count: count }
+          : req,
       );
 
-      // Update staff count
-      const totalStaffCount = newRequirements.reduce((sum, req) => sum + req.required_count, 0);
+      const totalStaffCount = newRequirements.reduce(
+        (sum, req) => sum + req.required_count,
+        0,
+      );
       setFormData((prevForm) => ({
         ...prevForm,
         required_staff_count: totalStaffCount || 1,
@@ -129,7 +150,9 @@ export function AddShiftDialog({
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value, type } = e.target;
 
@@ -143,7 +166,6 @@ export function AddShiftDialog({
             : value,
     }));
 
-    // Clear error for this field
     if (formErrors[name as keyof ShiftFormData]) {
       setFormErrors((prev) => ({
         ...prev,
@@ -224,14 +246,15 @@ export function AddShiftDialog({
         toast.success(
           formData.is_recurring
             ? "Recurring shifts created successfully!"
-            : "Shift created successfully!"
+            : "Shift created successfully!",
         );
         handleCloseModal();
         onRefresh();
       },
       onError: (error: any) => {
         const errorMessage =
-          error?.response?.data?.message || "Failed to create shift. Please try again.";
+          error?.response?.data?.message ||
+          "Failed to create shift. Please try again.";
         toast.error(errorMessage);
       },
     });
@@ -263,12 +286,12 @@ export function AddShiftDialog({
         <DialogHeader>
           <DialogTitle>Create New Shift</DialogTitle>
           <DialogDescription>
-            Create a new shift or use a template. You can set it to recur automatically.
+            Create a new shift or use a template. You can set it to recur
+            automatically.
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 space-y-4">
-
           <div>
             <label
               htmlFor="shift_template_id"
@@ -294,7 +317,6 @@ export function AddShiftDialog({
             </select>
           </div>
 
-
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label
@@ -303,19 +325,18 @@ export function AddShiftDialog({
               >
                 Shift Date <span className="text-[#EF4444]">*</span>
               </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
-                <Input
-                  id="shift_date"
-                  name="shift_date"
-                  type="date"
-                  value={formData.shift_date}
-                  onChange={handleInputChange}
-                  className={`pl-10 ${formErrors.shift_date ? "border-[#EF4444]" : ""}`}
-                />
-              </div>
+              <Input
+                id="shift_date"
+                name="shift_date"
+                type="date"
+                value={formData.shift_date}
+                onChange={handleInputChange}
+                className={`w-full ${formErrors.shift_date ? "border-[#EF4444]" : ""}`}
+              />
               {formErrors.shift_date && (
-                <p className="text-xs text-[#EF4444] mt-1">{formErrors.shift_date}</p>
+                <p className="text-xs text-[#EF4444] mt-1">
+                  {formErrors.shift_date}
+                </p>
               )}
             </div>
 
@@ -331,7 +352,8 @@ export function AddShiftDialog({
                 name="shift_type"
                 value={formData.shift_type}
                 onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-[#E5E7EB] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6]"
+                disabled={isTemplateLoaded}
+                className={`w-full px-3 py-2 border border-[#E5E7EB] rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${isTemplateLoaded ? "bg-gray-50 cursor-not-allowed" : ""}`}
               >
                 <option value="day">Day</option>
                 <option value="evening">Evening</option>
@@ -349,19 +371,19 @@ export function AddShiftDialog({
               >
                 Start Time <span className="text-[#EF4444]">*</span>
               </label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
-                <Input
-                  id="start_time"
-                  name="start_time"
-                  type="time"
-                  value={formData.start_time}
-                  onChange={handleInputChange}
-                  className={`pl-10 ${formErrors.start_time ? "border-[#EF4444]" : ""}`}
-                />
-              </div>
+              <Input
+                id="start_time"
+                name="start_time"
+                type="time"
+                value={formData.start_time}
+                onChange={handleInputChange}
+                disabled={isTemplateLoaded}
+                className={`w-full ${formErrors.start_time ? "border-[#EF4444]" : ""} ${isTemplateLoaded ? "bg-gray-50 cursor-not-allowed" : ""}`}
+              />
               {formErrors.start_time && (
-                <p className="text-xs text-[#EF4444] mt-1">{formErrors.start_time}</p>
+                <p className="text-xs text-[#EF4444] mt-1">
+                  {formErrors.start_time}
+                </p>
               )}
             </div>
 
@@ -372,23 +394,22 @@ export function AddShiftDialog({
               >
                 End Time <span className="text-[#EF4444]">*</span>
               </label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7280]" />
-                <Input
-                  id="end_time"
-                  name="end_time"
-                  type="time"
-                  value={formData.end_time}
-                  onChange={handleInputChange}
-                  className={`pl-10 ${formErrors.end_time ? "border-[#EF4444]" : ""}`}
-                />
-              </div>
+              <Input
+                id="end_time"
+                name="end_time"
+                type="time"
+                value={formData.end_time}
+                onChange={handleInputChange}
+                disabled={isTemplateLoaded}
+                className={`w-full ${formErrors.end_time ? "border-[#EF4444]" : ""} ${isTemplateLoaded ? "bg-gray-50 cursor-not-allowed" : ""}`}
+              />
               {formErrors.end_time && (
-                <p className="text-xs text-[#EF4444] mt-1">{formErrors.end_time}</p>
+                <p className="text-xs text-[#EF4444] mt-1">
+                  {formErrors.end_time}
+                </p>
               )}
             </div>
           </div>
-
 
           <div>
             <label
@@ -416,7 +437,6 @@ export function AddShiftDialog({
             )}
           </div>
 
-
           <div>
             <label
               htmlFor="notes"
@@ -437,16 +457,16 @@ export function AddShiftDialog({
             </div>
           </div>
 
-
           <div className="border-t border-[#E5E7EB] pt-4">
             <label className="block text-sm font-medium text-[#111827] mb-2 flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               Position Requirements
-              {formData.shift_template_id && positionRequirements.length > 0 && (
-                <span className="text-xs text-[#6B7280]">
-                  (from template)
-                </span>
-              )}
+              {formData.shift_template_id &&
+                positionRequirements.length > 0 && (
+                  <span className="text-xs text-[#6B7280]">
+                    (from template)
+                  </span>
+                )}
             </label>
 
             {positionsLoading ? (
@@ -454,31 +474,42 @@ export function AddShiftDialog({
             ) : (
               <div className="space-y-2 max-h-[200px] overflow-y-auto">
                 {positions.map((position) => {
-                  const requirement = positionRequirements.find(r => r.position_id === position.id);
+                  const requirement = positionRequirements.find(
+                    (r) => r.position_id === position.id,
+                  );
                   const isSelected = !!requirement;
 
                   return (
-                    <div key={position.id} className="flex items-center gap-3 p-2 rounded hover:bg-[#F9FAFB] transition-colors">
+                    <div
+                      key={position.id}
+                      className="flex items-center gap-3 p-2 rounded hover:bg-[#F9FAFB] transition-colors"
+                    >
                       <input
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => handlePositionToggle(position.id)}
-                        disabled={isTemplateLoaded}
-                        className="w-4 h-4 text-[#3B82F6] border-[#E5E7EB] rounded focus:ring-[#3B82F6] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-4 h-4 text-[#3B82F6] border-[#E5E7EB] rounded focus:ring-[#3B82F6]"
                       />
-                      <span className={`flex-1 text-sm ${isTemplateLoaded ? 'text-[#9CA3AF]' : 'text-[#111827]'}`}>{position.name}</span>
+                      <span className="flex-1 text-sm text-[#111827]">
+                        {position.name}
+                      </span>
                       {isSelected && (
                         <div className="flex items-center gap-2">
                           <Input
                             type="number"
                             min="1"
                             value={requirement.required_count}
-                            onChange={(e) => handleRequiredCountChange(position.id, Number(e.target.value))}
-                            readOnly={isTemplateLoaded}
-                            className={`w-20 text-center ${isTemplateLoaded ? 'bg-gray-50 cursor-not-allowed' : ''}`}
-                            title={isTemplateLoaded ? "From template - cannot edit" : ""}
+                            onChange={(e) =>
+                              handleRequiredCountChange(
+                                position.id,
+                                Number(e.target.value),
+                              )
+                            }
+                            className="w-20 text-center"
                           />
-                          <span className="text-xs text-[#6B7280]">required</span>
+                          <span className="text-xs text-[#6B7280]">
+                            required
+                          </span>
                         </div>
                       )}
                     </div>
@@ -493,7 +524,6 @@ export function AddShiftDialog({
               </p>
             )}
           </div>
-
 
           <div className="border-t border-[#E5E7EB] pt-4">
             <div className="flex items-center gap-2 mb-4">
@@ -550,7 +580,9 @@ export function AddShiftDialog({
                       type="date"
                       value={formData.recurrence_end_date}
                       onChange={handleInputChange}
-                      className={formErrors.recurrence_end_date ? "border-[#EF4444]" : ""}
+                      className={
+                        formErrors.recurrence_end_date ? "border-[#EF4444]" : ""
+                      }
                     />
                     {formErrors.recurrence_end_date && (
                       <p className="text-xs text-[#EF4444] mt-1">
@@ -563,7 +595,8 @@ export function AddShiftDialog({
                 <div className="bg-[#EFF6FF] border border-[#3B82F6]/20 p-3 rounded-lg">
                   <p className="text-xs text-[#1E40AF]">
                     This shift will be created {formData.recurrence_type} from{" "}
-                    {formData.shift_date} until {formData.recurrence_end_date || "end date"}.
+                    {formData.shift_date} until{" "}
+                    {formData.recurrence_end_date || "end date"}.
                   </p>
                 </div>
               </div>
