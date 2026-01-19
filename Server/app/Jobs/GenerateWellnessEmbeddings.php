@@ -55,7 +55,6 @@ class GenerateWellnessEmbeddings implements ShouldQueue
 
             $qdrantService->storeVector($entry->id, $vector, $payload);
 
-          
             WellnessEntryVector::updateOrCreate(
                 ['entry_id' => $entry->id],
                 [
@@ -78,7 +77,6 @@ class GenerateWellnessEmbeddings implements ShouldQueue
                 $entry->created_at->format('Y-m-d')
             );
 
-          
             $this->notifyEmployeeIfHighRisk($entry->employee_id, $notificationService);
         } catch (Exception $e) {
             Log::error(
@@ -94,7 +92,7 @@ class GenerateWellnessEmbeddings implements ShouldQueue
         NotificationService $notificationService
     ): void {
         $employee = User::find($entry->employee_id);
-        if (!$employee) {
+        if (! $employee) {
             return;
         }
         $departments = Employee_Department::where('employee_id', $entry->employee_id)->get();
@@ -129,7 +127,7 @@ class GenerateWellnessEmbeddings implements ShouldQueue
             ->orderByDesc('score_date')
             ->first();
 
-        if (!$score || $score->risk_level !== 'high') {
+        if (! $score || $score->risk_level !== 'high') {
             return;
         }
 

@@ -15,6 +15,7 @@ class AssigmentsService
     {
         $this->notificationService = $notificationService;
     }
+
     public function listAssignments(): Collection
     {
         return Shift_Assigments::select([
@@ -45,7 +46,7 @@ class AssigmentsService
     private function sendSingleAssignmentNotification(Shift_Assigments $assignment): void
     {
         $shift = Shifts::find($assignment->shift_id);
-        if (!$shift) {
+        if (! $shift) {
             return;
         }
 

@@ -86,7 +86,6 @@ Route::prefix('v1')->group(function () {
         Route::get('shifts/{shiftId}/swappable-shifts', [ShiftSwapsController::class, 'swappableShifts']);
     });
 
-   
     Route::prefix('notifications')->middleware('jwt')->group(function () {
         Route::get('/{userId}', [NotificationController::class, 'index']);
         Route::get('/{userId}/unread-count', [NotificationController::class, 'unreadCount']);
@@ -95,4 +94,3 @@ Route::prefix('v1')->group(function () {
         Route::delete('/{userId}/{notificationId}', [NotificationController::class, 'destroy']);
     });
 });
-

@@ -180,7 +180,6 @@ class GenerateScheduleService
 
             DB::commit();
 
-            
             $this->sendShiftAssignmentNotifications($createdAssignments);
 
             return [
@@ -212,12 +211,12 @@ class GenerateScheduleService
             $shiftId = $assignment->shift_id;
 
             // Cache shift data to avoid multiple queries
-            if (!isset($shiftsCache[$shiftId])) {
+            if (! isset($shiftsCache[$shiftId])) {
                 $shiftsCache[$shiftId] = Shifts::find($shiftId);
             }
 
             $shift = $shiftsCache[$shiftId];
-            if (!$shift) {
+            if (! $shift) {
                 continue;
             }
 

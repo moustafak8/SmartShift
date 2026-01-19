@@ -7,18 +7,28 @@ use Illuminate\Support\Collection;
 
 class NotificationService
 {
-    
     public const TYPE_SWAP_REQUEST = 'swap_request';
+
     public const TYPE_SWAP_APPROVED = 'swap_approved';
+
     public const TYPE_SWAP_REJECTED = 'swap_rejected';
+
     public const TYPE_SWAP_CANCELLED = 'swap_cancelled';
+
     public const TYPE_SWAP_AWAITING = 'swap_awaiting';
+
     public const TYPE_SHIFT_ASSIGNED = 'shift_assigned';
+
     public const TYPE_SHIFT_UPDATED = 'shift_updated';
+
     public const TYPE_SHIFT_REMINDER = 'shift_reminder';
+
     public const TYPE_FATIGUE_WARNING = 'fatigue_warning';
+
     public const TYPE_WELLNESS_ALERT = 'wellness_alert';
+
     public const TYPE_SCHEDULE_PUBLISHED = 'schedule_published';
+
     public const TYPE_SYSTEM = 'system';
 
     public function send(
@@ -102,7 +112,7 @@ class NotificationService
             ->where('user_id', $userId)
             ->first();
 
-        if (!$notification) {
+        if (! $notification) {
             return null;
         }
 
