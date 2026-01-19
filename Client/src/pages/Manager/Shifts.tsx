@@ -38,7 +38,7 @@ export function Shifts() {
   };
 
   return (
-    <Layout notificationCount={8}>
+    <Layout>
       <div className="bg-white min-h-screen">
         {/* Header Section */}
         <div className="bg-gradient-to-r from-slate-50 via-blue-50/30 to-slate-50 border-b border-[#E5E7EB]">
