@@ -112,14 +112,23 @@ export function ManageAssignmentsDialog({
     }));
   }, [shift, assignments]);
 
+  const filledPositionIds = useMemo(() => {
+    return positionStats
+      .filter((stat) => stat.filled >= stat.required)
+      .map((stat) => stat.position_id);
+  }, [positionStats]);
+
   if (!shift) return null;
 
   const assignedCount = assignments.length;
   const requiredCount = shift.required_staff_count;
   const canAddMore = assignedCount < requiredCount && !isPastShift;
   const assignedEmployeeIds = assignments.map((a) => a.employee_id);
+
   const availableEmployees = employees.filter(
-    (emp) => !assignedEmployeeIds.includes(emp.id),
+    (emp) =>
+      !assignedEmployeeIds.includes(emp.id) &&
+      !filledPositionIds.includes(emp.position_id || 0),
   );
 
   const handleAddAssignment = () => {
@@ -346,8 +355,16 @@ export function ManageAssignmentsDialog({
                         <p className="text-sm font-medium text-[#111827]">
                           {assignment.full_name}
                         </p>
-                        <p className="text-xs text-[#6B7280] capitalize">
-                          {assignment.assignment_type} • {assignment.status}
+                        <p className="text-xs text-[#6B7280]">
+                          {assignment.position_name && (
+                            <span className="font-medium text-[#3B82F6]">
+                              {assignment.position_name}
+                            </span>
+                          )}
+                          {assignment.position_name && " • "}
+                          <span className="capitalize">
+                            {assignment.assignment_type} • {assignment.status}
+                          </span>
                         </p>
                       </div>
                     </div>

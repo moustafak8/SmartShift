@@ -153,6 +153,7 @@ class AssigmentsService
         $assignments = Shift_Assigments::with([
             'shift:id,shift_date,shift_type,department_id',
             'employee:id,full_name',
+            'employee.employeeDepartments.position',
         ])
             ->whereHas('shift', function ($q) use ($start, $end, $departmentId) {
                 $q->whereBetween('shift_date', [$start->toDateString(), $end->toDateString()]);
@@ -163,7 +164,7 @@ class AssigmentsService
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
 
-        return $this->formatSchedule($assignments, $start, $end);
+        return $this->formatSchedule($assignments, $start, $end, false, null, $departmentId);
     }
 
     public function getWeeklyScheduleByEmployee(string $startDate, int $employeeId): array
@@ -175,6 +176,7 @@ class AssigmentsService
             'shift:id,shift_date,shift_type,department_id',
             'shift.department:id,name',
             'employee:id,full_name',
+            'employee.employeeDepartments.position',
         ])
             ->where('employee_id', $employeeId)
             ->whereHas('shift', function ($q) use ($start, $end) {
@@ -183,10 +185,10 @@ class AssigmentsService
             ->orderByDesc('id')
             ->get(['id', 'shift_id', 'employee_id', 'assignment_type', 'status']);
 
-        return $this->formatSchedule($assignments, $start, $end, true, $employeeId);
+        return $this->formatSchedule($assignments, $start, $end, true, $employeeId, null);
     }
 
-    private function formatSchedule(Collection $assignments, Carbon $start, Carbon $end, bool $withLabels = false, ?int $currentEmployeeId = null): array
+    private function formatSchedule(Collection $assignments, Carbon $start, Carbon $end, bool $withLabels = false, ?int $currentEmployeeId = null, ?int $departmentId = null): array
     {
         $shiftLabels = [
             'day' => '8-4pm',
@@ -212,6 +214,12 @@ class AssigmentsService
             if ($date === '' || ! isset($days[$date])) {
                 continue;
             }
+            $deptId = $departmentId ?? $assignment->shift?->department_id;
+            $position = $assignment->employee
+                ?->employeeDepartments
+                ->where('department_id', $deptId)
+                ->first()
+                ?->position;
 
             $shiftType = $assignment->shift->shift_type ?? 'day';
             $days[$date][$shiftType][] = [
@@ -219,6 +227,8 @@ class AssigmentsService
                 'shift_id' => $assignment->shift_id,
                 'employee_id' => $assignment->employee_id,
                 'full_name' => $assignment->employee?->full_name ?? '',
+                'position_id' => $position?->id,
+                'position_name' => $position?->name ?? '',
                 'department_name' => $assignment->shift?->department?->name ?? '',
                 'assignment_type' => $assignment->assignment_type,
                 'status' => $assignment->status,
