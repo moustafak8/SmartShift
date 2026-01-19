@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Shift_Assigments;
+use App\Models\Shifts;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,6 +25,24 @@ class StoreShiftAssignmentRequest extends FormRequest
                 Rule::unique('shift__assigments')->where(function ($query) {
                     return $query->where('shift_id', $this->input('shift_id'));
                 }),
+                function ($attribute, $value, $fail) {
+                    $shiftId = $this->input('shift_id');
+                    $shift = Shifts::find($shiftId);
+                    
+                    if (!$shift) {
+                        return;
+                    }
+
+                    $hasExistingAssignment = Shift_Assigments::where('employee_id', $value)
+                        ->whereHas('shift', function ($query) use ($shift) {
+                            $query->where('shift_date', $shift->shift_date);
+                        })
+                        ->exists();
+
+                    if ($hasExistingAssignment) {
+                        $fail('This employee already has an assignment on this date.');
+                    }
+                },
             ],
             'assignment_type' => ['required', 'in:regular,overtime,swap,cover'],
             'status' => ['required', 'in:assigned,confirmed,completed,no_show,cancelled'],

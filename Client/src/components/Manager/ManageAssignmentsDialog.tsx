@@ -31,6 +31,7 @@ interface ManageAssignmentsDialogProps {
   onClose: () => void;
   shift: Shift | null;
   assignments: ShiftAssignment[];
+  dailyAssignedEmployeeIds: number[];
   date: string;
   onAssignmentChange: () => void;
 }
@@ -40,6 +41,7 @@ export function ManageAssignmentsDialog({
   onClose,
   shift,
   assignments,
+  dailyAssignedEmployeeIds,
   date,
   onAssignmentChange,
 }: ManageAssignmentsDialogProps) {
@@ -128,7 +130,8 @@ export function ManageAssignmentsDialog({
   const availableEmployees = employees.filter(
     (emp) =>
       !assignedEmployeeIds.includes(emp.id) &&
-      !filledPositionIds.includes(emp.position_id || 0),
+      !filledPositionIds.includes(emp.position_id || 0) &&
+      !dailyAssignedEmployeeIds.includes(emp.id),
   );
 
   const handleAddAssignment = () => {

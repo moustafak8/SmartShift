@@ -32,6 +32,27 @@ export function ShiftCalendar({
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedAssignments, setSelectedAssignments] = useState<any[]>([]);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
+  const [dailyAssignedIds, setDailyAssignedIds] = useState<number[]>([]);
+
+  const getDailyAssignedEmployeeIds = (dateStr: string): number[] => {
+    if (!assignments?.days || !assignments.days[dateStr]) {
+      return [];
+    }
+    const dayData = assignments.days[dateStr];
+    const employeeIds = new Set<number>();
+    ["day", "evening", "night"].forEach((shiftType) => {
+      const typeAssignments = dayData[shiftType as keyof typeof dayData];
+      if (Array.isArray(typeAssignments)) {
+        typeAssignments.forEach((assignment: any) => {
+          if (assignment.employee_id) {
+            employeeIds.add(assignment.employee_id);
+          }
+        });
+      }
+    });
+
+    return Array.from(employeeIds);
+  };
 
   useEffect(() => {
     const year = currentWeekStart.getFullYear();
@@ -150,6 +171,7 @@ export function ShiftCalendar({
     setSelectedShift(shift);
     setSelectedDate(dateStr);
     setSelectedAssignments(shiftTypeAssignments);
+    setDailyAssignedIds(getDailyAssignedEmployeeIds(dateStr));
     setIsManageDialogOpen(true);
   };
 
@@ -158,6 +180,7 @@ export function ShiftCalendar({
     setSelectedShift(null);
     setSelectedDate("");
     setSelectedAssignments([]);
+    setDailyAssignedIds([]);
   };
 
   const handleAssignmentChange = () => {
@@ -417,6 +440,7 @@ export function ShiftCalendar({
         onClose={handleDialogClose}
         shift={selectedShift}
         assignments={selectedAssignments}
+        dailyAssignedEmployeeIds={dailyAssignedIds}
         date={selectedDate}
         onAssignmentChange={handleAssignmentChange}
       />
