@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Brain,
@@ -22,11 +22,11 @@ import { Badge } from "./ui/Badge";
 import { useAuth } from "../hooks/context/AuthContext";
 import { useLogout } from "../hooks/useLogout";
 import { usePendingSwapsCount } from "../hooks/Manager/useManagerSwaps";
+import { useUnreadCount } from "../hooks/useNotification";
 import { cn } from "./ui/utils";
 
 interface LayoutProps {
   children: React.ReactNode;
-  notificationCount?: number;
 }
 
 interface NavigationItem {
@@ -148,12 +148,14 @@ const EmployeeNavigationItems: NavigationItem[] = [
   },
 ];
 
-export function Layout({ children, notificationCount = 8 }: LayoutProps) {
+export function Layout({ children }: LayoutProps) {
   const [isOpen, setIsOpen] = useState(true);
   const { isManager, user, departmentId } = useAuth();
   const { logout, loading: logoutLoading } = useLogout();
   const location = useLocation();
-  
+  const navigate = useNavigate();
+
+  const { count: notificationCount } = useUnreadCount(user?.id);
 
   const { count: pendingSwapsCount } = usePendingSwapsCount(
     isManager() ? departmentId || undefined : undefined
@@ -298,11 +300,14 @@ export function Layout({ children, notificationCount = 8 }: LayoutProps) {
           </button>
 
           <div className="flex items-center gap-4 ml-auto">
-            <button className="relative p-2 hover:bg-[#F0F9FF] rounded-lg transition-colors">
+            <button 
+              onClick={() => navigate('/notifications')}
+              className="relative p-2 hover:bg-[#F0F9FF] rounded-lg transition-colors"
+            >
               <Bell className="w-5 h-5 text-[#6B7280]" />
               {notificationCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-[#EF4444] text-white text-xs rounded-full flex items-center justify-center">
-                  {notificationCount}
+                  {notificationCount > 9 ? '9+' : notificationCount}
                 </span>
               )}
             </button>
