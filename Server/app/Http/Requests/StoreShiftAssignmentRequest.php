@@ -32,8 +32,8 @@ class StoreShiftAssignmentRequest extends FormRequest
 
                     $shiftId = $this->input('shift_id');
                     $shift = Shifts::find($shiftId);
-                    
-                    if (!$shift) {
+
+                    if (! $shift) {
                         return;
                     }
 
