@@ -83,6 +83,7 @@ export interface CreateAssignmentRequest {
   position_id: number;
   assignment_type: "regular" | "overtime" | "cover";
   status: "assigned" | "confirmed";
+  force_assign?: boolean;
 }
 
 export interface UpdateAssignmentRequest {

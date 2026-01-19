@@ -11,7 +11,7 @@ class ShiftService
 {
     public function listShifts($departmentId): Collection
     {
-        return Shifts::select([
+        $shifts = Shifts::select([
             'id',
             'department_id',
             'shift_template_id',
@@ -22,7 +22,24 @@ class ShiftService
             'required_staff_count',
             'notes',
             'status',
-        ])->where('department_id', $departmentId)->orderBy('shift_date')->get();
+        ])
+            ->where('department_id', $departmentId)
+            ->with(['positionRequirements.position:id,name'])
+            ->orderBy('shift_date')
+            ->get();
+        $shifts->each(function ($shift) {
+            $shift->position_requirements = $shift->positionRequirements->map(function ($req) {
+                return [
+                    'position_id' => $req->position_id,
+                    'position_name' => $req->position?->name ?? 'Unknown',
+                    'required_count' => $req->required_count,
+                    'filled_count' => $req->filled_count,
+                ];
+            });
+            unset($shift->positionRequirements);
+        });
+
+        return $shifts;
     }
 
     public function createShift(array $data): Shifts|Collection
