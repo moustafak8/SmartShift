@@ -15,6 +15,7 @@ use App\Http\Controllers\ShiftSwapsController;
 use App\Http\Controllers\ShiftTemplatesController;
 use App\Http\Controllers\WellnessEntriesController;
 use App\Http\Controllers\WellnessSearchController;
+use App\Http\Controllers\AIInsightsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -63,6 +64,10 @@ Route::prefix('v1')->group(function () {
         Route::get('shift-swaps/pending-count', [ShiftSwapsController::class, 'pendingCount']);
         Route::get('shift-swaps/awaiting-manager', [ShiftSwapsController::class, 'awaitingManager']);
         Route::post('shift-swaps/{swapId}/review', [ShiftSwapsController::class, 'review']);
+        Route::get('insights/{departmentId}', [AIInsightsController::class, 'index']);
+        Route::get('insights/{departmentId}/unread-count', [AIInsightsController::class, 'unreadCount']);
+        Route::get('insight/{insightId}', [AIInsightsController::class, 'show']);
+        Route::post('insights/{insightId}/read', [AIInsightsController::class, 'markAsRead']);
     });
     Route::prefix('')->middleware('employee')->group(function () {
         Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);

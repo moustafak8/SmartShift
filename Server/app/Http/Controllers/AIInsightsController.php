@@ -2,4 +2,9 @@
 
 namespace App\Http\Controllers;
 
-class AIInsightsController extends Controller {}
+use App\Services\InsightService;
+
+class AIInsightsController extends Controller
+{
+    
+}

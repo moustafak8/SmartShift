@@ -31,6 +31,8 @@ class NotificationService
 
     public const TYPE_SYSTEM = 'system';
 
+    public const TYPE_WEEKLY_INSIGHT = 'weekly_insight';
+
     public function send(
         int $userId,
         string $type,

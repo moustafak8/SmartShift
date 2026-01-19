@@ -13,6 +13,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Jobs\GenerateWeeklyInsight;
+use Illuminate\Console\Scheduling\Schedule;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -21,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->job(new GenerateWeeklyInsight)->sundays()->at('20:00');
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(JWTFromCookie::class);
 
@@ -31,7 +36,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Hndling el aghlat
         $exceptions->render(function (ModelNotFoundException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 return response()->json([
