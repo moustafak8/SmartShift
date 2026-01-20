@@ -68,13 +68,11 @@ export function Dashboard() {
   const { weekAssignments, isLoading: isScheduleLoading } =
     useScheduleAssignments(formatDateForAPI(currentWeekStart));
 
-  
   const isLoading =
     isScoreLoading ||
     isScheduleLoading ||
     isSwapsLoading ||
     isMonthlyScoresLoading;
-
 
   const firstName = user?.full_name?.split(" ")[0] || "there";
 
@@ -85,7 +83,6 @@ export function Dashboard() {
     return "Good evening";
   };
 
-  
   const nextShift = useMemo(() => {
     if (!weekAssignments?.days) return null;
 
@@ -101,7 +98,6 @@ export function Dashboard() {
       if (shiftDate >= today) {
         const dayData = weekAssignments.days[dateStr];
 
-       
         if (dayData.day.length > 0) {
           return {
             date: shiftDate,
@@ -131,7 +127,6 @@ export function Dashboard() {
     return null;
   }, [weekAssignments]);
 
-  
   const getHoursUntilShift = () => {
     if (!nextShift) return null;
     const now = new Date();
@@ -448,7 +443,7 @@ export function Dashboard() {
                 </div>
               </Card>
             )}
-          
+
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center">
@@ -518,7 +513,7 @@ export function Dashboard() {
                 </button>
               </div>
             </div>
-             
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Card className="p-5 lg:col-span-2 border border-[#E5E7EB]">
                 <div className="flex items-center justify-between mb-4">
@@ -533,7 +528,7 @@ export function Dashboard() {
                       <p className="text-xs text-[#6B7280]">Last 7 days</p>
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     onClick={handleViewFatigueDetail}
                     variant="secondary"
                     size="sm"
@@ -544,7 +539,6 @@ export function Dashboard() {
                   </Button>
                 </div>
 
-                
                 <div
                   className={`mb-4 p-4 rounded-xl ${wellnessStatus.bgColor}`}
                 >
@@ -621,7 +615,6 @@ export function Dashboard() {
                   </ResponsiveContainer>
                 </div>
 
-            
                 {wellnessScore >= 30 && (
                   <div
                     className={`mt-3 p-3 border-l-4 rounded-lg ${wellnessScore >= 70 ? "bg-[#FEF2F2] border-l-[#EF4444]" : "bg-[#FFFBEB] border-l-[#F59E0B]"}`}
@@ -651,7 +644,6 @@ export function Dashboard() {
                 )}
               </Card>
 
-              
               <Card className="p-5 border border-[#E5E7EB]">
                 <div className="flex items-center gap-2 mb-4">
                   <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center">
@@ -662,7 +654,6 @@ export function Dashboard() {
                   </h3>
                 </div>
 
-                  
                 <div className="mb-4 p-4 bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] rounded-xl">
                   <div className="flex items-center gap-2 mb-1">
                     <Activity className="w-4 h-4 text-[#1E40AF]" />
@@ -677,7 +668,6 @@ export function Dashboard() {
                   </p>
                 </div>
 
-                  
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors">
                     <div className="flex items-center gap-2">
@@ -748,7 +738,6 @@ export function Dashboard() {
               </Card>
             </div>
 
-            
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center">
