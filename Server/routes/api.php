@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgentController;
+use App\Http\Controllers\AIInsightsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeAvailabilityController;
 use App\Http\Controllers\EmployeeDepartmentController;
@@ -15,7 +16,6 @@ use App\Http\Controllers\ShiftSwapsController;
 use App\Http\Controllers\ShiftTemplatesController;
 use App\Http\Controllers\WellnessEntriesController;
 use App\Http\Controllers\WellnessSearchController;
-use App\Http\Controllers\AIInsightsController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {

@@ -10,14 +10,16 @@ use App\Models\WellnessEntries;
 use App\Models\WellnessEntryExtraction;
 use App\Models\WellnessEntryVector;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class InsightService
 {
     private const OPENAI_MODEL = 'gpt-4o';
+
     private const OPENAI_TEMPERATURE = 0.4;
+
     private const OPENAI_MAX_TOKENS = 2000;
+
     private const HIGH_RISK_THRESHOLD = 70;
 
     public function __construct(protected NotificationService $notificationService) {}
@@ -46,6 +48,7 @@ class InsightService
         if ($department->manager) {
             $this->notifyManager($department->manager->id, $insight);
         }
+
         return $insight;
     }
 
@@ -94,6 +97,7 @@ class InsightService
         }
 
         $insight->update(['is_read' => true]);
+
         return $insight->fresh();
     }
 
@@ -164,6 +168,7 @@ class InsightService
             }
         }
         arsort($counts);
+
         return array_slice($counts, 0, 5, true);
     }
 
@@ -185,6 +190,7 @@ class InsightService
             if (json_last_error() !== JSON_ERROR_NONE) {
                 return null;
             }
+
             return $parsed;
         } catch (\Exception $e) {
             return null;
@@ -254,11 +260,16 @@ PROMPT;
     private function determinePriority(array $aiResponse): string
     {
         $health = $aiResponse['metrics_analysis']['overall_health'] ?? 'healthy';
-        if ($health === 'critical') return 'urgent';
-        if ($health === 'concerning') return 'high';
+        if ($health === 'critical') {
+            return 'urgent';
+        }
+        if ($health === 'concerning') {
+            return 'high';
+        }
 
         $hasHighPriority = collect($aiResponse['recommendations'] ?? [])
             ->contains(fn ($r) => ($r['priority'] ?? '') === 'high');
+
         return $hasHighPriority ? 'high' : 'normal';
     }
 
@@ -268,7 +279,7 @@ PROMPT;
             userId: $managerId,
             type: NotificationService::TYPE_WEEKLY_INSIGHT,
             title: 'Weekly Wellness Insight Ready',
-            message: $insight->title . '. Tap to review team wellness summary.',
+            message: $insight->title.'. Tap to review team wellness summary.',
             priority: $insight->priority,
             referenceType: 'ai_insight',
             referenceId: $insight->id

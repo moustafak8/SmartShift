@@ -8,7 +8,8 @@ class AIInsightsController extends Controller
 {
     protected InsightService $insightService;
 
-    public function __construct(InsightService $insightService) {
+    public function __construct(InsightService $insightService)
+    {
         $this->insightService = $insightService;
     }
 
@@ -20,12 +21,14 @@ class AIInsightsController extends Controller
     public function show(int $insightId)
     {
         $insight = $this->insightService->getInsight($insightId);
+
         return $this->responseJSON($insight);
     }
 
     public function markAsRead(int $insightId)
     {
         $insight = $this->insightService->markAsRead($insightId);
+
         return $this->responseJSON($insight);
     }
 
