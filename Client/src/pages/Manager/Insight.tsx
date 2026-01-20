@@ -5,7 +5,7 @@ import {
   AlertTriangle,
   FileText,
   CheckCheck,
-  Brain,
+  Activity,
 } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
@@ -142,6 +142,7 @@ export function AIInsights() {
                 size="sm"
                 onClick={handleMarkAllRead}
                 disabled={unreadCount === 0}
+                className="flex items-center"
               >
                 <CheckCheck className="w-4 h-4 mr-2" />
                 Mark All Read
@@ -180,7 +181,7 @@ export function AIInsights() {
           {!isLoading && !isError && filteredInsights.length === 0 && (
             <Card className="p-16 text-center border border-[#E5E7EB] bg-white">
               <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#F3F4F6] to-[#E5E7EB] flex items-center justify-center mx-auto mb-5">
-                <Brain className="w-10 h-10 text-[#9CA3AF]" />
+                <Activity className="w-10 h-10 text-[#9CA3AF]" />
               </div>
               <h3 className="text-xl font-bold text-[#111827] mb-2">
                 No Insights Yet

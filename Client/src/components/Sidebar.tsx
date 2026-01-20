@@ -83,7 +83,7 @@ const ManagerNavigationItems: NavigationItem[] = [
     id: "insights",
     icon: Lightbulb,
     label: "AI Insights",
-    badge: 2,
+    badge: null,
     path: "/manager/insights",
   },
   {
