@@ -20,3 +20,19 @@ export type ScoreResponse = {
     status: string;
     payload: ScoreData;
 };
+
+export type MonthlyScoreItem = {
+    date: string;
+    total_score: number;
+    risk_level: string;
+};
+
+export type MonthlyScorePayload = {
+    employee_id: number;
+    scores: MonthlyScoreItem[];
+};
+
+export type MonthlyScoreResponse = {
+    status: string;
+    payload: MonthlyScorePayload;
+};
