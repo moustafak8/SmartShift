@@ -518,8 +518,34 @@ export function Dashboard() {
                 </button>
               </div>
             </div>
+             
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <Card className="p-5 lg:col-span-2 border border-[#E5E7EB]">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center">
+                      <BarChart3 className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-[#111827]">
+                        Your Wellness Trend
+                      </h3>
+                      <p className="text-xs text-[#6B7280]">Last 7 days</p>
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={handleViewFatigueDetail}
+                    variant="secondary"
+                    size="sm"
+                    className="flex items-center"
+                  >
+                    View Details
+                    <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </div>
 
-          
+                
+             
         )}
       </div>
     </Layout>
