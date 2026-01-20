@@ -32,4 +32,23 @@ class ScoreService
             ],
         ];
     }
+
+    public function getMonthlyScoresForEmployee(int $employeeId): array
+    {
+        $scores = FatigueScore::where('employee_id', $employeeId)
+            ->where('score_date', '>=', now()->subDays(30))
+            ->orderBy('score_date')
+            ->get();
+
+        return [
+            'employee_id' => $employeeId,
+            'scores' => $scores->map(function ($score) {
+                return [
+                    'date' => $score->score_date->format('Y-m-d'),
+                    'total_score' => (int) $score->total_score,
+                    'risk_level' => $score->risk_level,
+                ];
+            })->values()->toArray(),
+        ];
+    }
 }
