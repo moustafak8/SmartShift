@@ -652,7 +652,33 @@ export function Dashboard() {
               </Card>
 
               
-             
+              <Card className="p-5 border border-[#E5E7EB]">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center">
+                    <Timer className="w-4 h-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[#111827]">
+                    This Week
+                  </h3>
+                </div>
+
+                  
+                <div className="mb-4 p-4 bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] rounded-xl">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Activity className="w-4 h-4 text-[#1E40AF]" />
+                    <span className="text-xs text-[#1E3A8A]">Total Hours</span>
+                  </div>
+                  <p className="text-3xl font-bold text-[#1E3A8A] mb-0.5">
+                    {weekStats.totalHours}
+                  </p>
+                  <p className="text-xs text-[#1E40AF] flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    {weekStats.upcomingShifts} shifts remaining
+                  </p>
+                </div>
+
+                  
+              
         )}
       </div>
     </Layout>
