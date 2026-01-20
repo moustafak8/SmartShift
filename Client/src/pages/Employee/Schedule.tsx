@@ -103,7 +103,6 @@ export function Schedule() {
 
     const assignments = [];
     if (dayData.day.length > 0)
-      //@ts-ignore
       assignments.push({
         type: "day",
         ...dayData.day[0],
@@ -540,7 +539,6 @@ export function Schedule() {
                   </div>
                 </Card>
               )}
-              {/* Enhanced Week Summary */}
               <Card className="p-6 bg-gradient-to-br from-white to-[#F9FAFB] border border-[#E5E7EB] shadow-sm">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center shadow-md">
@@ -572,9 +570,9 @@ export function Schedule() {
                     <div className="text-4xl font-bold text-[#3B82F6] mb-2">
                       {(() => {
                         let totalShifts = 0;
-                        //@ts-ignore
+                     
                         Object.values(weekAssignments.days).forEach((day) => {
-                          //@ts-ignore
+                         
                           totalShifts +=
                             day.day.length +
                             day.evening.length +
