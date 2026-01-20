@@ -223,7 +223,7 @@ PROMPT;
         return <<<PROMPT
 Weekly wellness insight for **{$departmentName}** department.
 
-## This Week's Data
+ This Week's Data
 - Entries: {$metrics['total_entries']} from {$metrics['unique_employees']}/{$metrics['total_employees']} employees
 - Flagged: {$metrics['flagged_entries']}
 - Sentiment: {$metrics['avg_sentiment']} ({$metrics['sentiment_label']})
@@ -231,10 +231,10 @@ Weekly wellness insight for **{$departmentName}** department.
 - Stress: {$metrics['avg_stress']}/5 avg, {$metrics['high_stress_count']} high stress
 - High-risk: {$metrics['high_risk_count']} (was {$metrics['prev_week_high_risk']}, change: {$metrics['high_risk_change']})
 
-### High-Risk Employees
+ High-Risk Employees
 {$highRiskList}
 
-### Top Concerns
+Top Concerns
 {$concernsList}
 PROMPT;
     }
