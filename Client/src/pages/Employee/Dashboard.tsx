@@ -368,6 +368,9 @@ export function Dashboard() {
               <div className="bg-white rounded-2xl p-6 border border-[#E5E7EB] shadow-sm">
                 <div className="flex items-start justify-between mb-4">
                   <div>
+                    <p className="text-[#6B7280] text-sm mb-1 font-medium">
+                      Your Next Shift
+                    </p>
                     <h2 className="text-2xl font-bold text-[#111827] mb-1">
                       {formatNextShiftDate(nextShift.date)}
                     </h2>
