@@ -545,6 +545,113 @@ export function Dashboard() {
                 </div>
 
                 
+                <div
+                  className={`mb-4 p-4 rounded-xl ${wellnessStatus.bgColor}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p
+                        className={`text-xs ${wellnessStatus.textColor} opacity-80 mb-0.5`}
+                      >
+                        Current Wellness Score
+                      </p>
+                      <div className="flex items-baseline gap-2">
+                        <span
+                          className={`text-4xl font-bold ${wellnessStatus.textColor}`}
+                        >
+                          {wellnessScore}
+                        </span>
+                        <span
+                          className={`text-sm ${wellnessStatus.textColor} opacity-70`}
+                        >
+                          / 100
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge
+                        className="mb-1 text-white text-xs"
+                        style={{ backgroundColor: wellnessStatus.color }}
+                      >
+                        <wellnessStatus.icon className="w-3 h-3 mr-1" />
+                        {wellnessStatus.label}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ width: "100%", height: "300px" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={wellnessTrend}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="#E5E7EB"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="day"
+                        tick={{ fontSize: 11, fill: "#6B7280" }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 11, fill: "#6B7280" }}
+                        axisLine={false}
+                        tickLine={false}
+                        domain={[0, 100]}
+                        width={30}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "white",
+                          border: "1px solid #E5E7EB",
+                          borderRadius: "8px",
+                          fontSize: "12px",
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="score"
+                        stroke={wellnessStatus.color}
+                        strokeWidth={2}
+                        dot={{ fill: wellnessStatus.color, r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+            
+                {wellnessScore >= 30 && (
+                  <div
+                    className={`mt-3 p-3 border-l-4 rounded-lg ${wellnessScore >= 70 ? "bg-[#FEF2F2] border-l-[#EF4444]" : "bg-[#FFFBEB] border-l-[#F59E0B]"}`}
+                  >
+                    <div className="flex gap-2">
+                      <AlertTriangle
+                        className={`w-4 h-4 flex-shrink-0 mt-0.5 ${wellnessScore >= 70 ? "text-[#EF4444]" : "text-[#F59E0B]"}`}
+                      />
+                      <div>
+                        <p
+                          className={`font-semibold text-xs mb-0.5 ${wellnessScore >= 70 ? "text-[#991B1B]" : "text-[#92400E]"}`}
+                        >
+                          {wellnessScore >= 70
+                            ? "High fatigue risk detected"
+                            : "Moderate fatigue risk"}
+                        </p>
+                        <p
+                          className={`text-xs ${wellnessScore >= 70 ? "text-[#7F1D1D]" : "text-[#92400E]"}`}
+                        >
+                          {wellnessScore >= 70
+                            ? "Your fatigue score is high. Please consult with your supervisor and take necessary rest."
+                            : "Your fatigue levels are rising. Monitor your rest patterns."}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              
              
         )}
       </div>
