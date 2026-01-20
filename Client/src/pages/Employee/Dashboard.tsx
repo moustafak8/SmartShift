@@ -448,8 +448,78 @@ export function Dashboard() {
                 </div>
               </Card>
             )}
+          
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827]">
+                  Quick Actions
+                </h3>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  onClick={handleViewFatigueDetail}
+                  className="bg-white border-2 border-[#E5E7EB] rounded-xl p-4 text-left hover:border-[#3B82F6] hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-10 h-10 rounded-full bg-[#EFF6FF] flex items-center justify-center">
+                      <Heart className="w-5 h-5 text-[#3B82F6]" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#9CA3AF] group-hover:text-[#3B82F6] transition-colors" />
+                  </div>
+                  <h4 className="font-semibold text-[#111827] text-sm mb-0.5">
+                    Log Wellness
+                  </h4>
+                  <p className="text-xs text-[#6B7280]">
+                    How are you feeling today?
+                  </p>
+                </button>
 
-            
+                <button
+                  onClick={handleBrowseSwaps}
+                  className="bg-white border-2 border-[#E5E7EB] rounded-xl p-4 text-left hover:border-[#3B82F6] hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-10 h-10 rounded-full bg-[#EFF6FF] flex items-center justify-center">
+                      <RefreshCw className="w-5 h-5 text-[#3B82F6]" />
+                    </div>
+                    {pendingSwapsCount > 0 && (
+                      <Badge className="bg-[#EF4444] text-white text-xs">
+                        {pendingSwapsCount} New
+                      </Badge>
+                    )}
+                  </div>
+                  <h4 className="font-semibold text-[#111827] text-sm mb-0.5">
+                    Swap Requests
+                  </h4>
+                  <p className="text-xs text-[#6B7280]">
+                    Review colleague requests
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => navigate("/employee/score")}
+                  className="bg-white border-2 border-[#E5E7EB] rounded-xl p-4 text-left hover:border-[#3B82F6] hover:shadow-md transition-all group"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="w-10 h-10 rounded-full bg-[#EFF6FF] flex items-center justify-center">
+                      <Activity className="w-5 h-5 text-[#3B82F6]" />
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#9CA3AF] group-hover:text-[#3B82F6] transition-colors" />
+                  </div>
+                  <h4 className="font-semibold text-[#111827] text-sm mb-0.5">
+                    View Your Score
+                  </h4>
+                  <p className="text-xs text-[#6B7280]">
+                    Check your wellness metrics
+                  </p>
+                </button>
+              </div>
+            </div>
+
+          
         )}
       </div>
     </Layout>
