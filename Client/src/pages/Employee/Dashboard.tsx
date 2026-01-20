@@ -678,7 +678,122 @@ export function Dashboard() {
                 </div>
 
                   
-              
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors">
+                    <div className="flex items-center gap-2">
+                      <CheckSquare className="w-4 h-4 text-[#3B82F6]" />
+                      <span className="text-sm text-[#6B7280]">
+                        Shifts completed
+                      </span>
+                    </div>
+                    <span className="font-semibold text-[#111827]">
+                      {weekStats.completedShifts}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#3B82F6]" />
+                      <span className="text-sm text-[#6B7280]">
+                        Shifts remaining
+                      </span>
+                    </div>
+                    <span className="font-semibold text-[#111827]">
+                      {weekStats.upcomingShifts}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between p-2 rounded-lg hover:bg-[#F9FAFB] transition-colors">
+                    <div className="flex items-center gap-2">
+                      <Coffee className="w-4 h-4 text-[#3B82F6]" />
+                      <span className="text-sm text-[#6B7280]">Days off</span>
+                    </div>
+                    <span className="font-semibold text-[#111827]">
+                      {weekStats.daysOff}
+                    </span>
+                  </div>
+                </div>
+
+                {upcomingShiftsList.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-[#E5E7EB]">
+                    <p className="text-xs text-[#6B7280] mb-2">
+                      Upcoming shifts
+                    </p>
+                    <div className="space-y-2">
+                      {upcomingShiftsList.map((shift, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-2 p-2 bg-[#F9FAFB] rounded-lg"
+                        >
+                          {shift.shift === "day" && (
+                            <Sun className="w-4 h-4 text-[#3B82F6]" />
+                          )}
+                          {shift.shift === "evening" && (
+                            <Sunset className="w-4 h-4 text-[#3B82F6]" />
+                          )}
+                          {shift.shift === "night" && (
+                            <Moon className="w-4 h-4 text-[#3B82F6]" />
+                          )}
+                          <div className="flex-1">
+                            <p className="font-medium text-xs text-[#111827] capitalize">
+                              {shift.day} {shift.shift} Shift
+                            </p>
+                            <p className="text-[10px] text-[#6B7280]">
+                              {shift.timeLabel}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#3B82F6] to-[#2563EB] flex items-center justify-center">
+                  <CalendarDays className="w-4 h-4 text-white" />
+                </div>
+                <h3 className="text-lg font-semibold text-[#111827]">
+                  Week at a Glance
+                </h3>
+              </div>
+              <div className="grid grid-cols-7 gap-2">
+                {weekOverview.map((day, idx) => (
+                  <div
+                    key={idx}
+                    className={`rounded-xl p-3 text-center transition-all ${getShiftColor(day.shift, day.status)} ${
+                      day.status === "upcoming" &&
+                      nextShift &&
+                      day.fullDate.toDateString() ===
+                        nextShift.date.toDateString()
+                        ? "ring-2 ring-[#3B82F6] ring-offset-2"
+                        : ""
+                    }`}
+                  >
+                    <p className="text-[10px] opacity-80 mb-0.5">{day.day}</p>
+                    <p className="text-xl font-bold mb-1">{day.date}</p>
+                    {day.shift && (
+                      <div className="flex justify-center mb-0.5">
+                        {getShiftIcon(day.shift)}
+                      </div>
+                    )}
+                    <p className="text-[10px] font-semibold">
+                      {day.hours > 0 ? `${day.hours}h` : "Off"}
+                    </p>
+                    {day.status === "upcoming" &&
+                      nextShift &&
+                      day.fullDate.toDateString() ===
+                        nextShift.date.toDateString() && (
+                        <Badge className="mt-1 bg-white text-[#3B82F6] text-[10px] px-1.5 py-0.5">
+                          Next
+                        </Badge>
+                      )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </Layout>
