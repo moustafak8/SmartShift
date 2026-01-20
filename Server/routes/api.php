@@ -72,7 +72,8 @@ Route::prefix('v1')->group(function () {
     Route::prefix('')->middleware('employee')->group(function () {
         Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);
         Route::get('employees/{id}/wellness-entries', [WellnessEntriesController::class, 'getByEmployee']);
-        Route::get('/fatigue-scores/{employeeId}', [FatigueScoreController::class, 'getEmployeeScore']);
+        Route::get('fatigue-scores/{employeeId}', [FatigueScoreController::class, 'getEmployeeScore']);
+        Route::get('fatigue-scores/{employeeId}/monthly', [FatigueScoreController::class, 'getEmployeeMonthlyScores']);
         Route::get('employee-preferences', [EmployeePreferencesController::class, 'listPreferences']);
         Route::get('employees/{employeeId}/preferences', [EmployeePreferencesController::class, 'getPreference']);
         Route::post('employee-preferences', [EmployeePreferencesController::class, 'storePreference']);

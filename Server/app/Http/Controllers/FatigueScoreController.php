@@ -19,4 +19,11 @@ class FatigueScoreController extends Controller
 
         return $this->responseJSON($Score, 'success', 200);
     }
+
+    public function getEmployeeMonthlyScores(int $employeeId)
+    {
+        $scores = $this->scoreService->getMonthlyScoresForEmployee($employeeId);
+
+        return $this->responseJSON($scores, 'success', 200);
+    }
 }
