@@ -368,7 +368,89 @@ export function Dashboard() {
             </Card>
           </div>
         ) : (
-         
+          <div className="p-6 space-y-6">
+            {nextShift ? (
+              <div className="bg-gradient-to-br from-[#3B82F6] to-[#2563EB] rounded-2xl p-6 text-white shadow-lg">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <p className="text-blue-100 text-sm mb-1">
+                      Your Next Shift
+                    </p>
+                    <h2 className="text-2xl font-bold mb-1">
+                      {formatNextShiftDate(nextShift.date)}
+                    </h2>
+                    <p className="text-lg text-blue-50">{nextShift.label}</p>
+                  </div>
+                  {hoursUntilShift !== null && (
+                    <Badge className="bg-white/20 text-white border-white/30 text-sm px-3 py-1.5">
+                      <Clock className="w-4 h-4 mr-1.5" />
+                      in {hoursUntilShift}h
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+                    <p className="text-blue-100 text-xs mb-0.5">Department</p>
+                    <p className="font-semibold text-sm">
+                      {nextShift.department}
+                    </p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+                    <p className="text-blue-100 text-xs mb-0.5">Duration</p>
+                    <p className="font-semibold text-sm">8 hours</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
+                    <p className="text-blue-100 text-xs mb-0.5">Type</p>
+                    <p className="font-semibold text-sm flex items-center gap-1.5 capitalize">
+                      {nextShift.type === "day" && <Sun className="w-4 h-4" />}
+                      {nextShift.type === "evening" && (
+                        <Sunset className="w-4 h-4" />
+                      )}
+                      {nextShift.type === "night" && (
+                        <Moon className="w-4 h-4" />
+                      )}
+                      {nextShift.type}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleViewSchedule}
+                  className="w-full flex items-center justify-center gap-2 bg-white text-[#3B82F6] hover:bg-blue-50 h-11 text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
+                >
+                  View Full Schedule
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Card className="p-6 bg-gradient-to-br from-[#F9FAFB] to-white border border-[#E5E7EB]">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-[#DBEAFE] flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-[#3B82F6]" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-[#111827]">
+                      No Upcoming Shifts
+                    </h3>
+                    <p className="text-sm text-[#6B7280]">
+                      You don't have any shifts scheduled this week
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handleViewSchedule}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    View Schedule
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </div>
+              </Card>
+            )}
+
+            
+        )}
       </div>
     </Layout>
   );
