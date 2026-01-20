@@ -29,7 +29,11 @@ class WellnessEntryExtraction extends Model
         'physical_symptoms' => 'array',
         'concerns_mentioned' => 'array',
         'shift_duration_hours' => 'decimal:2',
-        'sleep_hours_before' => 'decimal:1',
+        'sleep_hours_before' => 'float',
+        'sleep_quality_rating' => 'integer',
+        'meals_count' => 'integer',
+        'stress_level' => 'integer',
+        'mood_rating' => 'integer',
         'parsing_confidence' => 'decimal:2',
     ];
 

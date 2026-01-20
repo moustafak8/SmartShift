@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AgentController;
+use App\Http\Controllers\AIInsightsController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmployeeAvailabilityController;
 use App\Http\Controllers\EmployeeDepartmentController;
@@ -63,6 +64,10 @@ Route::prefix('v1')->group(function () {
         Route::get('shift-swaps/pending-count', [ShiftSwapsController::class, 'pendingCount']);
         Route::get('shift-swaps/awaiting-manager', [ShiftSwapsController::class, 'awaitingManager']);
         Route::post('shift-swaps/{swapId}/review', [ShiftSwapsController::class, 'review']);
+        Route::get('insights/{departmentId}', [AIInsightsController::class, 'index']);
+        Route::get('insights/{departmentId}/unread-count', [AIInsightsController::class, 'unreadCount']);
+        Route::get('insight/{insightId}', [AIInsightsController::class, 'show']);
+        Route::post('insights/{insightId}/read', [AIInsightsController::class, 'markAsRead']);
     });
     Route::prefix('')->middleware('employee')->group(function () {
         Route::post('wellness-entries', [WellnessEntriesController::class, 'storeEntry']);

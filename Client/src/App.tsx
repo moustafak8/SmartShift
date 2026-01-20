@@ -17,6 +17,7 @@ import { Schedule } from "./pages/Employee/Schedule";
 import { IncomingSwapRequest } from "./pages/Employee/IncomingSwapRequest";
 import { SwapRequests } from "./pages/Manager/SwapRequests";
 import { Roles } from "./hooks/types/Roles";
+import { AIInsights } from "./pages/Manager/Insight";
 import { Notifications } from "./pages/Notifications";
 
 export default function App() {
@@ -109,6 +110,16 @@ export default function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
                 <RAGQuery />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+          <Route
+          path="/manager/insights"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
+                <AIInsights />
               </RoleBasedRoute>
             </ProtectedRoute>
           }

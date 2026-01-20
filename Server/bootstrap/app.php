@@ -4,7 +4,9 @@ use App\Http\Middleware\EmployeeMiddleware;
 use App\Http\Middleware\JWTFromCookie;
 use App\Http\Middleware\JWTMiddleware;
 use App\Http\Middleware\ManagerMiddleware;
+use App\Jobs\GenerateWeeklyInsight;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Application;
@@ -21,6 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (Schedule $schedule): void {
+        $schedule->job(new GenerateWeeklyInsight)->sundays()->at('20:00');
+    })
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(JWTFromCookie::class);
 
@@ -31,7 +36,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        // Hndling el aghlat
         $exceptions->render(function (ModelNotFoundException $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
                 return response()->json([

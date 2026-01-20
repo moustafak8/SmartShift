@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Lightbulb,
   FileText,
-  Settings,
   Bell,
   LogOut,
   MessageSquare,
@@ -84,7 +83,7 @@ const ManagerNavigationItems: NavigationItem[] = [
     id: "insights",
     icon: Lightbulb,
     label: "AI Insights",
-    badge: 2,
+    badge: null,
     path: "/manager/insights",
   },
   {
@@ -93,13 +92,6 @@ const ManagerNavigationItems: NavigationItem[] = [
     label: "Reports",
     badge: null,
     path: "/manager/reports",
-  },
-  {
-    id: "settings",
-    icon: Settings,
-    label: "Settings",
-    badge: null,
-    path: "/manager/settings",
   },
 ];
 
