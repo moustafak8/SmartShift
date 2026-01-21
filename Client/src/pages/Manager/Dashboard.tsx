@@ -214,7 +214,6 @@ export function Dashboard() {
   return (
     <Layout>
       <div className="bg-white min-h-screen">
-        
         <div className="border-b border-[#E5E7EB] bg-white">
           <div className="px-6 py-4">
             <h1 className="text-2xl font-semibold text-[#111827]">Dashboard</h1>
@@ -224,9 +223,7 @@ export function Dashboard() {
           </div>
         </div>
 
-       
         <div className="p-6 space-y-6">
-         
           {criticalAlerts.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
@@ -299,7 +296,7 @@ export function Dashboard() {
               ))}
             </div>
           )}
-    
+
           <div className="grid grid-cols-4 gap-4">
             <div
               className="cursor-pointer"
@@ -479,8 +476,79 @@ export function Dashboard() {
                 </div>
               </Card>
 
-           
-          
+              <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <UsersIcon className="w-5 h-5 text-[#F59E0B]" />
+                    <h2 className="text-lg font-semibold text-[#111827]">
+                      Team Members Needing Attention
+                    </h2>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigate("/manager/team")}
+                    className="text-[#3B82F6] hover:bg-[#EFF6FF]"
+                  >
+                    View All →
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {employeesNeedingAttention.length > 0 ? (
+                    employeesNeedingAttention.map((emp) => (
+                      <div
+                        key={emp.employee_id}
+                        className="flex items-center justify-between p-3 bg-[#F9FAFB] rounded-lg hover:bg-[#F0F9FF] cursor-pointer transition-colors"
+                        onClick={() => navigate("/manager/team")}
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-[#111827]">
+                            {emp.employee_name}
+                          </p>
+                          <p className="text-xs text-[#6B7280]">
+                            {emp.position || "Staff"}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-right">
+                            <p className="text-sm font-semibold text-[#111827]">
+                              {emp.fatigue_score?.total_score || 0}
+                            </p>
+                            <p className="text-xs text-[#6B7280]">Fatigue</p>
+                          </div>
+                          <Badge
+                            className={
+                              (emp.fatigue_score?.risk_level || "low") ===
+                              "high"
+                                ? "bg-[#FEE2E2] text-[#EF4444]"
+                                : (emp.fatigue_score?.risk_level || "low") ===
+                                    "medium"
+                                  ? "bg-[#FEF3C7] text-[#F59E0B]"
+                                  : "bg-[#DCFCE7] text-[#10B981]"
+                            }
+                          >
+                            {emp.fatigue_score?.risk_level || "low"}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-[#6B7280]">
+                      <p className="text-sm flex items-center justify-center gap-2">
+                        {teamSize === 0 ? (
+                          "No employees in your team"
+                        ) : (
+                          <>
+                            <Activity className="w-4 h-4 text-[#10B981]" />
+                            All team members are healthy!
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
