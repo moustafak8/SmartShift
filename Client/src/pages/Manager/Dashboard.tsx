@@ -7,7 +7,7 @@ import {
   AlertCircle,
   Loader2,
   Calendar,
-  Brain,
+  Lightbulb,
   Zap,
   BarChart3,
   Activity,
@@ -574,7 +574,7 @@ export function Dashboard() {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Brain className="w-5 h-5 text-[#3B82F6]" />
+                          <Lightbulb className="w-5 h-5 text-[#3B82F6]" />
                           <h3 className="font-semibold text-[#111827]">
                             AI Insight
                           </h3>
