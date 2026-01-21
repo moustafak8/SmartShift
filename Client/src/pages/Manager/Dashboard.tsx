@@ -406,9 +406,80 @@ export function Dashboard() {
             </div>
           </div>
 
-        
+          <div className="grid grid-cols-3 gap-6">
+            <div className="col-span-2 space-y-6">
+              {/* Upcoming Coverage */}
+              <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-[#3B82F6]" />
+                    <h2 className="text-lg font-semibold text-[#111827]">
+                      Upcoming Schedule Coverage
+                    </h2>
+                  </div>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigate("/manager/schedule")}
+                    className="text-[#3B82F6] hover:bg-[#EFF6FF]"
+                  >
+                    View Schedule →
+                  </Button>
+                </div>
+                <div className="space-y-3">
+                  {upcomingCoverage.length > 0 ? (
+                    upcomingCoverage.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 bg-[#F9FAFB] rounded-lg"
+                      >
+                        <span className="text-sm font-medium text-[#111827]">
+                          {item.shift}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            className={
+                              item.status === "critical"
+                                ? "bg-[#FEE2E2] text-[#EF4444]"
+                                : item.status === "warning"
+                                  ? "bg-[#FEF3C7] text-[#F59E0B]"
+                                  : "bg-[#DCFCE7] text-[#10B981]"
+                            }
+                          >
+                            {item.coverage}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => navigate("/manager/schedule")}
+                            className="text-[#3B82F6] hover:bg-[#EFF6FF]"
+                          >
+                            Optimize
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : assignmentsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-[#3B82F6]" />
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-[#6B7280]">
+                      <p className="text-sm">No upcoming shifts scheduled</p>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => navigate("/manager/schedule")}
+                        className="mt-2 text-[#3B82F6] hover:bg-[#EFF6FF]"
+                      >
+                        Create Schedule
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </Card>
-            </div>
+
+           
           
           </div>
         </div>
