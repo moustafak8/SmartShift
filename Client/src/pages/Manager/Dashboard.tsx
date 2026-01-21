@@ -642,9 +642,39 @@ export function Dashboard() {
                   </div>
                 </Card>
               )}
+              <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap className="w-5 h-5 text-[#F59E0B]" />
+                  <h3 className="font-semibold text-[#111827]">
+                    Quick Actions
+                  </h3>
+                </div>
+                <div className="space-y-2">
+                  <Button
+                    variant="secondary"
+                    className="w-full justify-start border-[#E5E7EB] text-[#111827]"
+                    onClick={() => navigate("/manager/team-wellness")}
+                  >
+                    View Wellness Data
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="w-full justify-start border-[#E5E7EB] text-[#111827]"
+                    onClick={() => navigate("/manager/query")}
+                  >
+                    Ask AI Questions
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    className="w-full justify-start border-[#E5E7EB] text-[#111827]"
+                    onClick={() => navigate("/manager/reports")}
+                  >
+                    Generate Report
+                  </Button>
+                </div>
+              </Card>
 
-            
-          </div>
+             
         </div>
       </div>
     </Layout>
