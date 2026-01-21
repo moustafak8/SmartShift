@@ -32,9 +32,16 @@ const getTodayDate = () => {
   return today.toISOString().split("T")[0];
 };
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+};
+
 export function Dashboard() {
   const navigate = useNavigate();
-  const { departmentId } = useAuth();
+  const { departmentId, user } = useAuth();
   const {
     employees,
     isLoading: employeesLoading,
@@ -216,7 +223,9 @@ export function Dashboard() {
       <div className="bg-white min-h-screen">
         <div className="border-b border-[#E5E7EB] bg-white">
           <div className="px-6 py-4">
-            <h1 className="text-2xl font-semibold text-[#111827]">Dashboard</h1>
+            <h1 className="text-2xl font-semibold text-[#111827]">
+              {getGreeting()}, Manager {user?.full_name || ""}
+            </h1>
             <p className="text-sm text-[#6B7280] mt-1">
               Monitor and control your team in the most convenient way
             </p>
@@ -474,6 +483,7 @@ export function Dashboard() {
                   )}
                 </div>
               </Card>
+
               <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -586,7 +596,7 @@ export function Dashboard() {
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 mb-4">
                       <h4 className="font-semibold text-[#111827]">
                         {latestInsight.title}
                       </h4>
@@ -601,9 +611,6 @@ export function Dashboard() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-[#374151] mb-4 line-clamp-3">
-                      {latestInsight.content}
-                    </p>
                     <div className="flex items-center justify-between">
                       <Button
                         size="sm"
@@ -640,6 +647,7 @@ export function Dashboard() {
                   </div>
                 </Card>
               )}
+
               <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
                 <div className="flex items-center gap-2 mb-4">
                   <Zap className="w-5 h-5 text-[#F59E0B]" />
@@ -671,6 +679,7 @@ export function Dashboard() {
                   </Button>
                 </div>
               </Card>
+
               <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart3 className="w-5 h-5 text-[#3B82F6]" />
