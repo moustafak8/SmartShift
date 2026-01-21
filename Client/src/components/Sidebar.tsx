@@ -142,6 +142,7 @@ const EmployeeNavigationItems: NavigationItem[] = [
 
 export function Layout({ children }: LayoutProps) {
   const [isOpen, setIsOpen] = useState(true);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { isManager, user, departmentId } = useAuth();
   const { logout, loading: logoutLoading } = useLogout();
   const location = useLocation();
@@ -150,14 +151,17 @@ export function Layout({ children }: LayoutProps) {
   const { count: notificationCount } = useUnreadCount(user?.id);
 
   const { count: pendingSwapsCount } = usePendingSwapsCount(
-    isManager() ? departmentId || undefined : undefined
+    isManager() ? departmentId || undefined : undefined,
   );
 
   const navigationItems = useMemo(() => {
     if (isManager()) {
-      return ManagerNavigationItems.map(item => {
+      return ManagerNavigationItems.map((item) => {
         if (item.id === "swaps") {
-          return { ...item, badge: pendingSwapsCount > 0 ? pendingSwapsCount : null };
+          return {
+            ...item,
+            badge: pendingSwapsCount > 0 ? pendingSwapsCount : null,
+          };
         }
         return item;
       });
@@ -184,6 +188,10 @@ export function Layout({ children }: LayoutProps) {
     logout();
   };
 
+  const toggleProfileMenu = () => {
+    setIsProfileOpen((prev) => !prev);
+  };
+
   return (
     <div className="flex h-screen bg-white">
       <button
@@ -203,14 +211,16 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative top-0 left-0 h-full bg-white border-r border-[#E5E7EB] z-50 transition-all duration-300 flex flex-col overflow-hidden ${isOpen
-            ? "translate-x-0 lg:w-64"
+        className={`fixed lg:relative top-0 left-0 h-full bg-white border-r border-[#E5E7EB] shadow-sm z-50 transition-all duration-300 flex flex-col overflow-hidden ${
+          isOpen
+            ? "translate-x-0 lg:w-68"
             : "-translate-x-full lg:translate-x-0 lg:w-0 lg:border-r-0"
-          } w-64`}
+        } w-68`}
       >
         <div
-          className={`${isOpen ? "opacity-100" : "lg:opacity-0"
-            } transition-opacity duration-300 flex flex-col h-full w-64`}
+          className={`${
+            isOpen ? "opacity-100" : "lg:opacity-0"
+          } transition-opacity duration-300 flex flex-col h-full w-68`}
         >
           <button
             onClick={handleToggle}
@@ -220,11 +230,18 @@ export function Layout({ children }: LayoutProps) {
             <X className="w-6 h-6 text-black" />
           </button>
 
-          <div className="p-6 border-b border-border">
+          <div className="px-6 py-4 border-b border-[#E5E7EB] bg-white">
             <div className="flex items-center gap-3">
-              <Brain className="w-10 h-10 text-[#2563EB]" />
+              <div className="w-10 h-10 rounded-2xl bg-[#2563EB]/10 flex items-center justify-center">
+                <Brain className="w-6 h-6 text-[#2563EB]" />
+              </div>
               <div>
-                <h1 className="font-bold text-lg">SmartShift</h1>
+                <h1 className="font-bold text-[18px] text-[#0F172A]">
+                  SmartShift
+                </h1>
+                <p className="text-sm text-[#4B5563] leading-snug">
+                  Schedule, wellness, clarity
+                </p>
               </div>
             </div>
           </div>
@@ -244,18 +261,29 @@ export function Layout({ children }: LayoutProps) {
                       }
                     }}
                     className={cn(
-                      "w-full flex items-center justify-between px-4 py-3 rounded-lg transition-colors text-left relative",
+                      "w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-left relative border",
                       isActive
-                        ? "bg-[#EFF6FF] text-[#3B82F6] font-medium"
-                        : "text-[#6B7280] hover:bg-[#F0F9FF]"
+                        ? "bg-[#EFF6FF] text-[#1D4ED8] border-[#DBEAFE] shadow-sm"
+                        : "text-[#6B7280] border-transparent hover:bg-[#F8FAFC] hover:border-[#E5E7EB] hover:text-[#111827]",
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className="w-5 h-5 flex-shrink-0" />
-                      <span>{item.label}</span>
+                      <div
+                        className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center",
+                          isActive
+                            ? "bg-[#DBEAFE] text-[#1D4ED8]"
+                            : "bg-[#F3F4F6] text-[#6B7280]",
+                        )}
+                      >
+                        <Icon className="w-4 h-4 flex-shrink-0" />
+                      </div>
+                      <span className="font-semibold text-[15px] text-[#0F172A]">
+                        {item.label}
+                      </span>
                     </div>
                     {item.badge && (
-                      <Badge className="bg-[#3B82F6] text-white text-xs px-2 py-0 h-5">
+                      <Badge className="bg-[#1D4ED8] text-white text-[11px] px-2 py-0 h-5">
                         {item.badge}
                       </Badge>
                     )}
@@ -264,20 +292,6 @@ export function Layout({ children }: LayoutProps) {
               })}
             </div>
           </nav>
-
-          <div className="p-4 border-t border-[#E5E7EB]">
-            <button
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[#6B7280] hover:bg-[#F0F9FF] transition-colors text-left",
-                "disabled:opacity-50 disabled:cursor-not-allowed"
-              )}
-              onClick={handleLogout}
-              disabled={logoutLoading}
-            >
-              <LogOut className="w-5 h-5 flex-shrink-0" />
-              <span>{logoutLoading ? "Logging out..." : "Logout"}</span>
-            </button>
-          </div>
         </div>
       </aside>
 
@@ -291,22 +305,50 @@ export function Layout({ children }: LayoutProps) {
             <Menu className="w-6 h-6 text-black" />
           </button>
 
-          <div className="flex items-center gap-4 ml-auto">
-            <button 
-              onClick={() => navigate('/notifications')}
+          <div className="flex items-center gap-4 ml-auto relative">
+            <button
+              onClick={() => navigate("/notifications")}
               className="relative p-2 hover:bg-[#F0F9FF] rounded-lg transition-colors"
+              aria-label="Notifications"
             >
               <Bell className="w-5 h-5 text-[#6B7280]" />
               {notificationCount > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-[#EF4444] text-white text-xs rounded-full flex items-center justify-center">
-                  {notificationCount > 9 ? '9+' : notificationCount}
+                  {notificationCount > 9 ? "9+" : notificationCount}
                 </span>
               )}
             </button>
 
-            <button className="w-10 h-10 bg-[#6366F1] rounded-full flex items-center justify-center text-white font-medium hover:bg-[#4F46E5] transition-colors">
-              {getUserInitials()}
-            </button>
+            <div className="relative">
+              <button
+                onClick={toggleProfileMenu}
+                className="w-10 h-10 bg-[#1D4ED8] rounded-full flex items-center justify-center text-white font-semibold hover:bg-[#1E40AF] transition-colors shadow-sm"
+                aria-label="Profile menu"
+              >
+                {getUserInitials()}
+              </button>
+
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-2 w-52 rounded-lg border border-[#E5E7EB] bg-white shadow-lg p-3 z-50">
+                  <div className="mb-3">
+                    <p className="text-sm font-semibold text-[#111827]">
+                      {user?.full_name || "Account"}
+                    </p>
+                    <p className="text-xs text-[#6B7280] truncate">
+                      {user?.email || ""}
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    disabled={logoutLoading}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-md text-[#EF4444] hover:bg-[#FEF2F2] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    {logoutLoading ? "Logging out..." : "Logout"}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
