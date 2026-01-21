@@ -475,7 +475,6 @@ export function Dashboard() {
                   )}
                 </div>
               </Card>
-
               <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -549,6 +548,102 @@ export function Dashboard() {
                 </div>
               </Card>
             </div>
+
+            
+            <div className="space-y-6">
+              {insightsLoading ? (
+                <Card className="p-5 border-l-4 border-[#3B82F6]">
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#3B82F6]" />
+                  </div>
+                </Card>
+              ) : latestInsight ? (
+                <div
+                  className="cursor-pointer"
+                  onClick={() => navigate("/manager/insights")}
+                >
+                  <Card className="p-5 hover:shadow-md transition-shadow border-l-4 border-[#3B82F6]">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Brain className="w-5 h-5 text-[#3B82F6]" />
+                          <h3 className="font-semibold text-[#111827]">
+                            AI Insight
+                          </h3>
+                        </div>
+                        <p className="text-xs text-[#6B7280] mb-2">
+                          {new Date(
+                            latestInsight.created_at,
+                          ).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
+                      {!latestInsight.is_read && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-[#3B82F6]/10 text-[#3B82F6] text-xs font-medium">
+                          New
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-semibold text-[#111827]">
+                        {latestInsight.title}
+                      </h4>
+                      {latestInsight.priority === "urgent" && (
+                        <Badge className="bg-[#FEE2E2] text-[#EF4444] text-xs">
+                          Urgent
+                        </Badge>
+                      )}
+                      {latestInsight.priority === "high" && (
+                        <Badge className="bg-[#FEF3C7] text-[#F59E0B] text-xs">
+                          High
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-[#374151] mb-4 line-clamp-3">
+                      {latestInsight.content}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate("/manager/insights");
+                        }}
+                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                      >
+                        View All Insights →
+                      </Button>
+                      {unreadInsightsCount > 0 && (
+                        <span className="text-xs text-[#6B7280]">
+                          {unreadInsightsCount} unread
+                        </span>
+                      )}
+                    </div>
+                  </Card>
+                </div>
+              ) : (
+                <Card className="p-5 border-l-4 border-[#E5E7EB]">
+                  <div className="text-center py-6">
+                    <p className="text-sm text-[#6B7280] mb-3">
+                      No AI insights available yet
+                    </p>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => navigate("/manager/insights")}
+                      className="text-[#3B82F6] hover:bg-[#EFF6FF]"
+                    >
+                      Learn More
+                    </Button>
+                  </div>
+                </Card>
+              )}
+
+            
           </div>
         </div>
       </div>
