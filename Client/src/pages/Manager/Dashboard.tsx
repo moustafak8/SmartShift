@@ -212,6 +212,98 @@ export function Dashboard() {
   }
 
   return (
-   
+    <Layout>
+      <div className="bg-white min-h-screen">
+        
+        <div className="border-b border-[#E5E7EB] bg-white">
+          <div className="px-6 py-4">
+            <h1 className="text-2xl font-semibold text-[#111827]">Dashboard</h1>
+            <p className="text-sm text-[#6B7280] mt-1">
+              Monitor and control your team in the most convenient way
+            </p>
+          </div>
+        </div>
+
+       
+        <div className="p-6 space-y-6">
+         
+          {criticalAlerts.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <CircleAlert className="w-5 h-5 text-[#EF4444]" />
+                <h2 className="text-lg font-semibold text-[#111827]">
+                  Critical Alerts ({criticalAlerts.length})
+                </h2>
+              </div>
+              {criticalAlerts.map((emp) => (
+                <div
+                  key={emp.employee_id}
+                  className="rounded-lg border-l-4 border-[#EF4444] bg-white p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-semibold text-[#111827]">
+                          {emp.employee_name}
+                        </h3>
+                        <Badge className="bg-[#FEE2E2] text-[#EF4444] font-semibold">
+                          CRITICAL
+                        </Badge>
+                        <span className="text-sm text-[#6B7280]">
+                          Fatigue: {emp.fatigueScore}/100
+                        </span>
+                      </div>
+                      <p className="mt-2 text-sm text-[#374151]">
+                        {emp.position} • High fatigue level detected
+                      </p>
+                      <div className="mt-3 flex gap-4 flex-wrap">
+                        <span className="text-sm text-[#6B7280]">
+                          Status:{" "}
+                          <span className="font-medium text-[#111827]">
+                            {emp.is_active ? "Active" : "Inactive"}
+                          </span>
+                        </span>
+                        <span className="text-sm text-[#6B7280]">
+                          Level:{" "}
+                          <span className="font-medium text-[#EF4444]">
+                            {emp.riskLevel.toUpperCase()}
+                          </span>
+                        </span>
+                        <span className="text-sm text-[#6B7280]">
+                          Score Date:{" "}
+                          <span className="font-medium">
+                            {emp.fatigue_score?.score_date || "N/A"}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => navigate("/manager/team")}
+                        className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
+                      >
+                        Review Profile
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => navigate("/manager/team-wellness")}
+                        className="border-[#E5E7EB]"
+                      >
+                        Take Action
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          
+          </div>
+        </div>
+      </div>
+    </Layout>
   );
 }
