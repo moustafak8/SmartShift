@@ -18,6 +18,7 @@ import {
   useRespondToSwap,
   type IncomingSwap,
 } from "../../hooks/Employee/useShiftSwap";
+import { useToast } from "../../components/ui/Toast";
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("en-US", {
@@ -28,11 +29,20 @@ function formatDate(dateStr: string) {
 }
 
 function formatShiftType(type: string) {
-  const types: Record<string, { label: string; time: string; color: string }> = {
-    day: { label: "Day Shift", time: "8:00 AM - 4:00 PM", color: "#F59E0B" },
-    evening: { label: "Evening Shift", time: "4:00 PM - 12:00 AM", color: "#8B5CF6" },
-    night: { label: "Night Shift", time: "12:00 AM - 8:00 AM", color: "#3B82F6" },
-  };
+  const types: Record<string, { label: string; time: string; color: string }> =
+    {
+      day: { label: "Day Shift", time: "8:00 AM - 4:00 PM", color: "#F59E0B" },
+      evening: {
+        label: "Evening Shift",
+        time: "4:00 PM - 12:00 AM",
+        color: "#8B5CF6",
+      },
+      night: {
+        label: "Night Shift",
+        time: "12:00 AM - 8:00 AM",
+        color: "#3B82F6",
+      },
+    };
   return types[type] || { label: type, time: "", color: "#6B7280" };
 }
 
@@ -71,11 +81,12 @@ function SwapRequestCard({
   const requesterShift = swap.requester_shift;
 
   const targetShiftInfo = formatShiftType(targetShift?.shift_type || "day");
-  const requesterShiftInfo = formatShiftType(requesterShift?.shift_type || "day");
+  const requesterShiftInfo = formatShiftType(
+    requesterShift?.shift_type || "day",
+  );
 
   return (
     <Card className="overflow-hidden border border-[#E5E7EB] hover:shadow-xl transition-all duration-300 hover:border-[#3B82F6]/30">
-      
       <div className="bg-gradient-to-r from-[#3B82F6]/5 to-[#8B5CF6]/5 px-6 py-4 border-b border-[#E5E7EB]">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -99,10 +110,8 @@ function SwapRequestCard({
         </div>
       </div>
 
-      
       <div className="px-6 py-5">
         <div className="flex items-stretch gap-4">
-          
           <div className="flex-1 p-4 rounded-xl border-2 border-[#EF4444]/20 bg-gradient-to-br from-[#FEF2F2] to-white">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 rounded-full bg-[#EF4444]"></div>
@@ -118,22 +127,25 @@ function SwapRequestCard({
                 <Clock className="w-4 h-4 text-[#6B7280]" />
                 {targetShiftInfo.time}
               </div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium" 
-                   style={{ backgroundColor: `${targetShiftInfo.color}15`, color: targetShiftInfo.color }}>
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                style={{
+                  backgroundColor: `${targetShiftInfo.color}15`,
+                  color: targetShiftInfo.color,
+                }}
+              >
                 <Calendar className="w-3.5 h-3.5" />
                 {targetShiftInfo.label}
               </div>
             </div>
           </div>
 
-       
           <div className="flex items-center justify-center">
             <div className="w-10 h-10 rounded-full bg-[#F3F4F6] flex items-center justify-center">
               <ArrowRight className="w-5 h-5 text-[#6B7280]" />
             </div>
           </div>
 
-          
           <div className="flex-1 p-4 rounded-xl border-2 border-[#10B981]/20 bg-gradient-to-br from-[#F0FDF4] to-white">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-2 h-2 rounded-full bg-[#10B981]"></div>
@@ -149,15 +161,20 @@ function SwapRequestCard({
                 <Clock className="w-4 h-4 text-[#6B7280]" />
                 {requesterShiftInfo.time}
               </div>
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
-                   style={{ backgroundColor: `${requesterShiftInfo.color}15`, color: requesterShiftInfo.color }}>
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
+                style={{
+                  backgroundColor: `${requesterShiftInfo.color}15`,
+                  color: requesterShiftInfo.color,
+                }}
+              >
                 <Calendar className="w-3.5 h-3.5" />
                 {requesterShiftInfo.label}
               </div>
             </div>
           </div>
         </div>
-  
+
         {swap.swap_reason && (
           <div className="mt-5 p-4 rounded-xl bg-[#F9FAFB] border border-[#E5E7EB]">
             <div className="text-xs font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
@@ -168,7 +185,6 @@ function SwapRequestCard({
         )}
       </div>
 
-      
       <div className="px-6 py-4 bg-[#F9FAFB] border-t border-[#E5E7EB] flex gap-3">
         <Button
           variant="secondary"
@@ -208,16 +224,23 @@ export function IncomingSwapRequest() {
   const { swaps, isLoading, isError, refetch } = useIncomingSwaps();
   const respondMutation = useRespondToSwap();
   const [respondingId, setRespondingId] = useState<number | null>(null);
+  const toast = useToast();
 
   const handleResponse = async (
     swapId: number,
-    response: "accept" | "decline"
+    response: "accept" | "decline",
   ) => {
     setRespondingId(swapId);
     try {
       await respondMutation.mutateAsync({ swapId, response });
+      if (response === "accept") {
+        toast.success("Swap request accepted successfully");
+      } else {
+        toast.success("Swap request declined");
+      }
     } catch (error) {
       console.error("Failed to respond to swap:", error);
+      toast.error("Failed to respond to swap request");
     } finally {
       setRespondingId(null);
     }
@@ -226,7 +249,6 @@ export function IncomingSwapRequest() {
   return (
     <Layout>
       <div className="bg-[#F9FAFB] min-h-screen">
-       
         <div className="border-b border-[#E5E7EB] bg-white sticky top-0 z-10">
           <div className="px-6 py-5">
             <div className="flex items-center justify-between">
@@ -247,7 +269,6 @@ export function IncomingSwapRequest() {
           </div>
         </div>
 
-        
         <div className="p-6">
           {isLoading && (
             <Card className="p-16 text-center bg-white">
@@ -265,9 +286,14 @@ export function IncomingSwapRequest() {
                 Failed to Load Requests
               </h3>
               <p className="text-[#6B7280] mb-6 max-w-md mx-auto">
-                Something went wrong while fetching swap requests. Please try again.
+                Something went wrong while fetching swap requests. Please try
+                again.
               </p>
-              <Button onClick={() => refetch()} variant="secondary" className="border-2">
+              <Button
+                onClick={() => refetch()}
+                variant="secondary"
+                className="border-2"
+              >
                 Try Again
               </Button>
             </Card>
@@ -282,8 +308,8 @@ export function IncomingSwapRequest() {
                 No Pending Requests
               </h3>
               <p className="text-[#6B7280] max-w-md mx-auto">
-                You don't have any incoming swap requests at the moment. 
-                When a colleague requests to swap shifts with you, it will appear here.
+                You don't have any incoming swap requests at the moment. When a
+                colleague requests to swap shifts with you, it will appear here.
               </p>
             </Card>
           )}

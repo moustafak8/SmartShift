@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { Brain, Eye, EyeOff, ArrowRight, Loader2, Check } from "lucide-react";
+import { Brain, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { useLogin } from "../hooks/useLogin";
 import { motion } from "motion/react";
 import { BackButton } from "../components/ui/BackButton";
 import { Button } from "../components/ui/Button";
 import { Heading } from "../components/ui/Heading";
-import { Card } from "../components/ui/Card";
-import { IconText } from "../components/ui/IconText";
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,192 +32,136 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex">
-      <div className="flex-1 flex items-center justify-center px-4 py-10">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-[420px]"
-        >
-          <BackButton className="mb-6" />
-          <div className="flex items-center gap-3 mb-8">
-            <Brain className="w-10 h-10 text-[#2563EB]" />
-            <span className="text-black text-[24px] font-bold">SmartShift</span>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none" />
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-[480px] bg-white rounded-2xl shadow-xl border border-gray-100 p-8 relative z-10"
+      >
+        <BackButton className="mb-6" />
+        <div className="flex items-center mb-8">
+          <div className="w-12 h-12  rounded-xl flex items-center justify-center">
+            <Brain className="w-7 h-7 text-[#2563EB]" />
           </div>
-          <div className="mb-6">
-            <Heading level="h1" className="text-[32px] mb-2">
-              Welcome back
-            </Heading>
-            <p className="text-[#6B7280] text-[16px]">
-              Sign in to your account to continue
-            </p>
+          <span className="text-[#111827] text-[26px] font-bold tracking-tight">
+            SmartShift
+          </span>
+        </div>
+
+        <div className="mb-8">
+          <Heading
+            level="h1"
+            className="text-[28px] font-bold text-[#111827] mb-2 tracking-tight"
+          >
+            Welcome back
+          </Heading>
+          <p className="text-[#6B7280] text-[15px]">
+            Sign in to your account to continue
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-[#374151] text-[14px] font-semibold mb-2"
+            >
+              Email Address
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="name@company.com"
+              className="w-full px-4 py-3.5 text-[15px] text-[#111827] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] focus:bg-white transition-all placeholder:text-[#9CA3AF]"
+              autoComplete="off"
+            />
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-[#111827] text-[14px] font-medium mb-2"
-              >
-                Email Address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="name@company.com"
-                className="w-full px-4 py-3 text-[14px] text-[#111827] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                autoComplete="off"
-              />
-            </div>
-
-            <div>
+          <div>
+            <div className="flex items-center justify-between mb-2">
               <label
                 htmlFor="password"
-                className="block text-[#111827] text-[14px] font-medium mb-2"
+                className="block text-[#374151] text-[14px] font-semibold"
               >
                 Password
               </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  className="w-full px-4 py-3 pr-12 text-[14px] text-[#111827] border border-[#D1D5DB] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2563EB] focus:border-transparent transition-all placeholder:text-[#9CA3AF]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6B7280] hover:text-[#2563EB] transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
             </div>
+            <div className="relative">
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Enter your password"
+                className="w-full px-4 py-3.5 pr-12 text-[15px] text-[#111827] bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] focus:bg-white transition-all placeholder:text-[#9CA3AF]"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9CA3AF] hover:text-[#2563EB] transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
 
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-600 text-sm">{error}</p>
-              </div>
-            )}
-
-            {isSuccess && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-600 text-sm">Login successful!</p>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={loading}
-              size="lg"
-              variant="primary"
-              className="disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 group"
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-red-50/50 border border-red-100 rounded-xl flex items-center gap-3"
             >
-              {loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </Button>
-          </form>
-          <div className="text-center mt-6">
-            <p className="text-[#6B7280] text-[14px]">
-              Don't have an account?{" "}
-              <a
-                href="#signup"
-                className="text-[#2563EB] font-medium hover:text-[#1D4ED8] transition-colors"
-              >
-                Start free trial
-              </a>
-            </p>
-          </div>
-        </motion.div>
-      </div>
-      {/* Right Side - Info Card */}
-      <motion.div
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.6, delay: 0.2 }}
-        className="hidden lg:flex flex-1 bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] items-center justify-center p-12"
-      >
-        <div className="max-w-[500px]">
-          <Card className="bg-white/10 backdrop-blur-sm border border-white/20">
-            <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center mb-6">
-              <Brain className="w-10 h-10 text-white" />
-            </div>
-            <Heading level="h2" className="text-white text-[32px] mb-4">
-              AI-Powered Shift Management
-            </Heading>
-            <p className="text-white/90 text-[16px] leading-relaxed mb-8">
-              Optimize your workforce scheduling with intelligent automation.
-              SmartShift reduces scheduling conflicts by 90% and saves managers
-              15+ hours per week.
-            </p>
-            <div className="space-y-4">
-              {[
-                "Real-time shift updates and notifications",
-                "Predictive analytics for optimal staffing",
-                "Wellness monitoring and burnout prevention",
-              ].map((feature, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.6 + index * 0.1 }}
-                >
-                  <IconText
-                    icon={Check}
-                    layout="horizontal"
-                    iconSize="sm"
-                    iconClassName="text-white bg-white/20 rounded-full p-1"
-                    contentClassName="text-white text-[15px]"
-                  >
-                    {feature}
-                  </IconText>
-                </motion.div>
-              ))}
-            </div>
-          </Card>
-          <div className="grid grid-cols-3 gap-6 mt-10">
-            {[
-              { number: "90%", label: "Less Conflicts" },
-              { number: "15h", label: "Time Saved/Week" },
-              { number: "500+", label: "Happy Clients" },
-            ].map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 1 + index * 0.1 }}
-                className="text-center"
-              >
-                <Heading level="h3" className="text-white text-[28px] mb-1">
-                  {stat.number}
-                </Heading>
-                <div className="text-white/80 text-[13px]">{stat.label}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
+              <div className="w-2 h-2 bg-red-500 rounded-full" />
+              <p className="text-red-600 text-[14px] font-medium">{error}</p>
+            </motion.div>
+          )}
+
+          {isSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 bg-green-50/50 border border-green-100 rounded-xl flex items-center gap-3"
+            >
+              <div className="w-2 h-2 bg-green-500 rounded-full" />
+              <p className="text-green-600 text-[14px] font-medium">
+                Login successful!
+              </p>
+            </motion.div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading}
+            size="lg"
+            variant="primary"
+            className="w-full h-12 mt-2 text-[15px] font-semibold shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all rounded-xl flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              <>
+                Sign In
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </>
+            )}
+          </Button>
+        </form>
       </motion.div>
     </div>
   );
