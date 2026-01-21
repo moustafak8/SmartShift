@@ -405,7 +405,6 @@ export function Dashboard() {
 
           <div className="grid grid-cols-3 gap-6">
             <div className="col-span-2 space-y-6">
-              {/* Upcoming Coverage */}
               <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
@@ -549,7 +548,6 @@ export function Dashboard() {
               </Card>
             </div>
 
-            
             <div className="space-y-6">
               {insightsLoading ? (
                 <Card className="p-5 border-l-4 border-[#3B82F6]">
@@ -673,8 +671,54 @@ export function Dashboard() {
                   </Button>
                 </div>
               </Card>
-
-             
+              <Card className="p-6 bg-white border border-[#E5E7EB] rounded-xl">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="w-5 h-5 text-[#3B82F6]" />
+                  <h3 className="font-semibold text-[#111827]">Team Status</h3>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs font-medium text-[#6B7280]">
+                        Healthy
+                      </span>
+                      <span className="text-sm font-semibold text-[#10B981]">
+                        {teamSize - highRiskCount}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#10B981]"
+                        style={{
+                          width: `${
+                            ((teamSize - highRiskCount) / teamSize) * 100
+                          }%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-xs font-medium text-[#6B7280]">
+                        At Risk
+                      </span>
+                      <span className="text-sm font-semibold text-[#EF4444]">
+                        {highRiskCount}
+                      </span>
+                    </div>
+                    <div className="h-2 bg-[#E5E7EB] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#EF4444]"
+                        style={{
+                          width: `${(highRiskCount / teamSize) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
     </Layout>
