@@ -28,3 +28,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <!-- System Design -->
 <img src="./readme/cards/title3.svg"/>
+
+### Entity Relationship Diagram
+
+[ER Diagram](https://dbdiagram.io/d/SmartShift-6950f70939fa3db27ba940fc)
+
+<img src="./readme/design/SmartShift (2).png"/>
