@@ -299,7 +299,116 @@ export function Dashboard() {
               ))}
             </div>
           )}
+    
+          <div className="grid grid-cols-4 gap-4">
+            <div
+              className="cursor-pointer"
+              onClick={() => navigate("/manager/team")}
+            >
+              <Card className="p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="text-sm text-[#6B7280]">Team Size</div>
+                  <div className="h-6 w-6 flex items-center justify-center text-[#6B7280]">
+                    <UsersIcon className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-2 text-[#111827]">
+                  {teamSize}
+                </div>
+                <div className="flex items-center gap-1 text-sm text-[#3B82F6]">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>{onLeaveCount} on leave</span>
+                </div>
+              </Card>
+            </div>
 
+            <div
+              className="cursor-pointer"
+              onClick={() => navigate("/manager/team-wellness")}
+            >
+              <Card className="p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="text-sm text-[#6B7280]">
+                    Team Fatigue Score
+                  </div>
+                  <div className="h-6 w-6 flex items-center justify-center text-[#6B7280]">
+                    <TrendingUp className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-2 text-[#111827]">
+                  {avgFatigue}/100
+                </div>
+                <div
+                  className={`flex items-center gap-1 text-sm ${
+                    avgFatigue >= 70
+                      ? "text-[#EF4444]"
+                      : avgFatigue >= 50
+                        ? "text-[#F59E0B]"
+                        : "text-[#10B981]"
+                  }`}
+                >
+                  <TrendingUp className="w-4 h-4" />
+                  <span>
+                    {avgFatigue >= 70
+                      ? "High Risk"
+                      : avgFatigue >= 50
+                        ? "Medium Risk"
+                        : "Low Risk"}
+                  </span>
+                </div>
+              </Card>
+            </div>
+
+            <div
+              className="cursor-pointer"
+              onClick={() => navigate("/manager/team-wellness")}
+            >
+              <Card className="p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="text-sm text-[#6B7280]">High Risk</div>
+                  <div className="h-6 w-6 flex items-center justify-center text-[#6B7280]">
+                    <TriangleAlert className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-2 text-[#111827]">
+                  {highRiskCount}
+                </div>
+                <div className="flex items-center gap-1 text-sm text-[#EF4444]">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>
+                    {teamSize > 0
+                      ? `${Math.round((highRiskCount / teamSize) * 100)}% of team`
+                      : "No team members"}
+                  </span>
+                </div>
+              </Card>
+            </div>
+
+            <div
+              className="cursor-pointer"
+              onClick={() => navigate("/manager/swaps")}
+            >
+              <Card className="p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="text-sm text-[#6B7280]">Pending Swaps</div>
+                  <div className="h-6 w-6 flex items-center justify-center text-[#6B7280]">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold mb-2 text-[#111827]">
+                  {pendingSwaps}
+                </div>
+                <div className="flex items-center gap-1 text-sm text-[#3B82F6]">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Review pending</span>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+        
+              </Card>
+            </div>
           
           </div>
         </div>
