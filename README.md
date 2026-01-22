@@ -58,4 +58,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <img src="./readme/features/Key_Features.png"/>
 
+
+<br><br>
+<!-- Development & Testing -->
+<img src="./readme/cards/title6.svg"/>
+
+### ⚙️ SmartShift AI Agent
+
+> ####  Autonomous Shift Validation Engine
+> An advanced decision-making system powered by **FastAPI** and **LangGraph** that orchestrates a multi-stage evaluation pipeline. Unlike traditional rule engines, the SmartShift Agent leverages **GPT-4o reasoning** to analyze complex factors—including **Availability**, **Projected Fatigue**, **Staffing Levels**, and **Labor Compliance**—ensuring every swap is safe and operationally optimal.
+
 <br>
+
+<img src="./readme/Agent/Agent_Flow.svg"/>
+
+<br><br>
