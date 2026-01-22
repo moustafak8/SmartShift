@@ -70,6 +70,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <br>
 
-<img src="./readme/Agent/Agent_Flow.svg"/>
+<img src="./readme/Agent/Agent_Flow.png"/>
 
 <br><br>
