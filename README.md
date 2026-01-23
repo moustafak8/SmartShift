@@ -48,7 +48,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 > #### 🧠 RAG-Powered Wellness Journal
 > High-fidelity analysis of employee journals using GPT-4 and Qdrant vector storage. Enables semantic search, allowing managers to query concerns naturally and identify recurring wellness patterns.
 > 
-> #### 📅 Intelligent Auto-Scheduler
+> #### 📅  Auto-Scheduler
 > Advanced algorithmic generation of weekly schedules that balances operational coverage, availability, and fatigue risks. Managers can review real-time metrics to approve, reject, or fine-tune assignments.
 > 
 
@@ -56,7 +56,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 > A holistic fatigue scoring system (Quantitative, Qualitative, Psychological) that updates dynamically. It proactively flags critical cases and prevents high-risk scheduling before exhaustion occurs.
 
 
-<img src="./readme/features/Key_Features.png"/>
+<img src="./readme/features/Features.png"/>
 
 
 <br><br>
@@ -71,5 +71,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <br>
 
 <img src="./readme/agent/Agent_Flow.png"/>
+
+### Tests
+
+
+| CI/CD                             | Testing                        |
+| ---------------------------------------  | ------------------------------------- |
+| ![CICD](./readme/tests/CICD.png) | ![Testing](./readme/tests/test_cases.png) |
+
 
 <br><br>
