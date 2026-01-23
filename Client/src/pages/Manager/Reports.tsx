@@ -13,11 +13,13 @@ import {
 import { Download } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/Card";
+import { useToast } from "../../components/ui/Toast";
 
 import { Layout } from "../../components/Sidebar";
 
 const Reports = () => {
   const { departmentId } = useAuth();
+  const { success } = useToast();
 
   const getStartOfWeek = () => {
     const d = new Date();
@@ -115,6 +117,7 @@ const Reports = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    success("Report downloaded successfully");
   };
 
   if (assignmentsLoading || shiftsLoading) {

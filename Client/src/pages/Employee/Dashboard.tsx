@@ -313,6 +313,7 @@ export function Dashboard() {
     incomingSwaps?.filter((swap) => swap.status === "pending").length ?? 0;
 
   const handleViewSchedule = () => navigate("/employee/schedule");
+  const handleViewLogWellness = () => navigate("/employee/wellness");
   const handleViewFatigueDetail = () => navigate("/employee/score");
   const handleBrowseSwaps = () => navigate("/employee/swap-request");
 
@@ -457,7 +458,7 @@ export function Dashboard() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
-                  onClick={handleViewFatigueDetail}
+                  onClick={handleViewLogWellness}
                   className="bg-white border-2 border-[#E5E7EB] rounded-xl p-4 text-left hover:border-[#3B82F6] hover:shadow-md transition-all group"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -497,7 +498,7 @@ export function Dashboard() {
                 </button>
 
                 <button
-                  onClick={() => navigate("/employee/score")}
+                  onClick={handleViewFatigueDetail}
                   className="bg-white border-2 border-[#E5E7EB] rounded-xl p-4 text-left hover:border-[#3B82F6] hover:shadow-md transition-all group"
                 >
                   <div className="flex items-center justify-between mb-2">
