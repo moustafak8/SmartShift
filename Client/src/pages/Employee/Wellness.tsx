@@ -137,21 +137,21 @@ export function Wellness() {
                 </p>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {entries.map((entry) => (
                   <Card
                     key={entry.id}
-                    className="p-6 shadow-sm hover:shadow-md transition-shadow"
+                    className="p-4 shadow-sm hover:shadow-md transition-shadow h-full flex flex-col"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <span className="text-sm text-gray-500">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-sm font-medium text-gray-900">
                         {formatDate(entry.created_at)}
                       </span>
                       <span className="text-xs text-gray-400">
                         {entry.word_count} words
                       </span>
                     </div>
-                    <p className="text-gray-700 leading-relaxed">
+                    <p className="text-gray-600 text-sm leading-relaxed line-clamp-4">
                       {entry.entry_text}
                     </p>
                   </Card>
