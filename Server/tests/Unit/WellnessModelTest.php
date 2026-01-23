@@ -20,7 +20,7 @@ class WellnessModelTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function wellness_entry_belongs_to_employee()
     {
         $employee = User::factory()->employee()->create();
@@ -30,7 +30,7 @@ class WellnessModelTest extends TestCase
         $this->assertEquals($employee->id, $entry->employee->id);
     }
 
-    /* test 2 */
+    /** @test */
     public function wellness_entry_has_correct_fillable_attributes()
     {
         $entry = new WellnessEntries;
@@ -41,7 +41,7 @@ class WellnessModelTest extends TestCase
         $this->assertContains('word_count', $fillable);
     }
 
-    /* test 3 */
+    /** @test */
     public function can_create_wellness_entry_with_word_count()
     {
         $employee = User::factory()->employee()->create();

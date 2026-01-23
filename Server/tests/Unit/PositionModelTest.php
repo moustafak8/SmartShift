@@ -19,7 +19,7 @@ class PositionModelTest extends TestCase
         User_type::create(['id' => 1, 'role_name' => 'manager']);
     }
 
-    /* test 1 */
+    /** @test */
     public function position_belongs_to_department()
     {
         $department = Department::factory()->create();
@@ -29,7 +29,7 @@ class PositionModelTest extends TestCase
         $this->assertEquals($department->id, $position->department->id);
     }
 
-    /* test 2 */
+    /** @test */
     public function position_has_correct_fillable_attributes()
     {
         $position = new Position;
@@ -39,7 +39,7 @@ class PositionModelTest extends TestCase
         $this->assertContains('name', $fillable);
     }
 
-    /* test 3 */
+    /** @test */
     public function can_create_position_with_valid_data()
     {
         $department = Department::factory()->create();

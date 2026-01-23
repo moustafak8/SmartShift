@@ -20,7 +20,7 @@ class WellnessTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function employee_can_view_own_wellness_entries()
     {
         $employee = User::factory()->employee()->create();

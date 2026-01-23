@@ -21,7 +21,7 @@ class ShiftModelTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function shift_belongs_to_department()
     {
         $department = Department::factory()->create();
@@ -31,7 +31,7 @@ class ShiftModelTest extends TestCase
         $this->assertEquals($department->id, $shift->department->id);
     }
 
-    /* test 2 */
+    /** @test */
     public function shift_has_correct_fillable_attributes()
     {
         $shift = new Shifts;
@@ -45,7 +45,7 @@ class ShiftModelTest extends TestCase
         $this->assertContains('required_staff_count', $fillable);
     }
 
-    /* test 3 */
+    /** @test */
     public function shift_can_have_multiple_employees()
     {
         $shift = Shifts::factory()->create();
@@ -64,7 +64,7 @@ class ShiftModelTest extends TestCase
         $this->assertCount(2, $shift->employees);
     }
 
-    /* test 4 */
+    /** @test */
     public function shift_status_defaults_to_open()
     {
         $shift = Shifts::factory()->create([

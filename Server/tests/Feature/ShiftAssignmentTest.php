@@ -23,7 +23,7 @@ class ShiftAssignmentTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function manager_can_delete_shift_assignment()
     {
         $manager = User::factory()->manager()->create();
@@ -51,7 +51,7 @@ class ShiftAssignmentTest extends TestCase
         ]);
     }
 
-    /* test 2 */
+    /** @test */
     public function manager_can_get_shift_assignments()
     {
         $manager = User::factory()->manager()->create();

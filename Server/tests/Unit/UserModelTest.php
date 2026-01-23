@@ -21,7 +21,7 @@ class UserModelTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function user_belongs_to_user_type()
     {
         $user = User::factory()->manager()->create();
@@ -30,7 +30,7 @@ class UserModelTest extends TestCase
         $this->assertEquals('manager', $user->userType->role_name);
     }
 
-    /* test 2 */
+    /** @test */
     public function user_can_belong_to_multiple_departments()
     {
         $user = User::factory()->employee()->create();
@@ -59,7 +59,7 @@ class UserModelTest extends TestCase
         $this->assertCount(2, $user->departments);
     }
 
-    /* test 3 */
+    /** @test */
     public function manager_can_have_managed_departments()
     {
         $manager = User::factory()->manager()->create();
@@ -69,7 +69,7 @@ class UserModelTest extends TestCase
         $this->assertEquals($department->id, $manager->managedDepartments->first()->id);
     }
 
-    /* test 4 */
+    /** @test */
     public function user_has_correct_fillable_attributes()
     {
         $user = new User;
@@ -82,7 +82,7 @@ class UserModelTest extends TestCase
         $this->assertContains('phone', $fillable);
     }
 
-    /* test 5 */
+    /** @test */
     public function user_can_generate_jwt_identifier()
     {
         $user = User::factory()->create();

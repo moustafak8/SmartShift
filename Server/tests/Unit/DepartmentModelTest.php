@@ -21,7 +21,7 @@ class DepartmentModelTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function department_belongs_to_manager()
     {
         $manager = User::factory()->manager()->create();
@@ -31,7 +31,7 @@ class DepartmentModelTest extends TestCase
         $this->assertEquals($manager->id, $department->manager->id);
     }
 
-    /* test 2 */
+    /** @test */
     public function department_can_have_multiple_employees()
     {
         $department = Department::factory()->create();
@@ -60,7 +60,7 @@ class DepartmentModelTest extends TestCase
         $this->assertCount(2, $department->employees);
     }
 
-    /* test 3 */
+    /** @test */
     public function department_has_many_positions()
     {
         $department = Department::factory()->create();
@@ -69,7 +69,7 @@ class DepartmentModelTest extends TestCase
         $this->assertCount(3, $department->positions);
     }
 
-    /* test 4 */
+    /** @test */
     public function department_has_correct_fillable_attributes()
     {
         $department = new Department;

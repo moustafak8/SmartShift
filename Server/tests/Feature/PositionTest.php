@@ -21,7 +21,7 @@ class PositionTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function can_get_all_positions()
     {
         Position::factory()->count(5)->create();
@@ -31,7 +31,7 @@ class PositionTest extends TestCase
         $response->assertStatus(200);
     }
 
-    /* test 2 */
+    /** @test */
     public function can_create_position()
     {
         $department = Department::factory()->create();
@@ -48,7 +48,7 @@ class PositionTest extends TestCase
         ]);
     }
 
-    /* test 3 */
+    /** @test */
     public function can_update_position()
     {
         $position = Position::factory()->create();
@@ -65,7 +65,7 @@ class PositionTest extends TestCase
         ]);
     }
 
-    /* test 4 */
+    /** @test */
     public function can_delete_position()
     {
         $position = Position::factory()->create();

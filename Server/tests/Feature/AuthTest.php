@@ -20,7 +20,7 @@ class AuthTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function user_cannot_login_with_invalid_credentials()
     {
         $user = User::factory()->manager()->create([
@@ -36,7 +36,7 @@ class AuthTest extends TestCase
         $response->assertStatus(401);
     }
 
-    /* test 2 */
+    /** @test */
     public function unauthenticated_user_cannot_access_protected_routes()
     {
         $response = $this->getJson('/api/v1/me');

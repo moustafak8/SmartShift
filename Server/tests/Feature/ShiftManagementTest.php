@@ -21,7 +21,7 @@ class ShiftManagementTest extends TestCase
         User_type::create(['id' => 2, 'role_name' => 'employee']);
     }
 
-    /* test 1 */
+    /** @test */
     public function manager_can_get_department_shifts()
     {
         $manager = User::factory()->manager()->create();
