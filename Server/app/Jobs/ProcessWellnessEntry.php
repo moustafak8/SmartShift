@@ -48,12 +48,8 @@ class ProcessWellnessEntry implements ShouldQueue
 
             $this->saveExtraction($entry->id, $extractedData);
 
-            // Dispatch next job for embedding generation
             GenerateWellnessEmbeddings::dispatch($entry->id);
-
-            Log::info("Successfully processed wellness entry {$this->entryId}");
         } catch (\Exception $e) {
-            Log::error("Failed to process wellness entry {$this->entryId}: {$e->getMessage()}");
             throw $e;
         }
     }
@@ -61,11 +57,6 @@ class ProcessWellnessEntry implements ShouldQueue
     private function getWellnessEntry(): ?WellnessEntries
     {
         $entry = WellnessEntries::find($this->entryId);
-
-        if (! $entry) {
-            Log::warning("Wellness entry {$this->entryId} not found for processing");
-        }
-
         return $entry;
     }
 
@@ -111,12 +102,12 @@ class ProcessWellnessEntry implements ShouldQueue
     private function formatSchema(): string
     {
         $fields = array_map(
-            fn ($key, $type) => "  \"{$key}\": {$type}",
+            fn($key, $type) => "  \"{$key}\": {$type}",
             array_keys(self::EXTRACTION_SCHEMA),
             self::EXTRACTION_SCHEMA
         );
 
-        return "{\n".implode(",\n", $fields)."\n}";
+        return "{\n" . implode(",\n", $fields) . "\n}";
     }
 
     private function cleanResponse(string $content): string
@@ -132,7 +123,7 @@ class ProcessWellnessEntry implements ShouldQueue
         $extracted = json_decode($content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Failed to parse OpenAI response as JSON: '.json_last_error_msg());
+            throw new \RuntimeException('Failed to parse OpenAI response as JSON: ' . json_last_error_msg());
         }
 
         return $extracted;

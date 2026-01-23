@@ -7,9 +7,12 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    protected NotificationService $notificationService;
     public function __construct(
-        protected NotificationService $notificationService
-    ) {}
+        NotificationService $notificationService
+    ) {
+        $this->notificationService = $notificationService;
+    }
 
     public function index(int $userId, Request $request)
     {

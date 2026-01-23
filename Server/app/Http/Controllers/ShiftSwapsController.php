@@ -8,9 +8,12 @@ use Illuminate\Http\Request;
 
 class ShiftSwapsController extends Controller
 {
+    protected ShiftSwapService $swapService;
     public function __construct(
-        protected ShiftSwapService $swapService
-    ) {}
+        ShiftSwapService $swapService
+    ) {
+        $this->swapService = $swapService;
+    }
 
     public function index(Request $request)
     {

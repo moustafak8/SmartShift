@@ -17,9 +17,7 @@ return new class extends Migration
             $table->enum('shift_type', ['day', 'evening', 'night', 'rotating']);
             $table->time('start_time');
             $table->time('end_time');
-            $table->decimal('duration_hours', 4, 2)->storedAs(
-                'TIMESTAMPDIFF(HOUR, start_time, end_time)'
-            );
+            $table->decimal('duration_hours', 4, 2)->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

@@ -79,9 +79,6 @@ class GenerateWellnessEmbeddings implements ShouldQueue
 
             $this->notifyEmployeeIfHighRisk($entry->employee_id, $notificationService);
         } catch (Exception $e) {
-            Log::error(
-                "Failed to generate embeddings for wellness entry {$this->entryId}: {$e->getMessage()}"
-            );
             throw $e;
         }
     }
