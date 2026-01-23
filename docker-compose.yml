@@ -1,6 +1,21 @@
 version: '3.8'
 
 services:
+  
+  db:
+    image: mysql:8.0
+    container_name: smartshift-db
+    restart: always
+    environment:
+      
+      MYSQL_DATABASE: smartshift_db
+      MYSQL_ROOT_PASSWORD: your_strong_password
+    volumes:
+      
+      - db_data:/var/lib/mysql
+    networks:
+      - smartshift-network
+
 
   app:
     build:
@@ -11,9 +26,14 @@ services:
     working_dir: /var/www
     volumes:
       - ./Server/.env:/var/www/.env
+     
+      - ./Server/storage:/var/www/storage
     networks:
       - smartshift-network
+    depends_on:
+      - db
 
+  
   webserver:
     image: nginx:stable-alpine
     container_name: smartshift-webserver
@@ -21,7 +41,8 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./Server:/var/www
+      
+      - ./Server/public:/var/www/public
       - ./nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - smartshift-network
@@ -31,3 +52,6 @@ services:
 networks:
   smartshift-network:
     driver: bridge
+
+volumes:
+  db_data: 
