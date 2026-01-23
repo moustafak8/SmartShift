@@ -14,10 +14,7 @@ export function Wellness() {
   const { success, error } = useToast();
 
   const { entries, isLoading, isError } = useWellnessEntries();
-  const {
-    submitAsync,
-    isLoading: isSubmitting,
-  } = useSubmitWellnessEntry();
+  const { submitAsync, isLoading: isSubmitting } = useSubmitWellnessEntry();
 
   const handleSubmit = async () => {
     if (!entryText.trim()) return;
@@ -111,7 +108,6 @@ export function Wellness() {
             </>
           )}
 
-          {/* Previous Entries Section */}
           <div className="mt-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Previous Entries (7 days)

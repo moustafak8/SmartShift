@@ -12,7 +12,7 @@ class WellnessEmbeddingService
 {
     private const EMBEDDING_MODEL = 'text-embedding-3-small';
 
-    private const SENTIMENT_MODEL = 'gpt-4o';
+    private const SENTIMENT_MODEL = 'gpt-4o-mini';
 
     private const CRITICAL_KEYWORDS = ['suicide', 'harm', 'crisis', 'emergency'];
 
@@ -48,7 +48,7 @@ class WellnessEmbeddingService
         if ($this->hasCriticalKeywords($keywords)) {
             $detected = $this->getDetectedCriticalKeywords($keywords);
 
-            return $this->buildFlagData('critical', 'Critical keywords detected: ' . implode(', ', $detected));
+            return $this->buildFlagData('critical', 'Critical keywords detected: '.implode(', ', $detected));
         }
 
         if ($sentimentScore <= -0.7) {
@@ -248,7 +248,7 @@ class WellnessEmbeddingService
         return [
             'avg_sleep' => $extractions->avg('sleep_hours_before'),
             'avg_meals' => $extractions->avg('meals_count'),
-            'symptoms_count' => $extractions->sum(fn($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0),
+            'symptoms_count' => $extractions->sum(fn ($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0),
         ];
     }
 
@@ -326,7 +326,7 @@ PROMPT;
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \RuntimeException(
-                'Failed to parse sentiment response as JSON: ' . json_last_error_msg()
+                'Failed to parse sentiment response as JSON: '.json_last_error_msg()
             );
         }
 
@@ -337,7 +337,6 @@ PROMPT;
         if (! in_array($data['sentiment_label'], ['positive', 'neutral', 'negative'])) {
             $data['sentiment_label'] = 'neutral';
         }
-
 
         $scoreValue = $data['sentiment_score'];
         if (is_array($scoreValue)) {

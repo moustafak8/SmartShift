@@ -6,6 +6,7 @@ use App\Models\WellnessEntries;
 use App\Models\WellnessEntryExtraction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class ProcessWellnessEntry implements ShouldQueue
@@ -45,10 +46,18 @@ class ProcessWellnessEntry implements ShouldQueue
         try {
             $extractedData = $this->extractDataFromText($entry->entry_text);
 
-            $this->saveExtraction($entry->id, $extractedData);
+            DB::transaction(function () use ($entry, $extractedData) {
+                $this->saveExtraction($entry->id, $extractedData);
+            });
 
             GenerateWellnessEmbeddings::dispatch($entry->id);
         } catch (\Exception $e) {
+            try {
+                WellnessEntries::where('id', $this->entryId)->delete();
+            } catch (\Exception $cleanupException) {
+                throw $cleanupException;
+            }
+
             throw $e;
         }
     }
