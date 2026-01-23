@@ -1,6 +1,4 @@
-
 services:
-  
   db:
     image: mysql:8.0
     container_name: smartshift-db
@@ -14,10 +12,7 @@ services:
       - smartshift-network
 
   app:
-    image: ${DOCKER_USERNAME:-moustafak8}/smartshift-backend:latest
-    build:
-      context: ./Server
-      dockerfile: Dockerfile
+    image: moustafak8/smartshift-backend:latest
     container_name: smartshift-api
     restart: always
     working_dir: /var/www
@@ -29,23 +24,32 @@ services:
     depends_on:
       - db
 
-  webserver:
-    image: ${DOCKER_USERNAME:-moustafak8}/smartshift-frontend:latest
-    build:
-      context: ./Client
-      dockerfile: Dockerfile
-    container_name: smartshift-webserver
+  backend-web:
+    image: nginx:stable-alpine
+    container_name: smartshift-backend-web
     restart: always
     ports:
       - "80:80"
+    volumes:
+      - ./Server/public:/var/www/public
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - smartshift-network
     depends_on:
       - app
+
+  frontend:
+    image: moustafak8/smartshift-frontend:latest
+    container_name: smartshift-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    networks:
+      - smartshift-network
 
 networks:
   smartshift-network:
     driver: bridge
 
 volumes:
-  db_data: 
+  db_data:

@@ -35,6 +35,8 @@ jobs:
           context: ./Client
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-frontend:latest
+          build-args: |
+            VITE_API_URL=http://${{ secrets.NEW_SSH_HOST }}/api/v1
 
   deploy-to-server:
     needs: build-and-push
@@ -46,29 +48,24 @@ jobs:
           host: ${{ secrets.NEW_SSH_HOST }}
           username: ubuntu
           key: ${{ secrets.SSH_KEY }}
-          command_timeout: 30m
           script: |
             cd ~/smartshift-docker
 
-            # Login to Docker Hub
+            # Login and Pull
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
-            # Pull latest code (if using git for compose file, otherwise just pull images)
             if [ -d ".git" ]; then
               git pull origin main
             else
-              git clone https://github.com/moustafak8/SmartShift.git .
+              git clone https://YOUR_TOKEN@github.com/moustafak8/SmartShift.git .
             fi
 
-            # Pull latest images
-            docker compose pull app webserver
+            docker compose pull
 
-            # Restart containers
             docker compose up -d --remove-orphans --no-build
 
-            # Run migrations on backend
             docker exec smartshift-api php artisan migrate --force
             docker exec smartshift-api php artisan config:cache
             docker exec smartshift-api php artisan route:cache
 
-            echo "Deployment via Docker Compose Finished!"
+            echo " Full Stack Deployment Finished!"
