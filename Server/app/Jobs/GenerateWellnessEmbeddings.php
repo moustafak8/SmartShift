@@ -6,6 +6,7 @@ use App\Models\Employee_Department;
 use App\Models\FatigueScore;
 use App\Models\User;
 use App\Models\WellnessEntries;
+use App\Models\WellnessEntryExtraction;
 use App\Models\WellnessEntryVector;
 use App\Services\NotificationService;
 use App\Services\QdrantService;
@@ -13,6 +14,7 @@ use App\Services\WellnessEmbeddingService;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 class GenerateWellnessEmbeddings implements ShouldQueue
 {
@@ -34,12 +36,19 @@ class GenerateWellnessEmbeddings implements ShouldQueue
         }
 
         try {
+            $storedPoint = false;
+
             $qdrantService->ensureCollection();
             $vector = $embeddingService->generateEmbedding($entry->entry_text);
             $sentiment = $embeddingService->extractSentiment($entry->entry_text);
+
+            $sentimentScore = is_array($sentiment['sentiment_score'])
+                ? (float) ($sentiment['sentiment_score'][0] ?? 0)
+                : (float) $sentiment['sentiment_score'];
+
             $flagging = $embeddingService->shouldFlag(
                 $entry->id,
-                $sentiment['sentiment_score'],
+                $sentimentScore,
                 $sentiment['detected_keywords']
             );
             $payload = [
@@ -53,31 +62,51 @@ class GenerateWellnessEmbeddings implements ShouldQueue
             ];
 
             $qdrantService->storeVector($entry->id, $vector, $payload);
+            $storedPoint = true;
 
-            WellnessEntryVector::updateOrCreate(
-                ['entry_id' => $entry->id],
-                [
-                    'qdrant_point_id' => (string) $entry->id,
-                    'sentiment_score' => $sentiment['sentiment_score'],
-                    'sentiment_label' => $sentiment['sentiment_label'],
-                    'detected_keywords' => $sentiment['detected_keywords'],
-                    'is_flagged' => $flagging['is_flagged'],
-                    'flag_reason' => $flagging['flag_reason'] ?? null,
-                    'flag_severity' => $flagging['flag_severity'] ?? null,
-                ]
-            );
+            DB::transaction(function () use ($entry, $sentiment, $flagging, $embeddingService) {
+                WellnessEntryVector::updateOrCreate(
+                    ['entry_id' => $entry->id],
+                    [
+                        'qdrant_point_id' => (string) $entry->id,
+                        'sentiment_score' => $sentiment['sentiment_score'],
+                        'sentiment_label' => $sentiment['sentiment_label'],
+                        'detected_keywords' => $sentiment['detected_keywords'],
+                        'is_flagged' => $flagging['is_flagged'],
+                        'flag_reason' => $flagging['flag_reason'] ?? null,
+                        'flag_severity' => $flagging['flag_severity'] ?? null,
+                    ]
+                );
+
+                $embeddingService->calculateFatigueScore(
+                    $entry->employee_id,
+                    $entry->created_at->format('Y-m-d')
+                );
+            });
 
             if ($flagging['is_flagged']) {
                 $this->notifyManagerOfFlaggedEntry($entry, $flagging, $notificationService);
             }
 
-            $embeddingService->calculateFatigueScore(
-                $entry->employee_id,
-                $entry->created_at->format('Y-m-d')
-            );
-
             $this->notifyEmployeeIfHighRisk($entry->employee_id, $notificationService);
         } catch (Exception $e) {
+            $employeeId = $entry->employee_id;
+
+            try {
+                if (isset($storedPoint) && $storedPoint) {
+                    $qdrantService->deletePoint($entry->id);
+                }
+                WellnessEntryVector::where('entry_id', $entry->id)->delete();
+                FatigueScore::where('employee_id', $entry->employee_id)
+                    ->where('score_date', $entry->created_at->format('Y-m-d'))
+                    ->delete();
+                WellnessEntryExtraction::where('entry_id', $entry->id)->delete();
+                WellnessEntries::where('id', $entry->id)->delete();
+                $this->notifyEmployeeOfProcessingFailure($employeeId, $notificationService);
+            } catch (Exception $cleanupException) {
+                throw $cleanupException;
+            }
+
             throw $e;
         }
     }
@@ -96,7 +125,9 @@ class GenerateWellnessEmbeddings implements ShouldQueue
         foreach ($departments as $dept) {
             $managers = User::whereHas('employeeDepartments', function ($q) use ($dept) {
                 $q->where('department_id', $dept->department_id);
-            })->where('role', 'manager')->get();
+            })->whereHas('userType', function ($q) {
+                $q->where('role_name', 'manager');
+            })->get();
 
             foreach ($managers as $manager) {
                 $severity = $flagging['flag_severity'] ?? 'medium';
@@ -135,6 +166,26 @@ class GenerateWellnessEmbeddings implements ShouldQueue
             'high',
             'fatigue_score',
             $score->id
+        );
+    }
+
+    private function notifyEmployeeOfProcessingFailure(
+        int $employeeId,
+        NotificationService $notificationService
+    ): void {
+        $employee = User::find($employeeId);
+        if (! $employee) {
+            return;
+        }
+
+        $notificationService->send(
+            $employeeId,
+            NotificationService::TYPE_WELLNESS_ALERT,
+            'Wellness Entry Processing Failed',
+            'We encountered an error while processing your wellness entry. Please try submitting your entry again.',
+            'high',
+            'wellness_entry',
+            null
         );
     }
 }

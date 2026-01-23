@@ -12,7 +12,7 @@ class WellnessEmbeddingService
 {
     private const EMBEDDING_MODEL = 'text-embedding-3-small';
 
-    private const SENTIMENT_MODEL = 'gpt-4o';
+    private const SENTIMENT_MODEL = 'gpt-4o-mini';
 
     private const CRITICAL_KEYWORDS = ['suicide', 'harm', 'crisis', 'emergency'];
 
@@ -338,7 +338,11 @@ PROMPT;
             $data['sentiment_label'] = 'neutral';
         }
 
-        $data['sentiment_score'] = max(-1, min(1, (float) $data['sentiment_score']));
+        $scoreValue = $data['sentiment_score'];
+        if (is_array($scoreValue)) {
+            $scoreValue = $scoreValue[0] ?? 0;
+        }
+        $data['sentiment_score'] = max(-1, min(1, (float) $scoreValue));
 
         $data['detected_keywords'] = is_array($data['detected_keywords'])
             ? array_map('strtolower', $data['detected_keywords'])
