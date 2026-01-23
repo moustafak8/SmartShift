@@ -1,8 +1,7 @@
 version: '3.8'
 
 services:
-  # 1. THE BACKEND (PHP-FPM)
-  # This container runs your Laravel code
+
   app:
     build:
       context: ./Server
@@ -12,13 +11,10 @@ services:
     working_dir: /var/www
     volumes:
       - ./Server:/var/www
-      # We use a volume for .env so we don't bake secrets into the image
       - ./Server/.env:/var/www/.env
     networks:
       - smartshift-network
 
-  # 2. THE WEBSERVER (Nginx)
-  # We need Nginx to talk to the PHP-FPM container
   webserver:
     image: nginx:stable-alpine
     container_name: smartshift-webserver
@@ -27,7 +23,6 @@ services:
       - "80:80"
     volumes:
       - ./Server:/var/www
-      # We will create this local nginx config in the next step
       - ./nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - smartshift-network
