@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User_type>
  */
-class UserTypeFactory extends Factory
+class User_typeFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,7 +17,7 @@ class UserTypeFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'role_name' => $this->faker->randomElement(['manager', 'employee']),
         ];
     }
 }

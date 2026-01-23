@@ -560,7 +560,6 @@ class GenerateScheduleService
 
             $shiftData = $scheduleRequirements[$shiftId];
 
-            // Check constraint before assigning
             if ($this->canEmployeeWorkShift(
                 $employeeId,
                 $shiftData['shift_date'],

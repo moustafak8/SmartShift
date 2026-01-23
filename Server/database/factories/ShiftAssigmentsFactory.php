@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Shifts;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +19,10 @@ class ShiftAssigmentsFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'shift_id' => Shifts::factory(),
+            'employee_id' => User::factory()->employee(),
+            'assignment_type' => $this->faker->randomElement(['regular', 'overtime', 'backup']),
+            'status' => $this->faker->randomElement(['pending', 'confirmed', 'cancelled']),
         ];
     }
 }

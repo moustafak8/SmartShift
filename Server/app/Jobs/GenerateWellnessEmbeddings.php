@@ -13,7 +13,6 @@ use App\Services\WellnessEmbeddingService;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 
 class GenerateWellnessEmbeddings implements ShouldQueue
 {
@@ -79,9 +78,6 @@ class GenerateWellnessEmbeddings implements ShouldQueue
 
             $this->notifyEmployeeIfHighRisk($entry->employee_id, $notificationService);
         } catch (Exception $e) {
-            Log::error(
-                "Failed to generate embeddings for wellness entry {$this->entryId}: {$e->getMessage()}"
-            );
             throw $e;
         }
     }

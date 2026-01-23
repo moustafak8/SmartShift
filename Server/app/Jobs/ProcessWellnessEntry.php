@@ -6,7 +6,6 @@ use App\Models\WellnessEntries;
 use App\Models\WellnessEntryExtraction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class ProcessWellnessEntry implements ShouldQueue
@@ -48,12 +47,8 @@ class ProcessWellnessEntry implements ShouldQueue
 
             $this->saveExtraction($entry->id, $extractedData);
 
-            // Dispatch next job for embedding generation
             GenerateWellnessEmbeddings::dispatch($entry->id);
-
-            Log::info("Successfully processed wellness entry {$this->entryId}");
         } catch (\Exception $e) {
-            Log::error("Failed to process wellness entry {$this->entryId}: {$e->getMessage()}");
             throw $e;
         }
     }
@@ -61,10 +56,6 @@ class ProcessWellnessEntry implements ShouldQueue
     private function getWellnessEntry(): ?WellnessEntries
     {
         $entry = WellnessEntries::find($this->entryId);
-
-        if (! $entry) {
-            Log::warning("Wellness entry {$this->entryId} not found for processing");
-        }
 
         return $entry;
     }
