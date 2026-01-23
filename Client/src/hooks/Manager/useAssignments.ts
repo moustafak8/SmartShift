@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../../api/axios";
 import type { CreateAssignmentRequest, UpdateAssignmentRequest, AvailableEmployeesResponse } from "../../hooks/types/schedule";
 const createAssignment = async (data: CreateAssignmentRequest): Promise<any> => {
@@ -30,21 +30,39 @@ const fetchAvailableEmployees = async (
 };
 
 export const useCreateAssignment = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createAssignment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shifts"] });
+      queryClient.invalidateQueries({ queryKey: ["available-employees"] });
+      queryClient.invalidateQueries({ queryKey: ["shift-assignments"] });
+    },
   });
 };
 
 export const useDeleteAssignment = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteAssignment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shifts"] });
+      queryClient.invalidateQueries({ queryKey: ["available-employees"] });
+      queryClient.invalidateQueries({ queryKey: ["shift-assignments"] });
+    },
   });
 };
 
 export const useUpdateAssignment = () => {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ assignmentId, data }: { assignmentId: number; data: UpdateAssignmentRequest }) =>
       updateAssignment(assignmentId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["shifts"] });
+      queryClient.invalidateQueries({ queryKey: ["available-employees"] });
+      queryClient.invalidateQueries({ queryKey: ["shift-assignments"] });
+    },
   });
 };
 
