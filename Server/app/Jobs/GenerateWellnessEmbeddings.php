@@ -37,9 +37,15 @@ class GenerateWellnessEmbeddings implements ShouldQueue
             $qdrantService->ensureCollection();
             $vector = $embeddingService->generateEmbedding($entry->entry_text);
             $sentiment = $embeddingService->extractSentiment($entry->entry_text);
+
+
+            $sentimentScore = is_array($sentiment['sentiment_score'])
+                ? (float)($sentiment['sentiment_score'][0] ?? 0)
+                : (float)$sentiment['sentiment_score'];
+
             $flagging = $embeddingService->shouldFlag(
                 $entry->id,
-                $sentiment['sentiment_score'],
+                $sentimentScore,
                 $sentiment['detected_keywords']
             );
             $payload = [
@@ -96,7 +102,9 @@ class GenerateWellnessEmbeddings implements ShouldQueue
         foreach ($departments as $dept) {
             $managers = User::whereHas('employeeDepartments', function ($q) use ($dept) {
                 $q->where('department_id', $dept->department_id);
-            })->where('role', 'manager')->get();
+            })->whereHas('userType', function ($q) {
+                $q->where('role_name', 'manager');
+            })->get();
 
             foreach ($managers as $manager) {
                 $severity = $flagging['flag_severity'] ?? 'medium';

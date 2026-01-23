@@ -5,27 +5,34 @@ import { Textarea } from "../../components/ui/Textarea";
 import { Button } from "../../components/ui/Button";
 import { useWellnessEntries } from "../../hooks/Employee/useWellnessEntries";
 import { useSubmitWellnessEntry } from "../../hooks/Employee/useSubmitWellnessEntry";
+import { useToast } from "../../components/ui/Toast";
+import { Loader2 } from "lucide-react";
 
 export function Wellness() {
   const [entryText, setEntryText] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const { success, error } = useToast();
 
   const { entries, isLoading, isError } = useWellnessEntries();
   const {
-    submit,
+    submitAsync,
     isLoading: isSubmitting,
-    isError: isSubmitError,
   } = useSubmitWellnessEntry();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!entryText.trim()) return;
 
-    submit(entryText);
-    setSubmitted(true);
-    setTimeout(() => {
-      setEntryText("");
-      setSubmitted(false);
-    }, 3000);
+    try {
+      await submitAsync(entryText);
+      success("Wellness entry recorded successfully");
+      setSubmitted(true);
+      setTimeout(() => {
+        setEntryText("");
+        setSubmitted(false);
+      }, 3000);
+    } catch (err) {
+      error("Failed to submit entry. Please try again.");
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -81,28 +88,26 @@ export function Wellness() {
                   placeholder='e.g., "Worked 12h night shift, got 4h sleep, ate sandwich, stressed about understaffing..."'
                   value={entryText}
                   onChange={(e) => setEntryText(e.target.value)}
-                  className="min-h-[180px] resize-y focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                  className="min-h-[180px] resize-y focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all mb-4"
                 />
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!entryText.trim() || isSubmitting}
+                    variant="primary"
+                    size="md"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                        Submitting...
+                      </>
+                    ) : (
+                      "Submit Entry"
+                    )}
+                  </Button>
+                </div>
               </Card>
-
-              {isSubmitError && (
-                <Card className="p-4 mb-4 bg-red-50 border-red-200">
-                  <p className="text-red-600 text-sm">
-                    Failed to submit wellness entry. Please try again.
-                  </p>
-                </Card>
-              )}
-
-              <div className="flex justify-end mb-8">
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!entryText.trim() || isSubmitting}
-                  variant="primary"
-                  size="md"
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Entry"}
-                </Button>
-              </div>
             </>
           )}
 

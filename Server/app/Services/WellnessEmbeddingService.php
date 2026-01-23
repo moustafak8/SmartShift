@@ -48,7 +48,7 @@ class WellnessEmbeddingService
         if ($this->hasCriticalKeywords($keywords)) {
             $detected = $this->getDetectedCriticalKeywords($keywords);
 
-            return $this->buildFlagData('critical', 'Critical keywords detected: '.implode(', ', $detected));
+            return $this->buildFlagData('critical', 'Critical keywords detected: ' . implode(', ', $detected));
         }
 
         if ($sentimentScore <= -0.7) {
@@ -248,7 +248,7 @@ class WellnessEmbeddingService
         return [
             'avg_sleep' => $extractions->avg('sleep_hours_before'),
             'avg_meals' => $extractions->avg('meals_count'),
-            'symptoms_count' => $extractions->sum(fn ($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0),
+            'symptoms_count' => $extractions->sum(fn($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0),
         ];
     }
 
@@ -326,7 +326,7 @@ PROMPT;
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \RuntimeException(
-                'Failed to parse sentiment response as JSON: '.json_last_error_msg()
+                'Failed to parse sentiment response as JSON: ' . json_last_error_msg()
             );
         }
 
@@ -338,7 +338,12 @@ PROMPT;
             $data['sentiment_label'] = 'neutral';
         }
 
-        $data['sentiment_score'] = max(-1, min(1, (float) $data['sentiment_score']));
+
+        $scoreValue = $data['sentiment_score'];
+        if (is_array($scoreValue)) {
+            $scoreValue = $scoreValue[0] ?? 0;
+        }
+        $data['sentiment_score'] = max(-1, min(1, (float) $scoreValue));
 
         $data['detected_keywords'] = is_array($data['detected_keywords'])
             ? array_map('strtolower', $data['detected_keywords'])
