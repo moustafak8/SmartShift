@@ -503,15 +503,6 @@ export function ManageAssignmentsDialog({
                   </select>
                 </div>
 
-                <Button
-                  onClick={handleAddAssignment}
-                  disabled={!selectedEmployeeId || isCreating}
-                  className="w-full bg-[#10B981] hover:bg-[#059669] text-white !py-2 !px-4 text-sm h-10 flex items-center justify-center gap-2"
-                  size="sm"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Add Assignment</span>
-                </Button>
               </div>
               {availableEmployees.length === 0 && !loadingEmployees && (
                 <p className="text-xs text-amber-600 mt-2">
@@ -545,9 +536,24 @@ export function ManageAssignmentsDialog({
           )}
         </div>
 
-        <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
-          <Button variant="secondary" size="sm" onClick={onClose}>
-            Close
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <Button variant="secondary" size="sm" onClick={onClose} disabled={isCreating}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleAddAssignment}
+            disabled={!selectedEmployeeId || isCreating}
+            className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white flex items-center gap-2"
+          >
+            {isCreating ? (
+              "Adding..."
+            ) : (
+              <>
+                <UserPlus className="w-4 h-4" />
+                <span>Add Assignment</span>
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>

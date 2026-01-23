@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../api/axios";
 import type { AddEmployeeFormData } from "../types/teamOverview";
 
@@ -24,8 +24,12 @@ const addEmployee = async (data: AddEmployeeFormData): Promise<AddEmployeeRespon
 };
 
 export const useAddEmployee = () => {
+    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: addEmployee,
         retry: false,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+        },
     });
 };
