@@ -10,7 +10,6 @@ services:
     restart: always
     working_dir: /var/www
     volumes:
-      - ./Server:/var/www
       - ./Server/.env:/var/www/.env
     networks:
       - smartshift-network
