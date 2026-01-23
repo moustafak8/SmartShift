@@ -1,95 +1,68 @@
-name: Deploy to AWS (CD)
+name: Docker Backend Deploy
 
 on:
   push:
+    paths:
+      - 'Server/**'
+      - 'nginx/**'
+      - 'docker-compose.yml'
     branches: [main]
 
 jobs:
-  # JOB 1: DEPLOY FRONTEND (Client Folder)
-  deploy-frontend:
-    name: Deploy React Frontend
+  build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          node-version: 20
-          cache: "npm"
-          cache-dependency-path: Client/package-lock.json
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Install Dependencies
-        working-directory: ./Client
-        run: npm ci
-
-      - name: Build React App
-        working-directory: ./Client
-        run: npm run build
-        env:
-          VITE_API_URL: "http://${{ secrets.SSH_HOST }}/api/v1"
-
-      - name: Upload to AWS
-        uses: appleboy/scp-action@v0.1.7
+      - name: Build and push Backend Image
+        uses: docker/build-push-action@v5
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "Client/dist/*"
-          target: "/var/www/html/smartshift-frontend"
-          strip_components: 2 # Removes "Client/dist" from the path
+          context: ./Server
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-backend:latest
 
-  # JOB 2: DEPLOY BACKEND (Server Folder)
-  deploy-backend:
-    name: Deploy Laravel Backend
+  deploy-to-server:
+    needs: build-and-push
     runs-on: ubuntu-latest
-    needs: deploy-frontend
-
     steps:
-      - name: Update Backend on Server
-        uses: appleboy/ssh-action@v0.1.8
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ secrets.NEW_SSH_HOST }}
+          username: ubuntu
           key: ${{ secrets.SSH_KEY }}
           script: |
-            set -e
+            # 1. Navigate to project folder
+            cd ~/smartshift-docker
 
-            echo " Starting Backend Deployment..."
+            # 2. Login to Docker Hub
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-            # 1. Navigate to the main repo folder
-            cd /var/www/html/smartshift
+            # 3. Pull the latest repository files (to get the latest docker-compose.yml and nginx configs)
+            if [ -d ".git" ]; then
+              git pull origin main
+            else
+              # Replace with your actual repo URL
+              git clone https://github.com/moustafak8/SmartShift.git .
+            fi
 
-            # 2. Force 'ubuntu' to take ownership so Git can write
-            sudo chown -R ubuntu:ubuntu .
+            # 4. Pull the latest Docker Image
+            docker compose pull app
 
-            # 3. Pull the latest code (Client & Server folders)
-            git fetch origin main
-            git reset --hard origin/main
+            # 5. Restart the containers in detached mode
+            # This handles stopping old ones and starting new ones automatically
+            docker compose up -d --remove-orphans
 
-            # 4. Enter the NEW Server folder
-            cd Server
+            # 6. Run Laravel optimizations inside the container
+            docker exec smartshift-api php artisan migrate --force
+            docker exec smartshift-api php artisan config:cache
+            docker exec smartshift-api php artisan route:cache
 
-            # 5. Nuke old vendor to prevent conflicts
-            echo " Nuke broken vendor folder..."
-            rm -rf vendor
-
-            # 6. Install Dependencies (Ignoring PHP 8.3 mismatch)
-            /usr/local/bin/composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev --ignore-platform-reqs
-
-            # 7. Run Migrations & Cache
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-
-            # 8. Give permissions BACK to Apache
-            sudo chown -R www-data:www-data storage bootstrap/cache
-            sudo chmod -R 775 storage bootstrap/cache
-
-            # 9. Reload Apache
-            sudo systemctl reload apache2
-
-            echo " Deployment Finished Successfully!"
+            echo "✅ Backend Deployment via Docker Compose Finished!"
