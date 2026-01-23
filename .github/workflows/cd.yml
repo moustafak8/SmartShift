@@ -1,9 +1,10 @@
-name: Docker Backend Deploy
+name: Docker Deploy
 
 on:
   push:
     paths:
       - 'Server/**'
+      - 'Client/**'
       - 'nginx/**'
       - 'docker-compose.yml'
     branches: [main]
@@ -28,6 +29,13 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-backend:latest
 
+      - name: Build and push Frontend Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./Client
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-frontend:latest
+
   deploy-to-server:
     needs: build-and-push
     runs-on: ubuntu-latest
@@ -41,20 +49,25 @@ jobs:
           script: |
             cd ~/smartshift-docker
 
+            # Login to Docker Hub
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
+            
+            # Pull latest code (if using git for compose file, otherwise just pull images)
             if [ -d ".git" ]; then
               git pull origin main
             else
               git clone https://github.com/moustafak8/SmartShift.git .
             fi
 
-            docker compose pull app
+            # Pull latest images
+            docker compose pull app webserver
 
+            # Restart containers
             docker compose up -d --remove-orphans
 
+            # Run migrations on backend
             docker exec smartshift-api php artisan migrate --force
             docker exec smartshift-api php artisan config:cache
             docker exec smartshift-api php artisan route:cache
 
-            echo " Backend Deployment via Docker Compose Finished!"
+            echo "Deployment via Docker Compose Finished!"
