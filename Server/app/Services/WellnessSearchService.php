@@ -138,7 +138,7 @@ class WellnessSearchService
 
             if (isset($result['entry_date'])) {
                 try {
-                    $entryDate = \Carbon\Carbon::parse($result['entry_date'].' '.now()->year);
+                    $entryDate = \Carbon\Carbon::parse($result['entry_date'] . ' ' . now()->year);
 
                     return $entryDate >= $dateRange['start'] && $entryDate <= $dateRange['end'];
                 } catch (\Exception $e) {
@@ -230,7 +230,7 @@ class WellnessSearchService
         $stopwords = ['what', 'are', 'the', 'is', 'how', 'why', 'when', 'where', 'which', 'if', 'for', 'and', 'or', 'to', 'in', 'on', 'at', 'by', 'from', 'of', 'about', 'with', 'me', 'show', 'find', 'get', 'all'];
 
         $words = preg_split('/\W+/', $queryLower, -1, PREG_SPLIT_NO_EMPTY);
-        $keywords = array_filter($words, fn ($w) => ! in_array($w, $stopwords) && strlen($w) > 2);
+        $keywords = array_filter($words, fn($w) => ! in_array($w, $stopwords) && strlen($w) > 2);
 
         return array_values($keywords);
     }
@@ -349,7 +349,7 @@ class WellnessSearchService
         return $employeeNames[$entry->employee_id]
             ?? $entry->employee->name
             ?? $result['payload']['employee_name']
-            ?? ('Employee #'.$entry->employee_id);
+            ?? ('Employee #' . $entry->employee_id);
     }
 
     private function extractRelevantSnippet(string $text, array $keywords): string
@@ -368,7 +368,7 @@ class WellnessSearchService
             return $this->formatPreview($text);
         }
 
-        usort($scoredSentences, fn ($a, $b) => $b['score'] - $a['score']);
+        usort($scoredSentences, fn($a, $b) => $b['score'] - $a['score']);
         $bestSentenceIdx = $scoredSentences[0]['index'];
 
         $contextStart = max(0, $bestSentenceIdx - 1);
@@ -429,10 +429,10 @@ class WellnessSearchService
         }
 
         if ($lastSpace !== false) {
-            return mb_substr($preview, 0, $lastSpace).'...';
+            return mb_substr($preview, 0, $lastSpace) . '...';
         }
 
-        return $preview.'...';
+        return $preview . '...';
     }
 
     private function buildContextAndSources(array $searchResults): array
@@ -441,7 +441,7 @@ class WellnessSearchService
         $sources = [];
 
         foreach ($searchResults as $index => $result) {
-            $context .= $result['content']."\n\n";
+            $context .= $result['content'] . "\n\n";
             $sources[] = $this->buildSource($result, $index + 1);
         }
 
@@ -471,24 +471,24 @@ class WellnessSearchService
     private function callOpenAIChat(string $query, string $context, array $sources): string
     {
         $systemPrompt = 'You are an expert HR wellness analyst providing detailed, evidence-based insights. '
-            .'Analyze employee wellness entries deeply and comprehensively. Use ONLY the provided context—never invent facts. '
-            .'Identify patterns, sentiment trends, and critical concerns across multiple entries. '
-            .'Prioritize flagged entries and negative sentiment entries as they indicate higher risk. '
-            .'Weigh evidence by source relevance scores (higher scores = more relevant). '
-            .'Always cite specific sources using [1], [2], etc. for every factual claim with the exact employee name and date. '
-            .'Provide thorough, flowing answers that synthesize information naturally while maintaining strict citation discipline. '
-            .'Include specific details like dates, employee names, quotes, emotions, and contextual factors. '
-            .'If concerning patterns emerge (recurring issues, multiple employees affected), highlight them prominently. ';
+            . 'Analyze employee wellness entries deeply and comprehensively. Use ONLY the provided context—never invent facts. '
+            . 'Identify patterns, sentiment trends, and critical concerns across multiple entries. '
+            . 'Prioritize flagged entries and negative sentiment entries as they indicate higher risk. '
+            . 'Weigh evidence by source relevance scores (higher scores = more relevant). '
+            . 'Always cite specific sources using [1], [2], etc. for every factual claim with the exact employee name and date. '
+            . 'Provide thorough, flowing answers that synthesize information naturally while maintaining strict citation discipline. '
+            . 'Include specific details like dates, employee names, quotes, emotions, and contextual factors. '
+            . 'If concerning patterns emerge (recurring issues, multiple employees affected), highlight them prominently. ';
 
         $sourcesText = $this->formatSourcesForPrompt($sources);
         $userPrompt = "Sources:\n{$sourcesText}\n\n"
-            ."Wellness Entry Context:\n{$context}\n\n"
-            ."Question: {$query}\n\n"
-            .'Provide a comprehensive, detailed answer that synthesizes the wellness entries above. '
-            .'Cite every fact with bracketed numbers [1], [2], etc. matching the sources. '
-            .'Prioritize higher-scored sources and entries matching the query intent (sentiment, flags, keywords). '
-            .'Include relevant quotes, dates, and specific situations from the entries. '
-            .'If patterns or concerns emerge, highlight them clearly.';
+            . "Wellness Entry Context:\n{$context}\n\n"
+            . "Question: {$query}\n\n"
+            . 'Provide a comprehensive, detailed answer that synthesizes the wellness entries above. '
+            . 'Cite every fact with bracketed numbers [1], [2], etc. matching the sources. '
+            . 'Prioritize higher-scored sources and entries matching the query intent (sentiment, flags, keywords). '
+            . 'Include relevant quotes, dates, and specific situations from the entries. '
+            . 'If patterns or concerns emerge, highlight them clearly.';
 
         $response = OpenAI::chat()->create([
             'model' => self::OPENAI_CHAT_MODEL,
@@ -507,12 +507,9 @@ class WellnessSearchService
     {
         $formatted = '';
         foreach ($sources as $source) {
-            $flagIcon = ($source['is_flagged'] ?? false) ? '⚠️ ' : '';
-
             $formatted .= sprintf(
                 "[%d] %s%s (%s) — relevance: %.3f, sentiment: %s\n",
                 $source['citation_number'],
-                $flagIcon,
                 $source['employee_name'],
                 $source['entry_date'],
                 $source['score'] ?? 0,
