@@ -6,8 +6,6 @@ import { HowItWorksSection } from "../components/Home/HowItWorksSection";
 import { FeaturesSection } from "../components/Home/FeaturesSection";
 import { BenefitsSection } from "../components/Home/BenefitsSection";
 import { UseCaseSection } from "../components/Home/UseCaseSection";
-import { TestimonialsSection } from "../components/Home/TestimonialsSection";
-import { FinalCTASection } from "../components/Home/FinalCTASection";
 import { Footer } from "../components/Home/Footer";
 export default function Landingpage() {
   return (
@@ -20,8 +18,6 @@ export default function Landingpage() {
       <FeaturesSection />
       <BenefitsSection />
       <UseCaseSection />
-      <TestimonialsSection />
-      <FinalCTASection />
       <Footer />
     </div>
   );
