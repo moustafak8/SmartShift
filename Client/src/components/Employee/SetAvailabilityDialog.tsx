@@ -1,402 +1,462 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../hooks/context/AuthContext";
-import { useStoreEmployeeAvailability, useUpdateEmployeeAvailability } from "../../hooks/Employee/useEmployeeAvailability";
-import type { StoreAvailabilityPayload, EmployeeAvailability } from "../../hooks/types/availability";
+import {
+  useStoreEmployeeAvailability,
+  useUpdateEmployeeAvailability,
+} from "../../hooks/Employee/useEmployeeAvailability";
+import type {
+  StoreAvailabilityPayload,
+  EmployeeAvailability,
+} from "../../hooks/types/availability";
 import { Button } from "../ui/Button";
 import { Input } from "../ui/Input";
 import { Textarea } from "../ui/Textarea";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "../ui/Dialog";
 import { useToast } from "../ui/Toast";
 
 interface SetAvailabilityDialogProps {
-    trigger?: React.ReactNode;
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
-    initialData?: EmployeeAvailability;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialData?: EmployeeAvailability;
 }
 
 const DAYS_OF_WEEK = [
-    { value: 0, label: 'Sunday' },
-    { value: 1, label: 'Monday' },
-    { value: 2, label: 'Tuesday' },
-    { value: 3, label: 'Wednesday' },
-    { value: 4, label: 'Thursday' },
-    { value: 5, label: 'Friday' },
-    { value: 6, label: 'Saturday' },
+  { value: 0, label: "Sunday" },
+  { value: 1, label: "Monday" },
+  { value: 2, label: "Tuesday" },
+  { value: 3, label: "Wednesday" },
+  { value: 4, label: "Thursday" },
+  { value: 5, label: "Friday" },
+  { value: 6, label: "Saturday" },
 ];
 
 export function SetAvailabilityDialog({
-    trigger,
-    open,
-    onOpenChange,
-    initialData,
+  trigger,
+  open,
+  onOpenChange,
+  initialData,
 }: SetAvailabilityDialogProps) {
-    const { user } = useAuth();
-    const toast = useToast();
-    const { mutate: storeAvailability, isPending: isCreating } = useStoreEmployeeAvailability();
-    const { mutate: updateAvailability, isPending: isUpdating } = useUpdateEmployeeAvailability();
-    const [isOpen, setIsOpen] = useState(false);
-    const isPending = isCreating || isUpdating;
-    const isEditMode = !!initialData;
+  const { user } = useAuth();
+  const toast = useToast();
+  const { mutate: storeAvailability, isPending: isCreating } =
+    useStoreEmployeeAvailability();
+  const { mutate: updateAvailability, isPending: isUpdating } =
+    useUpdateEmployeeAvailability();
+  const [isOpen, setIsOpen] = useState(false);
+  const isPending = isCreating || isUpdating;
+  const isEditMode = !!initialData;
 
+  const [formData, setFormData] = useState({
+    availability_type: "recurring" as "recurring" | "specific",
+    date_type: "specific_date" as "specific_date" | "day_of_week",
+    specific_date: "",
+    day_of_week: null as number | null,
+    is_available: true,
+    preferred_shift_type: "any" as "day" | "evening" | "night" | "any",
+    reason: "" as
+      | "vacation"
+      | "sick"
+      | "personal"
+      | "appointment"
+      | "other"
+      | "",
+    notes: "",
+  });
 
-    const [formData, setFormData] = useState({
-        availability_type: "recurring" as "recurring" | "specific",
-        date_type: "specific_date" as "specific_date" | "day_of_week",
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        availability_type: initialData.specific_date ? "specific" : "recurring",
+        date_type: initialData.specific_date
+          ? "specific_date"
+          : initialData.day_of_week !== null
+            ? "day_of_week"
+            : "specific_date",
+        specific_date: initialData.specific_date || "",
+        day_of_week: initialData.day_of_week,
+        is_available: initialData.is_available,
+        preferred_shift_type: initialData.preferred_shift_type || "any",
+        reason: initialData.reason || "",
+        notes: initialData.notes || "",
+      });
+    }
+  }, [initialData]);
+
+  const handleOpenChange = (newOpen: boolean) => {
+    setIsOpen(newOpen);
+    onOpenChange?.(newOpen);
+    if (!newOpen && !initialData) {
+      setFormData({
+        availability_type: "recurring",
+        date_type: "specific_date",
         specific_date: "",
-        day_of_week: null as number | null,
+        day_of_week: null,
         is_available: true,
-        preferred_shift_type: "any" as "day" | "evening" | "night" | "any",
-        reason: "" as "vacation" | "sick" | "personal" | "appointment" | "other" | "",
+        preferred_shift_type: "any",
+        reason: "",
         notes: "",
-    });
+      });
+    }
+  };
 
-    useEffect(() => {
-        if (initialData) {
-            setFormData({
-                availability_type: initialData.specific_date ? "specific" : "recurring",
-                date_type: initialData.specific_date ? "specific_date" : initialData.day_of_week !== null ? "day_of_week" : "specific_date",
-                specific_date: initialData.specific_date || "",
-                day_of_week: initialData.day_of_week,
-                is_available: initialData.is_available,
-                preferred_shift_type: initialData.preferred_shift_type || "any",
-                reason: initialData.reason || "",
-                notes: initialData.notes || "",
-            });
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    if (isEditMode && initialData) {
+      const updateData: Partial<StoreAvailabilityPayload> = {
+        is_available: formData.is_available,
+      };
+      if (formData.is_available) {
+        updateData.preferred_shift_type = formData.preferred_shift_type;
+      } else {
+        // Only include reason and notes if unavailable
+        if (formData.reason) {
+          updateData.reason = formData.reason;
         }
-    }, [initialData]);
-
-    const handleOpenChange = (newOpen: boolean) => {
-        setIsOpen(newOpen);
-        onOpenChange?.(newOpen);
-        if (!newOpen && !initialData) {
-            setFormData({
-                availability_type: "recurring",
-                date_type: "specific_date",
-                specific_date: "",
-                day_of_week: null,
-                is_available: true,
-                preferred_shift_type: "any",
-                reason: "",
-                notes: "",
-            });
+        if (formData.notes) {
+          updateData.notes = formData.notes;
         }
-    };
+      }
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) return;
+      updateAvailability(
+        { id: initialData.id, data: updateData },
+        {
+          onSuccess: () => {
+            toast.success("Availability updated successfully");
+            handleOpenChange(false);
+          },
+          onError: () => {
+            toast.error("Failed to update availability. Please try again.");
+          },
+        },
+      );
+      return;
+    }
 
-        if (isEditMode && initialData) {
-            const updateData: Partial<StoreAvailabilityPayload> = {
-                is_available: formData.is_available,
-            };
-            if (formData.is_available) {
-                updateData.preferred_shift_type = formData.preferred_shift_type;
-            } else {
-                // Only include reason and notes if unavailable
-                if (formData.reason) {
-                    updateData.reason = formData.reason;
+    // Create new availability
+    if (formData.availability_type === "recurring") {
+      const payload: StoreAvailabilityPayload = {
+        employee_id: user.id,
+        is_recurring: true,
+        is_available: formData.is_available,
+        preferred_shift_type: formData.preferred_shift_type,
+      };
+
+      storeAvailability(payload, {
+        onSuccess: () => {
+          toast.success("Recurring availability saved for all week");
+          handleOpenChange(false);
+        },
+        onError: () => {
+          toast.error("Failed to save availability. Please try again.");
+        },
+      });
+    } else if (
+      formData.date_type === "specific_date" &&
+      formData.specific_date
+    ) {
+      const payload: StoreAvailabilityPayload = {
+        employee_id: user.id,
+        specific_date: formData.specific_date,
+        is_available: formData.is_available,
+        reason: formData.reason || undefined,
+        notes: formData.notes || undefined,
+      };
+
+      if (formData.is_available && formData.preferred_shift_type) {
+        payload.preferred_shift_type = formData.preferred_shift_type;
+      }
+
+      storeAvailability(payload, {
+        onSuccess: () => {
+          toast.success(
+            formData.is_available
+              ? "Availability saved successfully"
+              : "Unavailability saved successfully",
+          );
+          handleOpenChange(false);
+        },
+        onError: () => {
+          toast.error("Failed to save availability. Please try again.");
+        },
+      });
+    } else if (
+      formData.date_type === "day_of_week" &&
+      formData.day_of_week !== null
+    ) {
+      const payload: StoreAvailabilityPayload = {
+        employee_id: user.id,
+        day_of_week: formData.day_of_week,
+        is_available: formData.is_available,
+        reason: formData.reason || undefined,
+        notes: formData.notes || undefined,
+      };
+
+      if (formData.is_available && formData.preferred_shift_type) {
+        payload.preferred_shift_type = formData.preferred_shift_type;
+      }
+
+      storeAvailability(payload, {
+        onSuccess: () => {
+          const dayName = DAYS_OF_WEEK[formData.day_of_week!].label;
+          toast.success(
+            formData.is_available
+              ? `Availability saved for ${dayName}s`
+              : `Unavailability saved for ${dayName}s`,
+          );
+          handleOpenChange(false);
+        },
+        onError: () => {
+          toast.error("Failed to save availability. Please try again.");
+        },
+      });
+    } else {
+      toast.error("Please select a date or day of week");
+    }
+  };
+
+  return (
+    <Dialog
+      open={open !== undefined ? open : isOpen}
+      onOpenChange={handleOpenChange}
+    >
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {isEditMode ? "Edit Availability" : "Set Availability"}
+          </DialogTitle>
+          <DialogDescription>
+            {isEditMode
+              ? "Update your availability settings."
+              : "Set your availability for the entire week or mark specific dates as unavailable."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-5 mt-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Availability Type</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({ ...formData, availability_type: "recurring" })
                 }
-                if (formData.notes) {
-                    updateData.notes = formData.notes;
+                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
+                  formData.availability_type === "recurring"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                All Week (Recurring)
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({ ...formData, availability_type: "specific" })
                 }
-            }
+                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
+                  formData.availability_type === "specific"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Specific
+              </button>
+            </div>
+          </div>
 
-            updateAvailability({ id: initialData.id, data: updateData }, {
-                onSuccess: () => {
-                    toast.success("Availability updated successfully");
-                    handleOpenChange(false);
-                },
-                onError: () => {
-                    toast.error("Failed to update availability. Please try again.");
-                },
-            });
-            return;
-        }
+          {formData.availability_type === "specific" && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Type</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData({ ...formData, date_type: "specific_date" })
+                  }
+                  className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
+                    formData.date_type === "specific_date"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Specific Date
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData({ ...formData, date_type: "day_of_week" })
+                  }
+                  className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
+                    formData.date_type === "day_of_week"
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  Day of Week
+                </button>
+              </div>
+            </div>
+          )}
 
-        // Create new availability
-        if (formData.availability_type === "recurring") {
+          {formData.availability_type === "specific" &&
+            formData.date_type === "specific_date" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Date <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="date"
+                  value={formData.specific_date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, specific_date: e.target.value })
+                  }
+                  required
+                />
+              </div>
+            )}
 
-            const payload: StoreAvailabilityPayload = {
-                employee_id: user.id,
-                is_recurring: true,
-                is_available: formData.is_available,
-                preferred_shift_type: formData.preferred_shift_type,
-            };
+          {formData.availability_type === "specific" &&
+            formData.date_type === "day_of_week" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Day of Week <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={formData.day_of_week ?? ""}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      day_of_week: e.target.value
+                        ? parseInt(e.target.value)
+                        : null,
+                    })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Select a day</option>
+                  {DAYS_OF_WEEK.map((day) => (
+                    <option key={day.value} value={day.value}>
+                      {day.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Status</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setFormData({ ...formData, is_available: true })}
+                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
+                  formData.is_available
+                    ? "bg-emerald-600 text-white border-emerald-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Available
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData({ ...formData, is_available: false })
+                }
+                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${
+                  !formData.is_available
+                    ? "bg-red-600 text-white border-red-600"
+                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                Unavailable
+              </button>
+            </div>
+          </div>
+          {formData.is_available && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">
+                Preferred Shift Type
+              </label>
+              <select
+                value={formData.preferred_shift_type}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    preferred_shift_type: e.target.value as any,
+                  })
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="any">Any</option>
+                <option value="day">Day</option>
+                <option value="evening">Evening</option>
+                <option value="night">Night</option>
+              </select>
+            </div>
+          )}
 
-            storeAvailability(payload, {
-                onSuccess: () => {
-                    toast.success("Recurring availability saved for all week");
-                    handleOpenChange(false);
-                },
-                onError: () => {
-                    toast.error("Failed to save availability. Please try again.");
-                },
-            });
-        } else if (formData.date_type === "specific_date" && formData.specific_date) {
+          {!formData.is_available &&
+            formData.availability_type === "specific" && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Reason</label>
+                <select
+                  value={formData.reason}
+                  onChange={(e) =>
+                    setFormData({ ...formData, reason: e.target.value as any })
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select reason</option>
+                  <option value="vacation">Vacation</option>
+                  <option value="sick">Sick</option>
+                  <option value="personal">Personal</option>
+                  <option value="appointment">Appointment</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            )}
 
-            const payload: StoreAvailabilityPayload = {
-                employee_id: user.id,
-                specific_date: formData.specific_date,
-                is_available: formData.is_available,
-                reason: formData.reason || undefined,
-                notes: formData.notes || undefined,
-            };
+          {formData.availability_type === "specific" && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notes</label>
+              <Textarea
+                placeholder="Any additional information..."
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+                className="resize-y min-h-[80px]"
+              />
+            </div>
+          )}
 
-            if (formData.is_available && formData.preferred_shift_type) {
-                payload.preferred_shift_type = formData.preferred_shift_type;
-            }
-
-            storeAvailability(payload, {
-                onSuccess: () => {
-                    toast.success(
-                        formData.is_available
-                            ? "Availability saved successfully"
-                            : "Unavailability saved successfully"
-                    );
-                    handleOpenChange(false);
-                },
-                onError: () => {
-                    toast.error("Failed to save availability. Please try again.");
-                },
-            });
-        } else if (formData.date_type === "day_of_week" && formData.day_of_week !== null) {
-
-            const payload: StoreAvailabilityPayload = {
-                employee_id: user.id,
-                day_of_week: formData.day_of_week,
-                is_available: formData.is_available,
-                reason: formData.reason || undefined,
-                notes: formData.notes || undefined,
-            };
-
-
-            if (formData.is_available && formData.preferred_shift_type) {
-                payload.preferred_shift_type = formData.preferred_shift_type;
-            }
-
-            storeAvailability(payload, {
-                onSuccess: () => {
-                    const dayName = DAYS_OF_WEEK[formData.day_of_week!].label;
-                    toast.success(
-                        formData.is_available
-                            ? `Availability saved for ${dayName}s`
-                            : `Unavailability saved for ${dayName}s`
-                    );
-                    handleOpenChange(false);
-                },
-                onError: () => {
-                    toast.error("Failed to save availability. Please try again.");
-                },
-            });
-        } else {
-            toast.error("Please select a date or day of week");
-        }
-    };
-
-    return (
-        <Dialog open={open !== undefined ? open : isOpen} onOpenChange={handleOpenChange}>
-            {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-            <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>{isEditMode ? "Edit Availability" : "Set Availability"}</DialogTitle>
-                    <DialogDescription>
-                        {isEditMode
-                            ? "Update your availability settings."
-                            : "Set your availability for the entire week or mark specific dates as unavailable."}
-                    </DialogDescription>
-                </DialogHeader>
-
-                <form onSubmit={handleSubmit} className="space-y-5 mt-2">
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Availability Type</label>
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setFormData({ ...formData, availability_type: "recurring" })}
-                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.availability_type === "recurring"
-                                    ? "bg-blue-600 text-white border-blue-600"
-                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                    }`}
-                            >
-                                All Week (Recurring)
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFormData({ ...formData, availability_type: "specific" })}
-                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.availability_type === "specific"
-                                    ? "bg-blue-600 text-white border-blue-600"
-                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                    }`}
-                            >
-                                Specific
-                            </button>
-                        </div>
-                    </div>
-
-
-                    {formData.availability_type === "specific" && (
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Select Type</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, date_type: "specific_date" })}
-                                    className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.date_type === "specific_date"
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                        }`}
-                                >
-                                    Specific Date
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, date_type: "day_of_week" })}
-                                    className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.date_type === "day_of_week"
-                                        ? "bg-blue-600 text-white border-blue-600"
-                                        : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                        }`}
-                                >
-                                    Day of Week
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-
-                    {formData.availability_type === "specific" && formData.date_type === "specific_date" && (
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                                Date <span className="text-red-500">*</span>
-                            </label>
-                            <Input
-                                type="date"
-                                value={formData.specific_date}
-                                onChange={(e) => setFormData({ ...formData, specific_date: e.target.value })}
-                                required
-                            />
-                        </div>
-                    )}
-
-
-                    {formData.availability_type === "specific" && formData.date_type === "day_of_week" && (
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">
-                                Day of Week <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                value={formData.day_of_week ?? ""}
-                                onChange={(e) => setFormData({ ...formData, day_of_week: e.target.value ? parseInt(e.target.value) : null })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                required
-                            >
-                                <option value="">Select a day</option>
-                                {DAYS_OF_WEEK.map((day) => (
-                                    <option key={day.value} value={day.value}>
-                                        {day.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium">Status</label>
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
-                                type="button"
-                                onClick={() => setFormData({ ...formData, is_available: true })}
-                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${formData.is_available
-                                    ? "bg-emerald-600 text-white border-emerald-600"
-                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                    }`}
-                            >
-                                Available
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setFormData({ ...formData, is_available: false })}
-                                className={`px-4 py-2.5 text-sm rounded-lg border transition-all ${!formData.is_available
-                                    ? "bg-red-600 text-white border-red-600"
-                                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-                                    }`}
-                            >
-                                Unavailable
-                            </button>
-                        </div>
-                    </div>
-                    {formData.is_available && (
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Preferred Shift Type</label>
-                            <select
-                                value={formData.preferred_shift_type}
-                                onChange={(e) => setFormData({ ...formData, preferred_shift_type: e.target.value as any })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="any">Any</option>
-                                <option value="day">Day</option>
-                                <option value="evening">Evening</option>
-                                <option value="night">Night</option>
-                            </select>
-                        </div>
-                    )}
-
-
-                    {!formData.is_available && formData.availability_type === "specific" && (
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Reason</label>
-                            <select
-                                value={formData.reason}
-                                onChange={(e) => setFormData({ ...formData, reason: e.target.value as any })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value="">Select reason</option>
-                                <option value="vacation">Vacation</option>
-                                <option value="sick">Sick</option>
-                                <option value="personal">Personal</option>
-                                <option value="appointment">Appointment</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-                    )}
-
-
-                    {formData.availability_type === "specific" && (
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium">Notes</label>
-                            <Textarea
-                                placeholder="Any additional information..."
-                                value={formData.notes}
-                                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                className="resize-y min-h-[80px]"
-                            />
-                        </div>
-                    )}
-
-                    <DialogFooter>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => handleOpenChange(false)}
-                            disabled={isPending}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit" disabled={isPending}>
-                            {isPending ? "Saving..." : "Save Availability"}
-                        </Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
-    );
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => handleOpenChange(false)}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Saving..." : "Save Availability"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
 }
