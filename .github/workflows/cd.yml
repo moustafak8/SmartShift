@@ -50,22 +50,20 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/smartshift-docker
-
-            # Login and Pull
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
             
-            if [ -d ".git" ]; then
-              git pull origin main
-            else
-              git clone https://YOUR_TOKEN@github.com/moustafak8/SmartShift.git .
-            fi
+            # Pull latest repo files
+            git pull origin main
 
+            # Pull pre-built images from Docker Hub (Fast!)
             docker compose pull
 
+            # Start containers using --no-build to avoid server-side compilation
             docker compose up -d --remove-orphans --no-build
 
+            # Backend cleanup
             docker exec smartshift-api php artisan migrate --force
             docker exec smartshift-api php artisan config:cache
             docker exec smartshift-api php artisan route:cache
 
-            echo " Full Stack Deployment Finished!"
+            echo "✅ Full Stack Deployment Finished!"
