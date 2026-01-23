@@ -19,6 +19,7 @@ import { SwapRequests } from "./pages/Manager/SwapRequests";
 import { Roles } from "./hooks/types/Roles";
 import { AIInsights } from "./pages/Manager/Insight";
 import { Notifications } from "./pages/Notifications";
+import Reports from "./pages/Manager/Reports";
 
 export default function App() {
   return (
@@ -160,6 +161,16 @@ export default function App() {
             <ProtectedRoute>
               <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
                 <SwapRequests />
+              </RoleBasedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manager/reports"
+          element={
+            <ProtectedRoute>
+              <RoleBasedRoute allowedRoles={[Roles.MANAGER]}>
+                <Reports />
               </RoleBasedRoute>
             </ProtectedRoute>
           }
