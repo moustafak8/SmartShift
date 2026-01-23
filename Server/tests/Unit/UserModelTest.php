@@ -40,11 +40,11 @@ class UserModelTest extends TestCase
         // Create positions first
         $position1 = Position::create([
             'department_id' => $department1->id,
-            'name' => 'Developer'
+            'name' => 'Developer',
         ]);
         $position2 = Position::create([
             'department_id' => $department2->id,
-            'name' => 'Designer'
+            'name' => 'Designer',
         ]);
 
         $user->departments()->attach($department1->id, [
@@ -72,7 +72,7 @@ class UserModelTest extends TestCase
     /* test 4 */
     public function user_has_correct_fillable_attributes()
     {
-        $user = new User();
+        $user = new User;
         $fillable = $user->getFillable();
 
         $this->assertContains('full_name', $fillable);

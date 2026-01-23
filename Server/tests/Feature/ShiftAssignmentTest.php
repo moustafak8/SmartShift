@@ -42,7 +42,7 @@ class ShiftAssignmentTest extends TestCase
         $token = auth()->login($manager);
 
         $response = $this->withHeaders([
-            'Authorization' => "Bearer $token"
+            'Authorization' => "Bearer $token",
         ])->deleteJson("/api/v1/shift-assignments/{$assignment->id}");
 
         $response->assertStatus(200);
@@ -70,7 +70,7 @@ class ShiftAssignmentTest extends TestCase
         $token = auth()->login($manager);
 
         $response = $this->withHeaders([
-            'Authorization' => "Bearer $token"
+            'Authorization' => "Bearer $token",
         ])->getJson('/api/v1/shift-assignments');
 
         $response->assertStatus(200);

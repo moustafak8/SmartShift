@@ -33,7 +33,7 @@ class WellnessModelTest extends TestCase
     /* test 2 */
     public function wellness_entry_has_correct_fillable_attributes()
     {
-        $entry = new WellnessEntries();
+        $entry = new WellnessEntries;
         $fillable = $entry->getFillable();
 
         $this->assertContains('employee_id', $fillable);

@@ -32,7 +32,7 @@ class PositionModelTest extends TestCase
     /* test 2 */
     public function position_has_correct_fillable_attributes()
     {
-        $position = new Position();
+        $position = new Position;
         $fillable = $position->getFillable();
 
         $this->assertContains('department_id', $fillable);

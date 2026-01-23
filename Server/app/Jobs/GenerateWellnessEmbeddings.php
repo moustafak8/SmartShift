@@ -13,7 +13,6 @@ use App\Services\WellnessEmbeddingService;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 
 class GenerateWellnessEmbeddings implements ShouldQueue
 {

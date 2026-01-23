@@ -88,7 +88,7 @@ class PositionTest extends TestCase
         Position::factory()->count(3)->create(['department_id' => $department->id]);
 
         $response = $this->withHeaders([
-            'Authorization' => "Bearer $token"
+            'Authorization' => "Bearer $token",
         ])->getJson("/api/v1/departments/{$department->id}/positions");
 
         $response->assertStatus(200);

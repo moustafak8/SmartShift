@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 class ShiftSwapsController extends Controller
 {
     protected ShiftSwapService $swapService;
+
     public function __construct(
         ShiftSwapService $swapService
     ) {

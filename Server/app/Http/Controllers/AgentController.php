@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 class AgentController extends Controller
 {
     protected AgentService $agentService;
+
     protected EmployeeShifts $employeeShiftsService;
 
     public function __construct(
@@ -18,6 +19,7 @@ class AgentController extends Controller
         $this->agentService = $agentService;
         $this->employeeShiftsService = $employeeShiftsService;
     }
+
     public function getEmployee(int $id)
     {
         return $this->responseJSON($this->agentService->getEmployee($id), 'success', 200);

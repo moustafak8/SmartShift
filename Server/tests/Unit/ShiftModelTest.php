@@ -31,10 +31,10 @@ class ShiftModelTest extends TestCase
         $this->assertEquals($department->id, $shift->department->id);
     }
 
-    /* test 2 */    
+    /* test 2 */
     public function shift_has_correct_fillable_attributes()
     {
-        $shift = new Shifts();
+        $shift = new Shifts;
         $fillable = $shift->getFillable();
 
         $this->assertContains('department_id', $fillable);

@@ -30,14 +30,14 @@ class UserFactory extends Factory
 
     public function manager(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'user_type_id' => 1,
         ]);
     }
 
     public function employee(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'user_type_id' => 2,
         ]);
     }

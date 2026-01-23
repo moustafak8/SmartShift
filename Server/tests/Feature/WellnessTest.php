@@ -29,7 +29,7 @@ class WellnessTest extends TestCase
         WellnessEntries::factory()->count(3)->create(['employee_id' => $employee->id]);
 
         $response = $this->withHeaders([
-            'Authorization' => "Bearer $token"
+            'Authorization' => "Bearer $token",
         ])->getJson("/api/v1/employees/{$employee->id}/wellness-entries");
 
         $response->assertStatus(200);

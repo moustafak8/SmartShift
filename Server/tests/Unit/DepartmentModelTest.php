@@ -41,11 +41,11 @@ class DepartmentModelTest extends TestCase
         // Create positions first
         $position1 = Position::create([
             'department_id' => $department->id,
-            'name' => 'Developer'
+            'name' => 'Developer',
         ]);
         $position2 = Position::create([
             'department_id' => $department->id,
-            'name' => 'Designer'
+            'name' => 'Designer',
         ]);
 
         $department->employees()->attach($employee1->id, [
@@ -72,7 +72,7 @@ class DepartmentModelTest extends TestCase
     /* test 4 */
     public function department_has_correct_fillable_attributes()
     {
-        $department = new Department();
+        $department = new Department;
         $fillable = $department->getFillable();
 
         $this->assertContains('name', $fillable);

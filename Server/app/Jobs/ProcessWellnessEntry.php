@@ -6,7 +6,6 @@ use App\Models\WellnessEntries;
 use App\Models\WellnessEntryExtraction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class ProcessWellnessEntry implements ShouldQueue
@@ -57,6 +56,7 @@ class ProcessWellnessEntry implements ShouldQueue
     private function getWellnessEntry(): ?WellnessEntries
     {
         $entry = WellnessEntries::find($this->entryId);
+
         return $entry;
     }
 
@@ -102,12 +102,12 @@ class ProcessWellnessEntry implements ShouldQueue
     private function formatSchema(): string
     {
         $fields = array_map(
-            fn($key, $type) => "  \"{$key}\": {$type}",
+            fn ($key, $type) => "  \"{$key}\": {$type}",
             array_keys(self::EXTRACTION_SCHEMA),
             self::EXTRACTION_SCHEMA
         );
 
-        return "{\n" . implode(",\n", $fields) . "\n}";
+        return "{\n".implode(",\n", $fields)."\n}";
     }
 
     private function cleanResponse(string $content): string
@@ -123,7 +123,7 @@ class ProcessWellnessEntry implements ShouldQueue
         $extracted = json_decode($content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Failed to parse OpenAI response as JSON: ' . json_last_error_msg());
+            throw new \RuntimeException('Failed to parse OpenAI response as JSON: '.json_last_error_msg());
         }
 
         return $extracted;
