@@ -12,7 +12,7 @@ services:
       - smartshift-network
 
   app:
-    image: moustafak8/smartshift-backend:latest
+    image: mk67034/smartshift-backend:latest
     container_name: smartshift-api
     restart: always
     working_dir: /var/www
@@ -39,7 +39,7 @@ services:
       - app
 
   frontend:
-    image: moustafak8/smartshift-frontend:latest
+    image: mk67034/smartshift-frontend:latest
     container_name: smartshift-frontend
     restart: always
     ports:
