@@ -3,8 +3,10 @@ FROM php:8.3-fpm AS base
 RUN apt-get update && apt-get install -y \
     git \
     curl \
+    pkg-config \
     libpng-dev \
     libonig-dev \
+    libsqlite3-dev \
     libxml2-dev \
     zip \
     unzip
