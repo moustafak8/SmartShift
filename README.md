@@ -49,20 +49,20 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Interesting Features
 
-> #### 🛡️ Intelligent Shift Swap Agent
+> #### Intelligent Shift Swap Agent
 > AI-driven validation using decision-tree logic. It evaluates availability and simulates fatigue impact for both parties, auto-approving safe exchanges while blocking those that risk employee burnout.
 > 
-> #### 🧠 RAG-Powered Wellness Journal
+> #### RAG-Powered Wellness Journal
 > High-fidelity analysis of employee journals using GPT-4 and Qdrant vector storage. Enables semantic search, allowing managers to query concerns naturally and identify recurring wellness patterns.
 > 
-> #### 📅  Auto-Scheduler
+> ####  Auto-Scheduler
 > Advanced algorithmic generation of weekly schedules that balances operational coverage, availability, and fatigue risks. Managers can review real-time metrics to approve, reject, or fine-tune assignments.
 > 
 
-> #### 📉 Real-Time Burnout Prediction
+> #### Real-Time Burnout Prediction
 > A holistic fatigue scoring system (Quantitative, Qualitative, Psychological) that updates dynamically. It proactively flags critical cases and prevents high-risk scheduling before exhaustion occurs.
 
-
+### Feature Figure
 <img src="./readme/features/Features.png"/>
 
 
