@@ -32,7 +32,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### System Design
 
-<img src="./readme/design/System.png"/>
+<img src="./readme/design/system.png"/>
 
 
 ### Entity Relationship Diagram
@@ -62,6 +62,17 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 
 <img src="./readme/features/Features.png"/>
+
+
+<br><br>
+<!-- Demo -->
+<img src="./readme/cards/title5.svg"/>
+
+### User Screens
+
+| Login | Manager_Dashboard | Team_Management |
+| --------------------------------------- | ------------------------------------- | ------------------------------------- |
+| ![Login](./readme/demo/login.png) | ![Dashboard](./readme/demo/manager_dashboard.png) | ![Overview](./readme/demo/team_overview.png) |
 
 
 <br><br>

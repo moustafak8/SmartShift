@@ -508,11 +508,11 @@ class WellnessSearchService
         $formatted = '';
         foreach ($sources as $source) {
             $formatted .= sprintf(
-                "[%d] %s%s (%s) — relevance: %.3f, sentiment: %s\n",
+                "[%d] %s (%s) — relevance: %.3f, sentiment: %s\n",
                 $source['citation_number'],
                 $source['employee_name'],
                 $source['entry_date'],
-                $source['score'] ?? 0,
+                (float) ($source['score'] ?? 0),
                 $source['sentiment'] ?? 'unknown'
             );
         }
