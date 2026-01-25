@@ -72,7 +72,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Manager Screens
 
-<table>
+<table width="100%">
+  <colgroup>
+    <col width="35%">
+    <col width="65%">
+  </colgroup>
   <tr>
     <th>Login</th>
     <th>Manager Dashboard</th>
@@ -90,12 +94,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
     </td>
   </tr>
   <tr>
-    <th colspan="2">Team Management</th>
+    <th colspan="2">Shift Creation</th>
   </tr>
   <tr>
     <td colspan="2" align="center">
-      <a href="./readme/demo/team_overview.png">
-        <img src="./readme/demo/team_overview.png" alt="Team Management" height="340">
+      <a href="./readme/demo/shift_creation.gif">
+        <img src="./readme/demo/shift_creation.gif" alt="Shift Creation" height="420">
       </a>
     </td>
   </tr>
@@ -106,7 +110,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <table>
   <tr>
     <th>Add Employee</th>
-    <th>Shift Creation</th>
+    <th>Team Management</th>
   </tr>
   <tr>
     <td>
@@ -115,8 +119,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
       </a>
     </td>
     <td>
-      <a href="./readme/demo/shift_creation.gif">
-        <img src="./readme/demo/shift_creation.gif" alt="Shift Creation" height="420">
+      <a href="./readme/demo/team_overview.png">
+        <img src="./readme/demo/team_overview.png" alt="Team Management" height="420">
       </a>
     </td>
   </tr>
