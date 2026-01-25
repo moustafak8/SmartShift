@@ -70,9 +70,34 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### User Screens
 
-| Login | Manager_Dashboard | Team_Management |
-| --------------------------------------- | ------------------------------------- | ------------------------------------- |
-| <a href="./readme/demo/login.png"><img src="./readme/demo/login.png" alt="Login" height="220"></a> | <a href="./readme/demo/manager_dashboard.png"><img src="./readme/demo/manager_dashboard.png" alt="Manager Dashboard" height="220"></a> | <a href="./readme/demo/team_overview.png"><img src="./readme/demo/team_overview.png" alt="Team Management" height="220"></a> |
+<table>
+  <tr>
+    <th>Login</th>
+    <th>Manager Dashboard</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/demo/login.png">
+        <img src="./readme/demo/login.png" alt="Login" height="340">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/demo/manager_dashboard.png">
+        <img src="./readme/demo/manager_dashboard.png" alt="Manager Dashboard" height="340">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th colspan="2">Team Management</th>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <a href="./readme/demo/team_overview.png">
+        <img src="./readme/demo/team_overview.png" alt="Team Management" height="340">
+      </a>
+    </td>
+  </tr>
+</table>
 
 
 <br><br>
