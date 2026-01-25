@@ -28,7 +28,7 @@ jobs:
       - name: Run migrations
         run: >
           docker compose
-          run --rm --no-deps --no-build app sh -lc
+          run --rm --no-deps app sh -lc
           "cp .env.example .env
           && php artisan key:generate --ansi
           && php artisan jwt:secret --force --ansi
@@ -38,7 +38,7 @@ jobs:
       - name: Run tests
         run: >
           docker compose
-          run --rm --no-deps --no-build app sh -lc
+          run --rm --no-deps app sh -lc
           "cp .env.example .env
           && php artisan key:generate --ansi
           && php artisan jwt:secret --force --ansi
