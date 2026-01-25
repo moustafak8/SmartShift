@@ -263,10 +263,36 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Tests
 
-
-| CI/CD                             | Testing                        |
-| ---------------------------------------  | ------------------------------------- |
-| ![CICD](./readme/tests/CICD.png) | ![Testing](./readme/tests/test_cases.png) |
+<table width="100%">
+  <tr>
+    <th>CI/CD</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="./readme/tests/CICD.png">
+        <img src="./readme/tests/CICD.png" alt="CI/CD" width="1200">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th>Testing</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="./readme/tests/test_cases.png">
+        <img src="./readme/tests/test_cases.png" alt="Testing" width="1200">
+      </a>
+    </td>
+  </tr>
+</table>
 
 
 <br><br>
+<!-- Deployment -->
+<img src="./readme/cards/title7.svg"/>
+
+### Deployment Map
+
+| Deployment Map                          |
+| --------------------------------------- |
+| ![Map](./readme/tests/Deploymentmap.jpg) |
