@@ -41,7 +41,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 [ER Diagram](https://dbdiagram.io/d/SmartShift-6950f70939fa3db27ba940fc)
 
-<img src="./readme/design/SmartShift (2).png"/>
+<img src="./readme/design/erd.png"/>
 <br><br>
 
 <!-- Project Highlights -->
@@ -58,7 +58,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 > ####  Auto-Scheduler
 > Advanced algorithmic generation of weekly schedules that balances operational coverage, availability, and fatigue risks. Managers can review real-time metrics to approve, reject, or fine-tune assignments.
 > 
-
 > #### Real-Time Burnout Prediction
 > A holistic fatigue scoring system (Quantitative, Qualitative, Psychological) that updates dynamically. It proactively flags critical cases and prevents high-risk scheduling before exhaustion occurs.
 
