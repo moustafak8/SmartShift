@@ -68,7 +68,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <!-- Demo -->
 <img src="./readme/cards/title5.svg"/>
 
-### User Screens
+### Manager Screens
 
 <table>
   <tr>
@@ -94,6 +94,37 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
     <td colspan="2" align="center">
       <a href="./readme/demo/team_overview.png">
         <img src="./readme/demo/team_overview.png" alt="Team Management" height="340">
+      </a>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+<table>
+  <tr>
+    <th>Add Employee</th>
+    <th>Shift Creation</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/demo/add_employee.png">
+        <img src="./readme/demo/add_employee.png" alt="Add Employee" height="340">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/demo/shift_creation.gif">
+        <img src="./readme/demo/shift_creation.gif" alt="Shift Creation" height="340">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th colspan="2">Schedule Generation</th>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <a href="./readme/demo/schedule_generation.gif">
+        <img src="./readme/demo/schedule_generation.gif" alt="Schedule Generation" height="340">
       </a>
     </td>
   </tr>
