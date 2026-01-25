@@ -1,20 +1,27 @@
 name: Docker Deploy
 
 on:
-  push:
-    paths:
-      - 'Server/**'
-      - 'Client/**'
-      - 'nginx/**'
-      - 'docker-compose.yml'
+  workflow_run:
+    workflows: ["CI"]
     branches: [main]
+    types: [completed]
+
+concurrency:
+  group: deploy-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
 
 jobs:
   build-and-push:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -26,20 +33,32 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./Server
+          file: ./Server/Dockerfile
+          target: prod
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-backend:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-backend:${{ github.event.workflow_run.head_sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-backend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Build and push Frontend Image
+      - name: Build and push Edge Image (single Nginx)
         uses: docker/build-push-action@v5
         with:
-          context: ./Client
+          context: .
+          file: ./Edge/Dockerfile
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-frontend:latest
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-edge:${{ github.event.workflow_run.head_sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-edge:latest
           build-args: |
-            VITE_API_URL=http://${{ secrets.NEW_SSH_HOST }}/api/v1
+            VITE_API_URL=/api/v1
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy-to-server:
     needs: build-and-push
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
@@ -51,17 +70,15 @@ jobs:
           script: |
             cd ~/smartshift-docker
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+            export IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
+            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
             
-            # Pull latest repo files
             git pull origin main
 
-            # Pull pre-built images from Docker Hub (Fast!)
             docker compose pull
 
-            # Start containers using --no-build to avoid server-side compilation
             docker compose up -d --remove-orphans --no-build
 
-            # Backend cleanup
             docker exec smartshift-api php artisan migrate --force
             docker exec smartshift-api php artisan config:cache
             docker exec smartshift-api php artisan route:cache
