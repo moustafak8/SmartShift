@@ -161,6 +161,86 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   </tr>
 </table>
 
+<br>
+
+<table>
+  <tr>
+    <th>Manager Swap</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="./readme/demo/manager_swap.png">
+        <img src="./readme/demo/manager_swap.png" alt="Manager Swap" height="360">
+      </a>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+### Employee Screens
+
+<table>
+  <tr>
+    <th>Employee Dashboard</th>
+    <th>Preferences</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/demo/emp_dashboard.png">
+        <img src="./readme/demo/emp_dashboard.png" alt="Employee Dashboard" height="360">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/demo/emp_prefrence.gif">
+        <img src="./readme/demo/emp_prefrence.gif" alt="Employee Preferences" height="360">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th>Schedule</th>
+    <th>Score Breakdown</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/demo/emp_schedule.png">
+        <img src="./readme/demo/emp_schedule.png" alt="Employee Schedule" height="360">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/demo/score_breakdown.png">
+        <img src="./readme/demo/score_breakdown.png" alt="Score Breakdown" height="360">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th>Notifications</th>
+    <th>Entry Submission</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/demo/notification.png">
+        <img src="./readme/demo/notification.png" alt="Notifications" height="360">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/demo/entry_submission.gif">
+        <img src="./readme/demo/entry_submission.gif" alt="Entry Submission" height="360">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th colspan="2">Swap</th>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <a href="./readme/demo/swap.gif">
+        <img src="./readme/demo/swap.gif" alt="Swap" height="360">
+      </a>
+    </td>
+  </tr>
+</table>
+
 
 <br><br>
 <!-- Development & Testing -->
