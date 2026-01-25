@@ -32,7 +32,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### System Design
 
-<img src="./readme/design/system.png"/>
+<a href="./readme/design/System.png">
+  <img src="./readme/design/System.png" alt="System Design" width="1200">
+</a>
 
 
 ### Entity Relationship Diagram
@@ -168,9 +170,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
     <th>Manager Swap</th>
   </tr>
   <tr>
-    <td colspan="2" align="center">
+    <td  align="center">
       <a href="./readme/demo/manager_swap.png">
-        <img src="./readme/demo/manager_swap.png" alt="Manager Swap" height="360">
+        <img src="./readme/demo/manager_swap.png" alt="Manager Swap" width="1200">
       </a>
     </td>
   </tr>
