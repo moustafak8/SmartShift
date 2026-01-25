@@ -32,18 +32,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### System Design
 
-<a href="./readme/design/system.png">
-  <img src="./readme/design/system.png" alt="System Design" width="1200">
-</a>
+<img src="./readme/design/system.png"/>
 
 
 ### Entity Relationship Diagram
 
 [ER Diagram](https://dbdiagram.io/d/SmartShift-6950f70939fa3db27ba940fc)
 
-<a href="./readme/design/SmartShift%20(2).png">
-  <img src="./readme/design/SmartShift%20(2).png" alt="Entity Relationship Diagram" width="1200">
-</a>
+<img src="./readme/design/SmartShift (2).png"/>
 <br><br>
 
 <!-- Project Highlights -->
@@ -77,31 +73,27 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <table>
   <tr>
     <th>Login</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="./readme/demo/login.png">
-        <img src="./readme/demo/login.png" alt="Login" width="1200">
-      </a>
-    </td>
-  </tr>
-  <tr>
     <th>Manager Dashboard</th>
   </tr>
   <tr>
-    <td align="center">
+    <td>
+      <a href="./readme/demo/login.png">
+        <img src="./readme/demo/login.png" alt="Login" height="340">
+      </a>
+    </td>
+    <td>
       <a href="./readme/demo/manager_dashboard.png">
-        <img src="./readme/demo/manager_dashboard.png" alt="Manager Dashboard" width="1200">
+        <img src="./readme/demo/manager_dashboard.png" alt="Manager Dashboard" height="340">
       </a>
     </td>
   </tr>
   <tr>
-    <th>Team Management</th>
+    <th colspan="2">Team Management</th>
   </tr>
   <tr>
-    <td align="center">
+    <td colspan="2" align="center">
       <a href="./readme/demo/team_overview.png">
-        <img src="./readme/demo/team_overview.png" alt="Team Management" width="1200">
+        <img src="./readme/demo/team_overview.png" alt="Team Management" height="340">
       </a>
     </td>
   </tr>
@@ -112,31 +104,27 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <table>
   <tr>
     <th>Add Employee</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="./readme/demo/add_employee.png">
-        <img src="./readme/demo/add_employee.png" alt="Add Employee" width="1200">
-      </a>
-    </td>
-  </tr>
-  <tr>
     <th>Shift Creation</th>
   </tr>
   <tr>
-    <td align="center">
+    <td>
+      <a href="./readme/demo/add_employee.png">
+        <img src="./readme/demo/add_employee.png" alt="Add Employee" height="420">
+      </a>
+    </td>
+    <td>
       <a href="./readme/demo/shift_creation.gif">
-        <img src="./readme/demo/shift_creation.gif" alt="Shift Creation" width="1200">
+        <img src="./readme/demo/shift_creation.gif" alt="Shift Creation" height="420">
       </a>
     </td>
   </tr>
   <tr>
-    <th>Schedule Generation</th>
+    <th colspan="2">Schedule Generation</th>
   </tr>
   <tr>
-    <td align="center">
+    <td colspan="2" align="center">
       <a href="./readme/demo/schedule_generation.gif">
-        <img src="./readme/demo/schedule_generation.gif" alt="Schedule Generation" width="1200">
+        <img src="./readme/demo/schedule_generation.gif" alt="Schedule Generation" height="420">
       </a>
     </td>
   </tr>
@@ -147,31 +135,27 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <table>
   <tr>
     <th>Reports</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="./readme/demo/reports.png">
-        <img src="./readme/demo/reports.png" alt="Reports" width="1200">
-      </a>
-    </td>
-  </tr>
-  <tr>
     <th>Insights</th>
   </tr>
   <tr>
-    <td align="center">
+    <td>
+      <a href="./readme/demo/reports.png">
+        <img src="./readme/demo/reports.png" alt="Reports" height="340">
+      </a>
+    </td>
+    <td>
       <a href="./readme/demo/insights.png">
-        <img src="./readme/demo/insights.png" alt="Insights" width="1200">
+        <img src="./readme/demo/insights.png" alt="Insights" height="340">
       </a>
     </td>
   </tr>
   <tr>
-    <th>RAG Search</th>
+    <th colspan="2">RAG Search</th>
   </tr>
   <tr>
-    <td align="center">
+    <td colspan="2" align="center">
       <a href="./readme/demo/Rag_search.gif">
-        <img src="./readme/demo/Rag_search.gif" alt="RAG Search" width="1200">
+        <img src="./readme/demo/Rag_search.gif" alt="RAG Search" height="340">
       </a>
     </td>
   </tr>
@@ -181,22 +165,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <table>
   <tr>
-    <th>Swap Flow (Manager)</th>
+    <th>Manager Swap</th>
   </tr>
   <tr>
-    <td align="center">
+    <td colspan="2" align="center">
       <a href="./readme/demo/manager_swap.png">
-        <img src="./readme/demo/manager_swap.png" alt="Manager Swap" width="1200">
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <th>Swap Flow (Employee)</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="./readme/demo/swap.gif">
-        <img src="./readme/demo/swap.gif" alt="Employee Swap" width="1200">
+        <img src="./readme/demo/manager_swap.png" alt="Manager Swap" height="360">
       </a>
     </td>
   </tr>
@@ -209,61 +183,59 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <table>
   <tr>
     <th>Employee Dashboard</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="./readme/demo/emp_dashboard.png">
-        <img src="./readme/demo/emp_dashboard.png" alt="Employee Dashboard" width="1200">
-      </a>
-    </td>
-  </tr>
-  <tr>
     <th>Preferences</th>
   </tr>
   <tr>
-    <td align="center">
+    <td>
+      <a href="./readme/demo/emp_dashboard.png">
+        <img src="./readme/demo/emp_dashboard.png" alt="Employee Dashboard" height="360">
+      </a>
+    </td>
+    <td>
       <a href="./readme/demo/emp_prefrence.gif">
-        <img src="./readme/demo/emp_prefrence.gif" alt="Employee Preferences" width="1200">
+        <img src="./readme/demo/emp_prefrence.gif" alt="Employee Preferences" height="360">
       </a>
     </td>
   </tr>
   <tr>
     <th>Schedule</th>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="./readme/demo/emp_schedule.png">
-        <img src="./readme/demo/emp_schedule.png" alt="Employee Schedule" width="1200">
-      </a>
-    </td>
-  </tr>
-  <tr>
     <th>Score Breakdown</th>
   </tr>
   <tr>
-    <td align="center">
+    <td>
+      <a href="./readme/demo/emp_schedule.png">
+        <img src="./readme/demo/emp_schedule.png" alt="Employee Schedule" height="360">
+      </a>
+    </td>
+    <td>
       <a href="./readme/demo/score_breakdown.png">
-        <img src="./readme/demo/score_breakdown.png" alt="Score Breakdown" width="1200">
+        <img src="./readme/demo/score_breakdown.png" alt="Score Breakdown" height="360">
       </a>
     </td>
   </tr>
   <tr>
     <th>Notifications</th>
+    <th>Entry Submission</th>
   </tr>
   <tr>
-    <td align="center">
+    <td>
       <a href="./readme/demo/notification.png">
-        <img src="./readme/demo/notification.png" alt="Notifications" width="1200">
+        <img src="./readme/demo/notification.png" alt="Notifications" height="360">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/demo/entry_submission.gif">
+        <img src="./readme/demo/entry_submission.gif" alt="Entry Submission" height="360">
       </a>
     </td>
   </tr>
   <tr>
-    <th>Entry Submission</th>
+    <th colspan="2">Swap</th>
   </tr>
   <tr>
-    <td align="center">
-      <a href="./readme/demo/entry_submission.gif">
-        <img src="./readme/demo/entry_submission.gif" alt="Entry Submission" width="1200">
+    <td colspan="2" align="center">
+      <a href="./readme/demo/swap.gif">
+        <img src="./readme/demo/swap.gif" alt="Swap" height="360">
       </a>
     </td>
   </tr>
