@@ -72,7 +72,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 | Login | Manager_Dashboard | Team_Management |
 | --------------------------------------- | ------------------------------------- | ------------------------------------- |
-| ![Login](./readme/demo/login.png) | ![Dashboard](./readme/demo/manager_dashboard.png) | ![Overview](./readme/demo/team_overview.png) |
+| <a href="./readme/demo/login.png"><img src="./readme/demo/login.png" alt="Login" height="220"></a> | <a href="./readme/demo/manager_dashboard.png"><img src="./readme/demo/manager_dashboard.png" alt="Manager Dashboard" height="220"></a> | <a href="./readme/demo/team_overview.png"><img src="./readme/demo/team_overview.png" alt="Team Management" height="220"></a> |
 
 
 <br><br>
