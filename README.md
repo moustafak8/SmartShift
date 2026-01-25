@@ -109,12 +109,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   <tr>
     <td>
       <a href="./readme/demo/add_employee.png">
-        <img src="./readme/demo/add_employee.png" alt="Add Employee" height="340">
+        <img src="./readme/demo/add_employee.png" alt="Add Employee" height="420">
       </a>
     </td>
     <td>
       <a href="./readme/demo/shift_creation.gif">
-        <img src="./readme/demo/shift_creation.gif" alt="Shift Creation" height="340">
+        <img src="./readme/demo/shift_creation.gif" alt="Shift Creation" height="420">
       </a>
     </td>
   </tr>
@@ -124,7 +124,38 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   <tr>
     <td colspan="2" align="center">
       <a href="./readme/demo/schedule_generation.gif">
-        <img src="./readme/demo/schedule_generation.gif" alt="Schedule Generation" height="340">
+        <img src="./readme/demo/schedule_generation.gif" alt="Schedule Generation" height="420">
+      </a>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+<table>
+  <tr>
+    <th>Reports</th>
+    <th>Insights</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/demo/reports.png">
+        <img src="./readme/demo/reports.png" alt="Reports" height="340">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/demo/insights.png">
+        <img src="./readme/demo/insights.png" alt="Insights" height="340">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <th colspan="2">RAG Search</th>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <a href="./readme/demo/Rag_search.gif">
+        <img src="./readme/demo/Rag_search.gif" alt="RAG Search" height="340">
       </a>
     </td>
   </tr>
