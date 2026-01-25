@@ -1,0 +1,16 @@
+.git
+.github
+
+**/node_modules
+**/npm-debug.log
+**/yarn-error.log
+
+**/vendor
+
+**/.env
+**/.DS_Store
+
+**/storage
+**/coverage
+**/dist
+

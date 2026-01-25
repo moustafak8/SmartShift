@@ -12,7 +12,11 @@ services:
       - smartshift-network
 
   app:
-    image: mk67034/smartshift-backend:latest
+    image: ${DOCKERHUB_USERNAME:-mk67034}/smartshift-backend:${IMAGE_TAG:-latest}
+    build:
+      context: ./Server
+      dockerfile: Dockerfile
+      target: ${APP_BUILD_TARGET:-prod}
     container_name: smartshift-api
     restart: always
     working_dir: /var/www
@@ -24,28 +28,21 @@ services:
     depends_on:
       - db
 
-  backend-web:
-    image: nginx:stable-alpine
-    container_name: smartshift-backend-web
+  edge:
+    image: ${DOCKERHUB_USERNAME:-mk67034}/smartshift-edge:${IMAGE_TAG:-latest}
+    build:
+      context: .
+      dockerfile: ./Edge/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
+    container_name: smartshift-edge
     restart: always
     ports:
       - "80:80"
-    volumes:
-      - ./Server/public:/var/www/public
-      - ./nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - smartshift-network
     depends_on:
       - app
-
-  frontend:
-    image: mk67034/smartshift-frontend:latest
-    container_name: smartshift-frontend
-    restart: always
-    ports:
-      - "3000:80" 
-    networks:
-      - smartshift-network
 
 networks:
   smartshift-network:

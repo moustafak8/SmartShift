@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      APP_BUILD_TARGET: ci
+      VITE_API_URL: /api/v1
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Ensure backend .env exists (bind mount)
+        run: touch Server/.env
+
+      - name: Set up Docker Compose
+        run: docker compose version
+
+      - name: Build containers
+        run: docker compose build app edge
+
+      - name: Run migrations
+        run: >
+          docker compose
+          run --rm --no-deps --no-build app sh -lc
+          "cp .env.example .env
+          && php artisan key:generate --ansi
+          && php artisan jwt:secret --force --ansi
+          && php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"
+          && DB_CONNECTION=sqlite DB_DATABASE=/var/www/database/database.sqlite php artisan migrate --force --ansi"
+
+      - name: Run tests
+        run: >
+          docker compose
+          run --rm --no-deps --no-build app sh -lc
+          "cp .env.example .env
+          && php artisan key:generate --ansi
+          && php artisan jwt:secret --force --ansi
+          && php artisan test --testsuite=Unit,Feature --ansi"
+
