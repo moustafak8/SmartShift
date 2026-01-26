@@ -251,6 +251,34 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <!-- Development & Testing -->
 <img src="./readme/cards/title6.svg"/>
 
+### Development
+
+<table width="100%">
+  <tr>
+    <th>Services</th>
+    <th>Validation</th>
+    <th>Controller</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/development/Service_ex.png">
+        <img src="./readme/development/Service_ex.png" alt="Service Example" height="400">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/development/Validation_ex.png">
+        <img src="./readme/development/Validation_ex.png" alt="Validation Example" height="400">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/development/Controller_ex.png">
+        <img src="./readme/development/Controller_ex.png" alt="Controller Example" height="400">
+      </a>
+    </td>
+  </tr>
+</table>
+
+<br>
 ### SmartShift AI Agent
 
 > ####  Autonomous Shift Validation Engine
@@ -258,7 +286,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <br>
 
-<img src="./readme/agent/Agent_Flow.png"/>
+<a href="./readme/agent/Agent_flow.png">
+  <img src="./readme/agent/Agent_flow.png" alt="Agent Flow" width="1200">
+</a>
 
 ### Tests
 
