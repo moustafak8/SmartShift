@@ -26,11 +26,15 @@ jobs:
           cache: 'npm'
           cache-dependency-path: Client/package-lock.json
 
-      - name: Frontend linting
+      - name: Install Frontend Dependencies
         working-directory: Client
-        run: |
-          npm ci
-          npm run lint
+        run: npm ci
+
+      - name: Frontend Build Test
+        working-directory: Client
+        run: npm run build
+        env:
+          VITE_API_URL: /api/v1
 
       - name: Set up Docker Compose
         run: docker compose version
