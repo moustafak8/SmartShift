@@ -279,6 +279,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 </table>
 
 <br>
+
 ### SmartShift AI Agent
 
 > ####  Autonomous Shift Validation Engine
@@ -286,8 +287,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <br>
 
-<a href="./readme/agent/Agent_flow.png">
-  <img src="./readme/agent/Agent_flow.png" alt="Agent Flow" width="1200">
+<a href="./readme/agent/Agent_Flow.png">
+  <img src="./readme/agent/Agent_Flow.png" alt="Agent Flow" width="1200">
 </a>
 
 ### Tests
