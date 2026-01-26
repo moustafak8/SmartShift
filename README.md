@@ -251,7 +251,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 <!-- Development & Testing -->
 <img src="./readme/cards/title6.svg"/>
 
-### Development
+### Development Examples
 
 <table width="100%">
   <tr>
@@ -295,12 +295,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <table width="100%">
   <tr>
-    <th>CI/CD</th>
+    <th>CI</th>
   </tr>
   <tr>
     <td align="center">
-      <a href="./readme/tests/CICD.png">
-        <img src="./readme/tests/CICD.png" alt="CI/CD" width="1200">
+      <a href="./readme/tests/CI.png">
+        <img src="./readme/tests/CI.png" alt="CI/CD" width="1200">
       </a>
     </td>
   </tr>
@@ -323,6 +323,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### Deployment Map
 
-| Deployment Map                          |
+| Deployment Flow                          |
 | --------------------------------------- |
 | ![Map](./readme/tests/Deploymentmap.jpg) |
