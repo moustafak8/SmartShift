@@ -19,6 +19,19 @@ jobs:
       - name: Ensure backend .env exists (bind mount)
         run: touch Server/.env
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: Client/package-lock.json
+
+      - name: Frontend linting
+        working-directory: Client
+        run: |
+          npm ci
+          npm run lint
+
       - name: Set up Docker Compose
         run: docker compose version
 
