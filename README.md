@@ -339,12 +339,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   <tr>
     <td>
       <a href="./readme/tests/CD.png">
-        <img src="./readme/tests/CD.png" alt="CD Workflow Part 1" width="100%">
+        <img src="./readme/tests/CD.png" alt="CD Workflow Part 1" height="500">
       </a>
     </td>
     <td>
       <a href="./readme/tests/CD2.png">
-        <img src="./readme/tests/CD2.png" alt="CD Workflow Part 2" width="100%">
+        <img src="./readme/tests/CD2.png" alt="CD Workflow Part 2" height="500">
       </a>
     </td>
   </tr>
@@ -362,12 +362,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
   <tr>
     <td>
       <a href="./readme/tests/API1.png">
-        <img src="./readme/tests/API1.png" alt="API Testing Part 1" width="100%">
+        <img src="./readme/tests/API1.png" alt="API Testing Part 1" height="500">
       </a>
     </td>
     <td>
       <a href="./readme/tests/API2.png">
-        <img src="./readme/tests/API2.png" alt="API Testing Part 2" width="100%">
+        <img src="./readme/tests/API2.png" alt="API Testing Part 2" height="500">
       </a>
     </td>
   </tr>
