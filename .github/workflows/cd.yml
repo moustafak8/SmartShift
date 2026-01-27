@@ -42,6 +42,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Build and push Edge Image (single Nginx)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Edge/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-edge:${{ github.event.workflow_run.head_sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/smartshift-edge:latest
+          build-args: |
+            VITE_API_URL=/api/v1
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
   deploy-to-server:
     needs: build-and-push
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
@@ -61,11 +75,11 @@ jobs:
             
             git pull origin main
 
-            # Only pull backend + db images for now (no frontend edge)
-            docker compose pull db app
+            # Pull backend, db, and edge images built by GitHub Actions
+            docker compose pull db app edge
 
-            # Only start backend + db to stay within server capacity
-            docker compose up -d --remove-orphans --no-build db app
+            # Start backend stack (db + api + edge Nginx)
+            docker compose up -d --remove-orphans --no-build db app edge
 
             docker exec smartshift-api php artisan migrate --force
             docker exec smartshift-api php artisan config:cache
