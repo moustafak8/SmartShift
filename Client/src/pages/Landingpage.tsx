@@ -16,8 +16,8 @@ export default function Landingpage() {
       <SolutionSection />
       <HowItWorksSection />
       <FeaturesSection />
-      <BenefitsSection />
       <UseCaseSection />
+      <BenefitsSection />
       <Footer />
     </div>
   );
