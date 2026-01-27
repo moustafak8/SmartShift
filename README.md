@@ -326,3 +326,49 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 | Deployment Flow                          |
 | --------------------------------------- |
 | ![Map](./readme/tests/Deploymentmap.jpg) |
+
+<br>
+
+### CD Workflow
+
+<table width="100%">
+  <tr>
+    <th>CD Workflow - Part 1</th>
+    <th>CD Workflow - Part 2</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/tests/CD.png">
+        <img src="./readme/tests/CD.png" alt="CD Workflow Part 1" width="100%">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/tests/CD2.png">
+        <img src="./readme/tests/CD2.png" alt="CD Workflow Part 2" width="100%">
+      </a>
+    </td>
+  </tr>
+</table>
+
+<br>
+
+### Deployed APIs
+
+<table width="100%">
+  <tr>
+    <th>API Testing - Part 1</th>
+    <th>API Testing - Part 2</th>
+  </tr>
+  <tr>
+    <td>
+      <a href="./readme/tests/API1.png">
+        <img src="./readme/tests/API1.png" alt="API Testing Part 1" width="100%">
+      </a>
+    </td>
+    <td>
+      <a href="./readme/tests/API2.png">
+        <img src="./readme/tests/API2.png" alt="API Testing Part 2" width="100%">
+      </a>
+    </td>
+  </tr>
+</table>
