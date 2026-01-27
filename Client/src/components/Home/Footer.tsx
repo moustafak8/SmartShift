@@ -3,7 +3,7 @@ import { Container, Heading, IconText } from "../ui";
 
 export function Footer() {
   return (
-    <footer className="text-white bg-[#1F2937]">
+    <footer id="footer" className="text-white bg-[#1F2937]">
       <Container className="py-12 md:py-10">
         <div className="grid md:grid-cols-2 gap-12 mb-8">
           <div>

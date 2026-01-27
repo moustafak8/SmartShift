@@ -1,22 +1,22 @@
-import { Activity, BookOpen, Shuffle, TrendingUp } from "lucide-react";
+import { Calendar, BookOpen, Shuffle, BarChart3 } from "lucide-react";
 import { motion } from "motion/react";
 import { useInView } from "../../hooks/useInView";
 import { Container, SectionHeader, IconText, Heading } from "../ui";
-import pic1 from "../../assets/team_fatigue_trendline.png";
 import pic2 from "../../assets/Swap.jpg";
 const features = [
   {
-    icon: Activity,
-    title: "Team Fatigue Heatmap",
+    icon: Calendar,
+    title: "AI-Powered Schedule Generation",
     description:
-      "Visual grid showing each employee's fatigue score by day. Instantly identify at-risk team members and intervene before burnout.",
+      "Generate optimal schedules in minutes, not hours. Our AI considers employee preferences, fatigue levels, availability, and labor law compliance to create balanced, fair schedules.",
     bullets: [
-      "Real-time updates after each shift and wellness entry",
-      "Color-coded risk levels (Green/Amber/Red)",
-      "Drill down to individual trends",
-      "Exportable reports",
+      "Automated schedule generation with one click",
+      "Considers employee preferences and availability",
+      "Fatigue-aware scheduling prevents burnout",
+      "Ensures compliance with labor regulations",
     ],
-    imageUrl: pic1,
+    imageUrl:
+      "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     imagePosition: "left",
   },
   {
@@ -31,7 +31,7 @@ const features = [
       "Sentiment analysis tracks team morale",
     ],
     imageUrl:
-      "https://images.unsplash.com/photo-1748346918817-0b1b6b2f9bab?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBvZmZpY2UlMjB0ZWFtd29ya3xlbnwxfHx8fDE3NjcyNTg3OTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1455390582262-044cdead277a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     imagePosition: "right",
   },
   {
@@ -49,18 +49,18 @@ const features = [
     imagePosition: "left",
   },
   {
-    icon: TrendingUp,
-    title: "Burnout Prediction & Analytics",
+    icon: BarChart3,
+    title: "Real-time Schedule Analytics",
     description:
-      "Analyze trends over time. See which factors drive fatigue most. Get AI-generated weekly insights with actionable recommendations for your team.",
+      "Monitor schedule performance with comprehensive analytics. Track coverage, employee satisfaction, and identify optimization opportunities with data-driven insights.",
     bullets: [
-      "Burnout risk scoring and trends",
-      "Sleep vs. fatigue correlations",
-      "Department comparisons",
-      "AI-generated strategic insights",
+      "Real-time schedule coverage monitoring",
+      "Employee satisfaction and engagement metrics",
+      "Identify scheduling conflicts and gaps",
+      "Data-driven optimization recommendations",
     ],
     imageUrl:
-      "https://images.unsplash.com/photo-1695462131822-368776114494?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3ZWxsbmVzcyUyMGhlYWx0aCUyMHRyYWNraW5nJTIwZGFzaGJvYXJkfGVufDF8fHx8MTc2NzI4MTM5OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
     imagePosition: "right",
   },
 ];

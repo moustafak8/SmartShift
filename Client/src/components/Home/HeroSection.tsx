@@ -1,8 +1,10 @@
 import { motion } from "motion/react";
+import { useNavigate } from "react-router-dom";
 import pic from "../../assets/Hero.jpg";
 import { Container, Card, Button, Heading } from "../ui";
 
 export function HeroSection() {
+  const navigate = useNavigate();
   return (
     <section className="pt-navbar min-h-screen flex items-center bg-white">
       <Container className="py-20 md:py-10">
@@ -44,7 +46,9 @@ export function HeroSection() {
               </Card>
             </div>
             <div className="flex gap-4 flex-wrap">
-              <Button size="md">Start Free Trial</Button>
+              <Button size="md" onClick={() => navigate("/login")}>
+                Get Started
+              </Button>
             </div>
 
             <div className="pt-8">

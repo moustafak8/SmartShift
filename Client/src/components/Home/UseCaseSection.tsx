@@ -55,7 +55,13 @@ export function UseCaseSection() {
   const [activeTab, setActiveTab] =
     useState<keyof typeof useCases>("healthcare");
   const { ref } = useInView({ threshold: 0.1 });
-
+  
+  const scrollToFooter = () => {
+    const footer = document.getElementById("footer");
+    if (footer) {
+      footer.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
   const tabs = [
     { key: "healthcare" as const, label: "Healthcare" },
     { key: "hotels" as const, label: "Hotels" },
@@ -141,9 +147,9 @@ export function UseCaseSection() {
                 </ul>
               </div>
 
-              <Button size="sm" className="mt-8">
-                Register For a {tabs.find((t) => t.key === activeTab)?.label}{" "}
-                Demo
+              <Button size="sm" className="mt-8" onClick={scrollToFooter}>
+                Contact Us For a {tabs.find((t) => t.key === activeTab)?.label}{" "}
+                Demo 
               </Button>
             </div>
           </motion.div>
