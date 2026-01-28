@@ -75,10 +75,8 @@ export function Dashboard() {
   }, [employees, teamSize]);
 
   const highRiskCount = useMemo(() => {
-    return employees.filter((emp) => {
-      const score = emp.fatigue_score?.total_score || 0;
-      return score >= 70;
-    }).length;
+    return employees.filter((emp) => emp.fatigue_score?.risk_level === "high")
+      .length;
   }, [employees]);
 
   const onLeaveCount = useMemo(() => {
@@ -87,12 +85,13 @@ export function Dashboard() {
 
   const criticalAlerts = useMemo(() => {
     return employees
-      .filter((emp) => (emp.fatigue_score?.total_score || 0) >= 70)
+      .filter((emp) => emp.fatigue_score?.risk_level === "high")
       .map((emp) => ({
         ...emp,
         fatigueScore: emp.fatigue_score?.total_score || 0,
-        riskLevel: emp.fatigue_score?.risk_level || "low",
-      }));
+        riskLevel: emp.fatigue_score?.risk_level || "high",
+      }))
+      .sort((a, b) => b.fatigueScore - a.fatigueScore);
   }, [employees]);
 
   const employeesNeedingAttention = useMemo(() => {
@@ -283,21 +282,13 @@ export function Dashboard() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex">
                       <Button
                         size="sm"
                         onClick={() => navigate("/manager/team")}
                         className="bg-[#3B82F6] hover:bg-[#2563EB] text-white"
                       >
                         Review Profile
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => navigate("/manager/team-wellness")}
-                        className="border-[#E5E7EB]"
-                      >
-                        Take Action
                       </Button>
                     </div>
                   </div>
