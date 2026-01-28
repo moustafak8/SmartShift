@@ -77,7 +77,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (\Throwable $e, $request) use ($isApiRequest) {
             if ($isApiRequest($request)) {
-                return ResponseTrait::responseJSON('An unexpected error occurred', 'error', 500);
+                $message = config('app.debug')
+                    ? $e->getMessage()
+                    : 'An unexpected error occurred';
+
+                return ResponseTrait::responseJSON($message, 'error', 500);
             }
         });
     })->create();
