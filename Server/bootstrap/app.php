@@ -5,6 +5,7 @@ use App\Http\Middleware\JWTFromCookie;
 use App\Http\Middleware\JWTMiddleware;
 use App\Http\Middleware\ManagerMiddleware;
 use App\Jobs\GenerateWeeklyInsight;
+use App\Traits\ResponseTrait;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -18,9 +19,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        api: __DIR__.'/../routes/api.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        api: __DIR__ . '/../routes/api.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withSchedule(function (Schedule $schedule): void {
@@ -36,57 +37,47 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (ModelNotFoundException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'payload' => 'Resource not found',
-                ], 404);
+        $isApiRequest = fn($request) => $request->is('api/*') || $request->expectsJson();
+
+        $exceptions->render(function (ModelNotFoundException $e, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return ResponseTrait::responseJSON('Resource not found', 'error', 404);
             }
         });
 
-        $exceptions->render(function (NotFoundHttpException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'payload' => 'Endpoint not found',
-                ], 404);
+        $exceptions->render(function (NotFoundHttpException $e, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return ResponseTrait::responseJSON('Endpoint not found', 'error', 404);
             }
         });
 
-        $exceptions->render(function (ValidationException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'payload' => $e->errors(),
-                ], 422);
+        $exceptions->render(function (ValidationException $e, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return ResponseTrait::responseJSON($e->errors(), 'error', 422);
             }
         });
 
-        $exceptions->render(function (AuthenticationException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'payload' => 'Unauthenticated',
-                ], 401);
+        $exceptions->render(function (AuthenticationException $e, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return ResponseTrait::responseJSON('Unauthenticated', 'error', 401);
             }
         });
 
-        $exceptions->render(function (HttpException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'payload' => $e->getMessage() ?: 'An error occurred',
-                ], $e->getStatusCode());
+        $exceptions->render(function (HttpException $e, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return ResponseTrait::responseJSON($e->getMessage() ?: 'An error occurred', 'error', $e->getStatusCode());
             }
         });
 
-        $exceptions->render(function (QueryException $e, $request) {
-            if ($request->is('api/*') || $request->expectsJson()) {
-                return response()->json([
-                    'status' => 'error',
-                    'payload' => 'Database error occurred',
-                ], 500);
+        $exceptions->render(function (QueryException $e, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return ResponseTrait::responseJSON('Database error occurred', 'error', 500);
+            }
+        });
+
+        $exceptions->render(function (\Throwable $e, $request) use ($isApiRequest) {
+            if ($isApiRequest($request)) {
+                return ResponseTrait::responseJSON('An unexpected error occurred', 'error', 500);
             }
         });
     })->create();
