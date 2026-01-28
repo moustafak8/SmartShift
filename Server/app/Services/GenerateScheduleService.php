@@ -8,7 +8,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class GenerateScheduleService
@@ -143,13 +142,6 @@ class GenerateScheduleService
                 'date_range' => null,
             ];
         } catch (\Exception $e) {
-            Log::error('Error checking existing schedule', [
-                'department_id' => $departmentId,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'error' => $e->getMessage(),
-            ]);
-
             return [
                 'exists' => false,
                 'count' => 0,
@@ -189,10 +181,6 @@ class GenerateScheduleService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to save reviewed schedule', [
-                'error' => $e->getMessage(),
-                'assignments_count' => count($assignments),
-            ]);
 
             return [
                 'success' => false,
@@ -340,11 +328,11 @@ class GenerateScheduleService
                 'employee_id' => $employee->id,
                 'full_name' => $employee->full_name,
                 'positions' => $this->getEmployeePositions($employee),
-                'availability' => null, // Will be fetched per-shift
+                'availability' => null,
                 'preferences' => $this->preferenceService->getByEmployee($employee->id),
                 'fatigue_score' => $this->getFatigueScore($employee->id),
-                'hours_assigned' => 0, // Track hours for this schedule
-                'consecutive_days' => [], // Track consecutive working days
+                'hours_assigned' => 0,
+                'consecutive_days' => [],
             ];
         }
 
@@ -451,8 +439,6 @@ class GenerateScheduleService
 
             return $this->parseAiAssignments($raw);
         } catch (\Throwable $e) {
-            Log::warning('AI scheduling failed, falling back to greedy', ['error' => $e->getMessage()]);
-
             return [];
         }
     }
@@ -487,7 +473,6 @@ class GenerateScheduleService
                 ];
             }
 
-            // Determine if this is a peak shift (weekend or specific hours)
             $date = Carbon::parse($req['shift_date']);
             $isWeekend = $date->isWeekend();
             $shiftBlocks[] = [
@@ -565,11 +550,11 @@ class GenerateScheduleService
             }
 
             if (! isset($scheduleRequirements[$shiftId]['position_requirements'][$positionId])) {
-                continue; // invalid position or shift
+                continue;
             }
 
             if (! in_array($employeeId, $candidatePool[$shiftId][$positionId]['candidates'] ?? [], true)) {
-                continue; // not an eligible candidate
+                continue;
             }
 
             $shiftData = $scheduleRequirements[$shiftId];
@@ -577,11 +562,11 @@ class GenerateScheduleService
             if ($this->canEmployeeWorkShift(
                 $employeeId,
                 $shiftData['shift_date'],
-                $shiftData,  // Pass full shift data, not position requirements
+                $shiftData,
                 $employeeData,
                 $assignments,
                 $assignedInShift,
-                false,  // lenient mode
+                false,
                 $scheduleRequirements
             )) {
 
@@ -648,13 +633,6 @@ class GenerateScheduleService
                         $this->updateEmployeeTracking($employeeId, $shiftData, $employeeData);
                         $remaining--;
                     }
-                }
-
-                if ($remaining > 0) {
-                    Log::warning(
-                        "Understaffed position {$posReq['position_name']} shift {$shiftId}",
-                        ['required' => $required, 'assigned' => $required - $remaining]
-                    );
                 }
             }
         }
@@ -806,8 +784,6 @@ class GenerateScheduleService
     private function persistAssignments(array $assignments): void
     {
         if (empty($assignments)) {
-            Log::warning('No assignments to persist');
-
             return;
         }
 
