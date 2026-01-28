@@ -18,20 +18,6 @@ class GenerateScheduleService
 
     private const OPENAI_MAX_TOKENS = 1200;
 
-    private const FATIGUE_HIGH_THRESHOLD = 70;
-
-    private const FATIGUE_MEDIUM_THRESHOLD = 40;
-
-    private const FATIGUE_DEFAULT_SCORE = 50;
-
-    private const FATIGUE_SCORE_WEIGHT = 0.1;
-
-    private const DEFAULT_MAX_SHIFTS_PER_WEEK = 5;
-
-    private const DEFAULT_MAX_HOURS_PER_WEEK = 40;
-
-    private const DEFAULT_MAX_CONSECUTIVE_DAYS = 5;
-
     private EmployeeAvailabilityService $availabilityService;
 
     private EmployeePrefrenceService $preferenceService;
@@ -451,11 +437,7 @@ class GenerateScheduleService
             foreach ($candidatePool[$shiftId] ?? [] as $posId => $pos) {
                 $candidateNames = array_map(function ($empId) use ($employeeData) {
                     $empData = $employeeData[$empId];
-                    $fatigueLevel = 'unknown';
-                    if ($empData['fatigue_score']) {
-                        $score = $empData['fatigue_score']['fatigue_score'] ?? 0;
-                        $fatigueLevel = $score > self::FATIGUE_HIGH_THRESHOLD ? 'high' : ($score > self::FATIGUE_MEDIUM_THRESHOLD ? 'medium' : 'low');
-                    }
+                    $fatigueLevel = $empData['fatigue_score']['risk_level'] ?? 'unknown';
 
                     return [
                         'id' => $empId,
@@ -643,9 +625,7 @@ class GenerateScheduleService
         $scored = array_map(function ($employeeId) use ($employeeData) {
             $empData = $employeeData[$employeeId];
             $hours = $empData['hours_assigned'] ?? 0;
-            $fatigue = $empData['fatigue_score']['fatigue_score'] ?? self::FATIGUE_DEFAULT_SCORE;
-
-            return ['id' => $employeeId, 'score' => $hours + ($fatigue * self::FATIGUE_SCORE_WEIGHT)];
+            return ['id' => $employeeId, 'score' => $hours];
         }, $candidates);
 
         usort($scored, fn($a, $b) => $a['score'] <=> $b['score']);
@@ -716,21 +696,24 @@ class GenerateScheduleService
             return false;
         }
 
-        $maxShiftsPerWeek = $prefs->max_shifts_per_week ?? self::DEFAULT_MAX_SHIFTS_PER_WEEK;
-        if ($this->getShiftsInWeek($employeeId, $shiftDate) >= $maxShiftsPerWeek) {
-            return false;
+        if (! is_null($prefs->max_shifts_per_week)) {
+            if ($this->getShiftsInWeek($employeeId, $shiftDate) >= (int) $prefs->max_shifts_per_week) {
+                return false;
+            }
         }
 
-        $maxHoursPerWeek = $prefs->max_hours_per_week ?? self::DEFAULT_MAX_HOURS_PER_WEEK;
-        $hoursThisWeek = $this->getHoursInWeek($employeeId, $shiftDate);
-        $shiftHours = $this->shiftService->calculateShiftDuration($shiftData['start_time'], $shiftData['end_time']);
-        if (($hoursThisWeek + $shiftHours) > $maxHoursPerWeek) {
-            return false;
+        if (! is_null($prefs->max_hours_per_week)) {
+            $hoursThisWeek = $this->getHoursInWeek($employeeId, $shiftDate);
+            $shiftHours = $this->shiftService->calculateShiftDuration($shiftData['start_time'], $shiftData['end_time']);
+            if (($hoursThisWeek + $shiftHours) > (float) $prefs->max_hours_per_week) {
+                return false;
+            }
         }
 
-        $maxConsecutiveDays = $prefs->max_consecutive_days ?? self::DEFAULT_MAX_CONSECUTIVE_DAYS;
-        if ($this->countConsecutiveDays($employeeId, $shiftDate) >= $maxConsecutiveDays) {
-            return false;
+        if (! is_null($prefs->max_consecutive_days)) {
+            if ($this->countConsecutiveDays($employeeId, $shiftDate) >= (int) $prefs->max_consecutive_days) {
+                return false;
+            }
         }
 
         return true;
