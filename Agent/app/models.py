@@ -14,20 +14,20 @@ class SwapValidationRequest(BaseModel):
 class ValidationCheckResult(BaseModel):
     check_name: str
     passed: bool
-    severity: str  # "hard", "soft"
+    severity: str  
     message: str
     details: Optional[Dict[str, Any]] = None
 
 
 class SwapValidationResponse(BaseModel):
     swap_id: int
-    decision: str  # "auto_approve", "auto_reject", "requires_review"
-    confidence: float  # 0.0 to 1.0
+    decision: str 
+    confidence: float  
     reasoning: str
     validation_passed: bool
     checks: List[ValidationCheckResult]
     risk_factors: List[str]
-    suggestions: List[Any]  # Can be strings or suggestion objects
+    suggestions: List[Any]  
     processing_time_ms: int
-    correlation_id: Optional[str] = None  # For request tracing
+    correlation_id: Optional[str] = None  
 
