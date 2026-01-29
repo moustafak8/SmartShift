@@ -55,7 +55,16 @@ export const useCurrentUser = (enabled: boolean = true) => {
       setDepartmentId(null);
       setIsLoading(false);
     }
-  }, [query.isSuccess, query.isError, query.isLoading, query.data, setUser, setDepartmentId, setIsLoading, enabled]);
+  }, [
+    query.isSuccess,
+    query.isError,
+    query.isLoading,
+    query.data,
+    setUser,
+    setDepartmentId,
+    setIsLoading,
+    enabled,
+  ]);
 
   return {
     user: query.data?.payload?.user || null,
