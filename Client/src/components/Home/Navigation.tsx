@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { Brain, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Container, Button } from "../ui";
+import logo2 from "../../assets/logo2.png";
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,8 +19,13 @@ export function Navigation() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-navbar">
       <Container className="md:px-5">
         <div className="flex items-center justify-between h-navbar md:h-16">
-          <div className="flex items-center gap-3">
-            <Brain className="w-10 h-10 text-[#2563EB]" />
+          <div className="flex items-center ">
+            <img
+              src={logo2}
+              alt="SmartShift logo"
+              className="h-17 w-17 object-contain"
+              draggable={false}
+            />
             <span className="text-[20px] font-bold text-black">SmartShift</span>
           </div>
 
