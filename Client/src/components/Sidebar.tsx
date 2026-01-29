@@ -2,7 +2,6 @@ import React, { useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
-  Brain,
   Users,
   Calendar,
   Heart,
@@ -23,6 +22,7 @@ import { useLogout } from "../hooks/useLogout";
 import { usePendingSwapsCount } from "../hooks/Manager/useManagerSwaps";
 import { useUnreadCount } from "../hooks/useNotification";
 import { cn } from "./ui/utils";
+import logo2 from "../assets/logo2.png";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -231,11 +231,14 @@ export function Layout({ children }: LayoutProps) {
           </button>
 
           <div className="px-6 py-4 border-b border-[#E5E7EB] bg-white">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#2563EB]/10 flex items-center justify-center">
-                <Brain className="w-6 h-6 text-[#2563EB]" />
-              </div>
-              <div>
+            <div className="flex items-center -ml-1">
+              <img
+                src={logo2}
+                alt="SmartShift logo"
+                className="h-15 w-15 object-contain"
+                draggable={false}
+              />
+              <div className="-ml-2">
                 <h1 className="font-bold text-[18px] text-[#0F172A]">
                   SmartShift
                 </h1>

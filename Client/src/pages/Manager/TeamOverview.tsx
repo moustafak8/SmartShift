@@ -21,7 +21,6 @@ export function TeamOverview() {
   >("all");
   const { employees, isLoading, isError, error, refetch } = useEmployees();
 
-  
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 7;
 
@@ -43,13 +42,25 @@ export function TeamOverview() {
     return matchesSearch && matchesStatus && matchesRisk;
   });
 
-  const totalPages = Math.ceil(filteredEmployees.length / ITEMS_PER_PAGE);
+  const getRiskRank = (emp: (typeof employees)[number]) => {
+    const level = emp.fatigue_score?.risk_level;
+    if (level === "high") return 3;
+    if (level === "medium") return 2;
+    if (level === "low") return 1;
+    return 0;
+  };
+
+  const sortedEmployees = [...filteredEmployees].sort(
+    (a, b) => getRiskRank(b) - getRiskRank(a),
+  );
+
+  const totalPages = Math.ceil(sortedEmployees.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(
     startIndex + ITEMS_PER_PAGE,
-    filteredEmployees.length,
+    sortedEmployees.length,
   );
-  const paginatedEmployees = filteredEmployees.slice(
+  const paginatedEmployees = sortedEmployees.slice(
     startIndex,
     startIndex + ITEMS_PER_PAGE,
   );
@@ -61,10 +72,9 @@ export function TeamOverview() {
   const clearFilters = () => {
     setStatusFilter("all");
     setRiskFilter("all");
-    setCurrentPage(1); 
+    setCurrentPage(1);
   };
 
- 
   if (currentPage > 1 && paginatedEmployees.length === 0 && totalPages > 0) {
     setCurrentPage(1);
   }

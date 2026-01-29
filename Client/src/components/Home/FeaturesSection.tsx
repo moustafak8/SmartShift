@@ -2,7 +2,11 @@ import { Calendar, BookOpen, Shuffle, BarChart3 } from "lucide-react";
 import { motion } from "motion/react";
 import { useInView } from "../../hooks/useInView";
 import { Container, SectionHeader, IconText, Heading } from "../ui";
-import pic2 from "../../assets/Swap.jpg";
+import scheduleImage from "../../assets/schedule.png";
+import ragImage from "../../assets/Rag.png";
+import swapImage from "../../assets/swap.png";
+import analyticsImage from "../../assets/analytics.png";
+
 const features = [
   {
     icon: Calendar,
@@ -15,8 +19,7 @@ const features = [
       "Fatigue-aware scheduling prevents burnout",
       "Ensures compliance with labor regulations",
     ],
-    imageUrl:
-      "https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    imageUrl: scheduleImage,
     imagePosition: "left",
   },
   {
@@ -30,8 +33,7 @@ const features = [
       'Natural language queries: "Who got <4h sleep?"',
       "Sentiment analysis tracks team morale",
     ],
-    imageUrl:
-      "https://images.unsplash.com/photo-1455390582262-044cdead277a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    imageUrl: ragImage,
     imagePosition: "right",
   },
   {
@@ -45,7 +47,7 @@ const features = [
       "Smart matching suggests optimal partners",
       "Manager override available when needed",
     ],
-    imageUrl: pic2,
+    imageUrl: swapImage,
     imagePosition: "left",
   },
   {
@@ -59,8 +61,7 @@ const features = [
       "Identify scheduling conflicts and gaps",
       "Data-driven optimization recommendations",
     ],
-    imageUrl:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+    imageUrl: analyticsImage,
     imagePosition: "right",
   },
 ];
@@ -81,12 +82,14 @@ export function FeaturesSection() {
               initial={{ opacity: 0, y: 30 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`grid lg:grid-cols-2 gap-12 items-center ${feature.imagePosition === "right" ? "lg:flex-row-reverse" : ""
-                }`}
+              className={`grid lg:grid-cols-2 gap-12 items-center ${
+                feature.imagePosition === "right" ? "lg:flex-row-reverse" : ""
+              }`}
             >
               <div
-                className={`${feature.imagePosition === "right" ? "lg:order-2" : ""
-                  }`}
+                className={`${
+                  feature.imagePosition === "right" ? "lg:order-2" : ""
+                }`}
               >
                 <div className="overflow-hidden rounded-lg shadow-image hover:scale-[1.02] transition-transform duration-300">
                   <img
@@ -99,8 +102,9 @@ export function FeaturesSection() {
               </div>
 
               <div
-                className={`${feature.imagePosition === "right" ? "lg:order-1" : ""
-                  }`}
+                className={`${
+                  feature.imagePosition === "right" ? "lg:order-1" : ""
+                }`}
               >
                 <IconText
                   icon={feature.icon}

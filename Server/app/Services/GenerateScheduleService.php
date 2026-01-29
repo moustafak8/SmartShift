@@ -8,7 +8,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class GenerateScheduleService
@@ -18,20 +17,6 @@ class GenerateScheduleService
     private const OPENAI_TEMPERATURE = 0.3;
 
     private const OPENAI_MAX_TOKENS = 1200;
-
-    private const FATIGUE_HIGH_THRESHOLD = 70;
-
-    private const FATIGUE_MEDIUM_THRESHOLD = 40;
-
-    private const FATIGUE_DEFAULT_SCORE = 50;
-
-    private const FATIGUE_SCORE_WEIGHT = 0.1;
-
-    private const DEFAULT_MAX_SHIFTS_PER_WEEK = 5;
-
-    private const DEFAULT_MAX_HOURS_PER_WEEK = 40;
-
-    private const DEFAULT_MAX_CONSECUTIVE_DAYS = 5;
 
     private EmployeeAvailabilityService $availabilityService;
 
@@ -99,7 +84,7 @@ class GenerateScheduleService
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => 'Schedule generation failed: '.$e->getMessage(),
+                'message' => 'Schedule generation failed: ' . $e->getMessage(),
                 'error' => $e,
             ];
         }
@@ -143,13 +128,6 @@ class GenerateScheduleService
                 'date_range' => null,
             ];
         } catch (\Exception $e) {
-            Log::error('Error checking existing schedule', [
-                'department_id' => $departmentId,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-                'error' => $e->getMessage(),
-            ]);
-
             return [
                 'exists' => false,
                 'count' => 0,
@@ -189,14 +167,10 @@ class GenerateScheduleService
             ];
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to save reviewed schedule', [
-                'error' => $e->getMessage(),
-                'assignments_count' => count($assignments),
-            ]);
 
             return [
                 'success' => false,
-                'message' => 'Failed to save schedule: '.$e->getMessage(),
+                'message' => 'Failed to save schedule: ' . $e->getMessage(),
                 'error' => $e,
             ];
         }
@@ -204,36 +178,50 @@ class GenerateScheduleService
 
     private function sendShiftAssignmentNotifications(Collection $assignments): void
     {
-        $shiftsCache = [];
+        if ($assignments->isEmpty()) {
+            return;
+        }
 
-        foreach ($assignments as $assignment) {
-            $employeeId = $assignment->employee_id;
-            $shiftId = $assignment->shift_id;
 
-            // Cache shift data to avoid multiple queries
-            if (! isset($shiftsCache[$shiftId])) {
-                $shiftsCache[$shiftId] = Shifts::find($shiftId);
-            }
+        $shiftIds = $assignments->pluck('shift_id')->unique()->values();
+        $shiftsById = Shifts::whereIn('id', $shiftIds)->get()->keyBy('id');
 
-            $shift = $shiftsCache[$shiftId];
-            if (! $shift) {
+
+        $firstShiftDate = $shiftsById
+            ->pluck('shift_date')
+            ->filter()
+            ->sort()
+            ->first();
+
+        $weekStart = $firstShiftDate ? Carbon::parse($firstShiftDate)->startOfWeek() : null;
+        $weekEnd = $firstShiftDate ? Carbon::parse($firstShiftDate)->endOfWeek() : null;
+
+
+        $assignmentsByEmployee = $assignments->groupBy('employee_id');
+
+        foreach ($assignmentsByEmployee as $employeeId => $employeeAssignments) {
+            $hasAnyShift = $employeeAssignments->contains(
+                fn($a) => $shiftsById->has($a->shift_id)
+            );
+            if (! $hasAnyShift) {
                 continue;
             }
 
-            $shiftDate = Carbon::parse($shift->shift_date);
-            $startTime = Carbon::parse($shift->start_time)->format('g:ia');
-            $endTime = Carbon::parse($shift->end_time)->format('g:ia');
-            $dayName = $shiftDate->format('l');
-            $formattedDate = $shiftDate->format('M j');
+            $title = 'Weekly Schedule Published';
+            $range = ($weekStart && $weekEnd)
+                ? $weekStart->format('M j') . ' - ' . $weekEnd->format('M j')
+                : 'this week';
+
+            $message = "Your weekly schedule for {$range} has been published.";
 
             $this->notificationService->send(
-                $employeeId,
-                NotificationService::TYPE_SHIFT_ASSIGNED,
-                'New Shift Scheduled',
-                "You're scheduled for {$dayName}, {$formattedDate}: {$startTime}-{$endTime} {$shift->shift_type} Shift",
+                (int) $employeeId,
+                NotificationService::TYPE_SCHEDULE_PUBLISHED,
+                $title,
+                $message,
                 'normal',
-                'shift',
-                $shiftId
+                'schedule',
+                null
             );
         }
     }
@@ -326,11 +314,11 @@ class GenerateScheduleService
                 'employee_id' => $employee->id,
                 'full_name' => $employee->full_name,
                 'positions' => $this->getEmployeePositions($employee),
-                'availability' => null, // Will be fetched per-shift
+                'availability' => null,
                 'preferences' => $this->preferenceService->getByEmployee($employee->id),
                 'fatigue_score' => $this->getFatigueScore($employee->id),
-                'hours_assigned' => 0, // Track hours for this schedule
-                'consecutive_days' => [], // Track consecutive working days
+                'hours_assigned' => 0,
+                'consecutive_days' => [],
             ];
         }
 
@@ -437,8 +425,6 @@ class GenerateScheduleService
 
             return $this->parseAiAssignments($raw);
         } catch (\Throwable $e) {
-            Log::warning('AI scheduling failed, falling back to greedy', ['error' => $e->getMessage()]);
-
             return [];
         }
     }
@@ -451,15 +437,11 @@ class GenerateScheduleService
             foreach ($candidatePool[$shiftId] ?? [] as $posId => $pos) {
                 $candidateNames = array_map(function ($empId) use ($employeeData) {
                     $empData = $employeeData[$empId];
-                    $fatigueLevel = 'unknown';
-                    if ($empData['fatigue_score']) {
-                        $score = $empData['fatigue_score']['fatigue_score'] ?? 0;
-                        $fatigueLevel = $score > self::FATIGUE_HIGH_THRESHOLD ? 'high' : ($score > self::FATIGUE_MEDIUM_THRESHOLD ? 'medium' : 'low');
-                    }
+                    $fatigueLevel = $empData['fatigue_score']['risk_level'] ?? 'unknown';
 
                     return [
                         'id' => $empId,
-                        'name' => $empData['full_name'] ?? 'Employee '.$empId,
+                        'name' => $empData['full_name'] ?? 'Employee ' . $empId,
                         'fatigue_level' => $fatigueLevel,
                         'hours_this_schedule' => $empData['hours_assigned'] ?? 0,
                     ];
@@ -473,7 +455,6 @@ class GenerateScheduleService
                 ];
             }
 
-            // Determine if this is a peak shift (weekend or specific hours)
             $date = Carbon::parse($req['shift_date']);
             $isWeekend = $date->isWeekend();
             $shiftBlocks[] = [
@@ -489,17 +470,17 @@ class GenerateScheduleService
         }
 
         $instructions = 'You are an intelligent shift scheduling assistant for a restaurant business. '
-            .'Your task: Assign employees to positions for each shift based on the provided eligible candidates. '
-            .'CRITICAL RULES: '
-            .'1. Each position has a required_count - you MUST  fill ALL slots with different employees. '
-            .'2. An employee can work MULTIPLE different shifts throughout the week if they appear in multiple candidate lists. '
-            .'3. An employee can only be assigned to ONE position per shift (no duplicate assignments within the same shift_id). '
-            .'4. FAIR DISTRIBUTION - Distribute hours fairly across employees. Check hours_this_schedule for each candidate. '
-            .'5. FATIGUE AWARENESS - Avoid assigning high-fatigue employees to consecutive shifts. Prioritize low/medium fatigue when possible. '
-            .'6. WEEKEND BALANCE - Distribute weekend shifts fairly. Don\'t give all weekends to the same employees. '
-            .'7. EXPERIENCE - For peak shifts (weekends, busy times), try to have a good mix if possible. '
-            .'8. All candidates provided have already been validated for availability and position qualifications. '
-            .'Output: Return ONLY valid JSON with an "assignments" array containing objects: {"shift_id": number, "position_id": number, "employee_id": number}.';
+            . 'Your task: Assign employees to positions for each shift based on the provided eligible candidates. '
+            . 'CRITICAL RULES: '
+            . '1. Each position has a required_count - you MUST  fill ALL slots with different employees. '
+            . '2. An employee can work MULTIPLE different shifts throughout the week if they appear in multiple candidate lists. '
+            . '3. An employee can only be assigned to ONE position per shift (no duplicate assignments within the same shift_id). '
+            . '4. FAIR DISTRIBUTION - Distribute hours fairly across employees. Check hours_this_schedule for each candidate. '
+            . '5. FATIGUE AWARENESS - Avoid assigning high-fatigue employees to consecutive shifts. Prioritize low/medium fatigue when possible. '
+            . '6. WEEKEND BALANCE - Distribute weekend shifts fairly. Don\'t give all weekends to the same employees. '
+            . '7. EXPERIENCE - For peak shifts (weekends, busy times), try to have a good mix if possible. '
+            . '8. All candidates provided have already been validated for availability and position qualifications. '
+            . 'Output: Return ONLY valid JSON with an "assignments" array containing objects: {"shift_id": number, "position_id": number, "employee_id": number}.';
 
         return json_encode([
             'instructions' => $instructions,
@@ -551,11 +532,11 @@ class GenerateScheduleService
             }
 
             if (! isset($scheduleRequirements[$shiftId]['position_requirements'][$positionId])) {
-                continue; // invalid position or shift
+                continue;
             }
 
             if (! in_array($employeeId, $candidatePool[$shiftId][$positionId]['candidates'] ?? [], true)) {
-                continue; // not an eligible candidate
+                continue;
             }
 
             $shiftData = $scheduleRequirements[$shiftId];
@@ -563,11 +544,11 @@ class GenerateScheduleService
             if ($this->canEmployeeWorkShift(
                 $employeeId,
                 $shiftData['shift_date'],
-                $shiftData,  // Pass full shift data, not position requirements
+                $shiftData,
                 $employeeData,
                 $assignments,
                 $assignedInShift,
-                false,  // lenient mode
+                false,
                 $scheduleRequirements
             )) {
 
@@ -635,13 +616,6 @@ class GenerateScheduleService
                         $remaining--;
                     }
                 }
-
-                if ($remaining > 0) {
-                    Log::warning(
-                        "Understaffed position {$posReq['position_name']} shift {$shiftId}",
-                        ['required' => $required, 'assigned' => $required - $remaining]
-                    );
-                }
             }
         }
     }
@@ -651,12 +625,10 @@ class GenerateScheduleService
         $scored = array_map(function ($employeeId) use ($employeeData) {
             $empData = $employeeData[$employeeId];
             $hours = $empData['hours_assigned'] ?? 0;
-            $fatigue = $empData['fatigue_score']['fatigue_score'] ?? self::FATIGUE_DEFAULT_SCORE;
-
-            return ['id' => $employeeId, 'score' => $hours + ($fatigue * self::FATIGUE_SCORE_WEIGHT)];
+            return ['id' => $employeeId, 'score' => $hours];
         }, $candidates);
 
-        usort($scored, fn ($a, $b) => $a['score'] <=> $b['score']);
+        usort($scored, fn($a, $b) => $a['score'] <=> $b['score']);
 
         return array_column($scored, 'id');
     }
@@ -724,21 +696,24 @@ class GenerateScheduleService
             return false;
         }
 
-        $maxShiftsPerWeek = $prefs->max_shifts_per_week ?? self::DEFAULT_MAX_SHIFTS_PER_WEEK;
-        if ($this->getShiftsInWeek($employeeId, $shiftDate) >= $maxShiftsPerWeek) {
-            return false;
+        if (! is_null($prefs->max_shifts_per_week)) {
+            if ($this->getShiftsInWeek($employeeId, $shiftDate) >= (int) $prefs->max_shifts_per_week) {
+                return false;
+            }
         }
 
-        $maxHoursPerWeek = $prefs->max_hours_per_week ?? self::DEFAULT_MAX_HOURS_PER_WEEK;
-        $hoursThisWeek = $this->getHoursInWeek($employeeId, $shiftDate);
-        $shiftHours = $this->shiftService->calculateShiftDuration($shiftData['start_time'], $shiftData['end_time']);
-        if (($hoursThisWeek + $shiftHours) > $maxHoursPerWeek) {
-            return false;
+        if (! is_null($prefs->max_hours_per_week)) {
+            $hoursThisWeek = $this->getHoursInWeek($employeeId, $shiftDate);
+            $shiftHours = $this->shiftService->calculateShiftDuration($shiftData['start_time'], $shiftData['end_time']);
+            if (($hoursThisWeek + $shiftHours) > (float) $prefs->max_hours_per_week) {
+                return false;
+            }
         }
 
-        $maxConsecutiveDays = $prefs->max_consecutive_days ?? self::DEFAULT_MAX_CONSECUTIVE_DAYS;
-        if ($this->countConsecutiveDays($employeeId, $shiftDate) >= $maxConsecutiveDays) {
-            return false;
+        if (! is_null($prefs->max_consecutive_days)) {
+            if ($this->countConsecutiveDays($employeeId, $shiftDate) >= (int) $prefs->max_consecutive_days) {
+                return false;
+            }
         }
 
         return true;
@@ -792,8 +767,6 @@ class GenerateScheduleService
     private function persistAssignments(array $assignments): void
     {
         if (empty($assignments)) {
-            Log::warning('No assignments to persist');
-
             return;
         }
 

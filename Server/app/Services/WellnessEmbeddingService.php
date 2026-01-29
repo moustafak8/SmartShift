@@ -6,6 +6,7 @@ use App\Models\FatigueScore;
 use App\Models\Shift_Assigments;
 use App\Models\WellnessEntryExtraction;
 use App\Models\WellnessEntryVector;
+use Carbon\Carbon;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class WellnessEmbeddingService
@@ -48,7 +49,7 @@ class WellnessEmbeddingService
         if ($this->hasCriticalKeywords($keywords)) {
             $detected = $this->getDetectedCriticalKeywords($keywords);
 
-            return $this->buildFlagData('critical', 'Critical keywords detected: '.implode(', ', $detected));
+            return $this->buildFlagData('critical', 'Critical keywords detected: ' . implode(', ', $detected));
         }
 
         if ($sentimentScore <= -0.7) {
@@ -86,7 +87,11 @@ class WellnessEmbeddingService
 
         $sleepDeprivation = $extraction->sleep_hours_before < 4 && $extraction->shift_duration_hours > 10;
         $multipleSymptoms = is_array($extraction->physical_symptoms) && count($extraction->physical_symptoms) >= 2;
-        $highStress = $extraction->stress_level === 'high';
+        $stressValue = $extraction->stress_level;
+        $numericStress = is_numeric($stressValue) ? (int) $stressValue : null;
+        $highStress = $numericStress !== null
+            ? $numericStress >= 4
+            : $stressValue === 'high';
         $criticalSentiment = $sentimentScore <= -0.6;
 
         return $sleepDeprivation && ($multipleSymptoms || $highStress || $criticalSentiment);
@@ -198,11 +203,14 @@ class WellnessEmbeddingService
 
     private function getTotalHoursWorked(int $employeeId, string $date): float
     {
+        $end = Carbon::parse($date)->endOfDay();
+        $start = (clone $end)->subDays(6)->startOfDay();
+
         $assignments = Shift_Assigments::where('employee_id', $employeeId)
-            ->whereHas('shift', function ($query) use ($date) {
+            ->whereHas('shift', function ($query) use ($start, $end) {
                 $query->whereBetween('shift_date', [
-                    now()->parse($date)->subDays(6)->format('Y-m-d'),
-                    $date,
+                    $start->toDateString(),
+                    $end->toDateString(),
                 ]);
             })
             ->with('shift')
@@ -214,17 +222,27 @@ class WellnessEmbeddingService
                 return 0;
             }
 
-            return now()->parse($shift->start_time)->diffInHours(now()->parse($shift->end_time));
+            $startTime = Carbon::parse($shift->start_time);
+            $endTime = Carbon::parse($shift->end_time);
+
+            if ($endTime->lessThanOrEqualTo($startTime)) {
+                $endTime->addDay();
+            }
+
+            return $startTime->diffInHours($endTime);
         });
     }
 
     private function getNightShiftsCount(int $employeeId, string $date): int
     {
+        $end = Carbon::parse($date)->endOfDay();
+        $start = (clone $end)->subDays(6)->startOfDay();
+
         return Shift_Assigments::where('employee_id', $employeeId)
-            ->whereHas('shift', function ($query) use ($date) {
+            ->whereHas('shift', function ($query) use ($start, $end) {
                 $query->whereBetween('shift_date', [
-                    now()->parse($date)->subDays(6)->format('Y-m-d'),
-                    $date,
+                    $start->toDateString(),
+                    $end->toDateString(),
                 ])->where('shift_type', 'night');
             })
             ->count();
@@ -232,13 +250,13 @@ class WellnessEmbeddingService
 
     private function getWeeklyExtractionData(int $employeeId, string $date): ?array
     {
+        $end = Carbon::parse($date)->endOfDay();
+        $start = (clone $end)->subDays(6)->startOfDay();
+
         $extractions = WellnessEntryExtraction::whereHas('entry', function ($query) use ($employeeId) {
             $query->where('employee_id', $employeeId);
         })
-            ->whereBetween('created_at', [
-                now()->parse($date)->subDays(6),
-                now()->parse($date)->endOfDay(),
-            ])
+            ->whereBetween('created_at', [$start, $end])
             ->get();
 
         if ($extractions->isEmpty()) {
@@ -248,28 +266,25 @@ class WellnessEmbeddingService
         return [
             'avg_sleep' => $extractions->avg('sleep_hours_before'),
             'avg_meals' => $extractions->avg('meals_count'),
-            'symptoms_count' => $extractions->sum(fn ($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0),
+            'symptoms_count' => $extractions->sum(fn($e) => is_array($e->physical_symptoms) ? count($e->physical_symptoms) : 0),
         ];
     }
 
     private function getWeeklySentimentData(int $employeeId, string $date): ?array
     {
+        $end = Carbon::parse($date)->endOfDay();
+        $start = (clone $end)->subDays(6)->startOfDay();
+
         $sentimentData = WellnessEntryVector::whereHas('entry', function ($query) use ($employeeId) {
             $query->where('employee_id', $employeeId);
         })
-            ->whereBetween('created_at', [
-                now()->parse($date)->subDays(6),
-                now()->parse($date)->endOfDay(),
-            ])
+            ->whereBetween('created_at', [$start, $end])
             ->get();
 
         $extractions = WellnessEntryExtraction::whereHas('entry', function ($query) use ($employeeId) {
             $query->where('employee_id', $employeeId);
         })
-            ->whereBetween('created_at', [
-                now()->parse($date)->subDays(6),
-                now()->parse($date)->endOfDay(),
-            ])
+            ->whereBetween('created_at', [$start, $end])
             ->get();
 
         if ($sentimentData->isEmpty()) {
@@ -326,7 +341,7 @@ PROMPT;
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \RuntimeException(
-                'Failed to parse sentiment response as JSON: '.json_last_error_msg()
+                'Failed to parse sentiment response as JSON: ' . json_last_error_msg()
             );
         }
 

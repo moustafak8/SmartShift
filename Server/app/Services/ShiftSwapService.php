@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\ValidateShiftSwap;
+use App\Models\Department;
 use App\Models\Employee_Department;
 use App\Models\Shift_Assigments;
 use App\Models\Shifts;
@@ -163,7 +164,11 @@ class ShiftSwapService
 
     public function targetRespond(int $swapId, int $targetUserId, string $response): ?ShiftSwaps
     {
-        $swap = ShiftSwaps::with('targetEmployee:id,full_name')->find($swapId);
+        $swap = ShiftSwaps::with([
+            'targetEmployee:id,full_name',
+            'requester:id,full_name',
+            'requesterShift:id,department_id',
+        ])->find($swapId);
 
         if (! $swap || $swap->status !== 'awaiting_target') {
             return null;
@@ -190,6 +195,21 @@ class ShiftSwapService
                 'shift_swap',
                 $swap->id
             );
+            $departmentId = $swap->requesterShift?->department_id;
+            if ($departmentId) {
+                $managerId = Department::where('id', $departmentId)->value('manager_id');
+                if ($managerId) {
+                    $this->notificationService->send(
+                        (int) $managerId,
+                        NotificationService::TYPE_SWAP_APPROVED,
+                        'Shift Swap Completed',
+                        "{$swap->requester->full_name} and {$swap->targetEmployee->full_name} completed a shift swap.",
+                        'normal',
+                        'shift_swap',
+                        $swap->id
+                    );
+                }
+            }
         } else {
             $swap->update([
                 'status' => 'rejected',
@@ -310,7 +330,7 @@ class ShiftSwapService
             ->whereIn('status', ['open', 'understaffed', 'filled'])
             ->select(['id', 'shift_date', 'shift_type', 'start_time', 'end_time', 'department_id'])
             ->get()
-            ->map(fn ($shift) => [
+            ->map(fn($shift) => [
                 'shift_id' => $shift->id,
                 'shift_date' => $shift->shift_date,
                 'shift_type' => $shift->shift_type,
@@ -338,7 +358,7 @@ class ShiftSwapService
             ->whereIn('status', ['assigned', 'confirmed'])
             ->with(['employee:id,full_name,email', 'shift:id,shift_date,shift_type'])
             ->get()
-            ->map(fn ($assignment) => [
+            ->map(fn($assignment) => [
                 'employee_id' => $assignment->employee_id,
                 'full_name' => $assignment->employee?->full_name,
                 'email' => $assignment->employee?->email,
