@@ -1,5 +1,6 @@
-import { Brain, Mail, MapPin, Linkedin, Twitter } from "lucide-react";
+import { Mail, MapPin, Linkedin, Twitter } from "lucide-react";
 import { Container, Heading, IconText } from "../ui";
+import logo2 from "../../assets/logo2.png";
 
 export function Footer() {
   return (
@@ -7,9 +8,14 @@ export function Footer() {
       <Container className="py-12 md:py-10">
         <div className="grid md:grid-cols-2 gap-12 mb-8">
           <div>
-            <div className="flex items-center gap-3 mb-5">
-              <Brain className="w-10 h-10 text-white" />
-              <span className="text-white text-[20px] font-bold">
+            <div className="flex items-center mb-5 -ml-1">
+              <img
+                src={logo2}
+                alt="SmartShift logo"
+                className="h-15 w-15 object-contain"
+                draggable={false}
+              />
+              <span className="-ml-2 text-white text-[20px] font-bold">
                 SmartShift
               </span>
             </div>

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Brain, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { useLogin } from "../hooks/useLogin";
 import { motion } from "motion/react";
 import { BackButton } from "../components/ui/BackButton";
 import { Button } from "../components/ui/Button";
 import { Heading } from "../components/ui/Heading";
+import logo2 from "../assets/logo2.png";
 
 export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,11 +43,14 @@ export function LoginPage() {
         className="w-full max-w-[480px] bg-white rounded-2xl shadow-xl border border-gray-100 p-8 relative z-10"
       >
         <BackButton className="mb-6" />
-        <div className="flex items-center mb-8">
-          <div className="w-12 h-12  rounded-xl flex items-center justify-center">
-            <Brain className="w-7 h-7 text-[#2563EB]" />
-          </div>
-          <span className="text-[#111827] text-[26px] font-bold tracking-tight">
+        <div className="flex items-center justify-start mb-8 -ml-2">
+          <img
+            src={logo2}
+            alt="SmartShift logo"
+            className="h-17 w-17 object-contain"
+            draggable={false}
+          />
+          <span className="-ml-2 text-[#111827] text-[26px] font-bold tracking-tight">
             SmartShift
           </span>
         </div>
