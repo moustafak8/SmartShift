@@ -15,12 +15,6 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 class InsightService
 {
-    private const OPENAI_MODEL = 'gpt-4o';
-
-    private const OPENAI_TEMPERATURE = 0.4;
-
-    private const OPENAI_MAX_TOKENS = 2000;
-
     private const HIGH_RISK_THRESHOLD = 70;
 
     public function __construct(protected NotificationService $notificationService) {}
@@ -177,13 +171,13 @@ class InsightService
     {
         try {
             $response = OpenAI::chat()->create([
-                'model' => self::OPENAI_MODEL,
+                'model' => config('openai.insight.model'),
                 'messages' => [
                     ['role' => 'system', 'content' => $this->getSystemPrompt()],
                     ['role' => 'user', 'content' => $this->buildUserPrompt($metrics, $departmentName)],
                 ],
-                'temperature' => self::OPENAI_TEMPERATURE,
-                'max_tokens' => self::OPENAI_MAX_TOKENS,
+                'temperature' => config('openai.insight.temperature'),
+                'max_tokens' => config('openai.insight.max_tokens'),
                 'response_format' => ['type' => 'json_object'],
             ]);
 

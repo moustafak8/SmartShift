@@ -13,43 +13,15 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 class GenerateScheduleService
 {
-    private const OPENAI_CHAT_MODEL = 'gpt-4o';
-
-    private const OPENAI_TEMPERATURE = 0.3;
-
-    private const OPENAI_MAX_TOKENS = 1200;
-
-    private EmployeeAvailabilityService $availabilityService;
-
-    private EmployeePrefrenceService $preferenceService;
-
-    private ScoreService $scoreService;
-
-    private ShiftService $shiftService;
-
-    private AssigmentsService $assignmentsService;
-
-    private EmployeeWeeklyStatsCache $statsCache;
-
-    private NotificationService $notificationService;
-
     public function __construct(
-        EmployeeAvailabilityService $availabilityService,
-        EmployeePrefrenceService $preferenceService,
-        ScoreService $scoreService,
-        ShiftService $shiftService,
-        AssigmentsService $assignmentsService,
-        EmployeeWeeklyStatsCache $statsCache,
-        NotificationService $notificationService
-    ) {
-        $this->availabilityService = $availabilityService;
-        $this->preferenceService = $preferenceService;
-        $this->scoreService = $scoreService;
-        $this->shiftService = $shiftService;
-        $this->assignmentsService = $assignmentsService;
-        $this->statsCache = $statsCache;
-        $this->notificationService = $notificationService;
-    }
+        private EmployeeAvailabilityService $availabilityService,
+        private EmployeePrefrenceService $preferenceService,
+        private ScoreService $scoreService,
+        private ShiftService $shiftService,
+        private AssigmentsService $assignmentsService,
+        private EmployeeWeeklyStatsCache $statsCache,
+        private NotificationService $notificationService
+    ) {}
 
     public function generateSchedule(int $departmentId, string $startDate, string $endDate): array
     {
@@ -481,13 +453,13 @@ class GenerateScheduleService
     private function callOpenAi(string $prompt): string
     {
         $response = OpenAI::chat()->create([
-            'model' => self::OPENAI_CHAT_MODEL,
+            'model' => config('openai.schedule.model'),
             'messages' => [
                 ['role' => 'system', 'content' => ScheduleAiPrompt::getSystemPrompt()],
                 ['role' => 'user', 'content' => $prompt],
             ],
-            'temperature' => self::OPENAI_TEMPERATURE,
-            'max_tokens' => self::OPENAI_MAX_TOKENS,
+            'temperature' => config('openai.schedule.temperature'),
+            'max_tokens' => config('openai.schedule.max_tokens'),
         ]);
 
         return $response->choices[0]->message->content ?? '';

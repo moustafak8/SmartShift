@@ -14,10 +14,6 @@ class ProcessWellnessEntry implements ShouldQueue
 {
     use Queueable;
 
-    private const OPENAI_MODEL = 'gpt-4o-mini';
-
-    private const TEMPERATURE = 0.3;
-
     private const EXTRACTION_SCHEMA = [
         'shift_duration_hours' => 'number or null',
         'shift_type' => '"day"|"evening"|"night"|"rotating"|null',
@@ -85,12 +81,12 @@ class ProcessWellnessEntry implements ShouldQueue
         $userPrompt = WellnessEntryExtractionPrompt::buildUserPrompt($text, $schemaJson);
 
         return OpenAI::chat()->create([
-            'model' => self::OPENAI_MODEL,
+            'model' => config('openai.models.chat_mini'),
             'messages' => [
                 ['role' => 'system', 'content' => WellnessEntryExtractionPrompt::getSystemPrompt()],
                 ['role' => 'user', 'content' => $userPrompt],
             ],
-            'temperature' => self::TEMPERATURE,
+            'temperature' => config('openai.defaults.temperature'),
         ]);
     }
 

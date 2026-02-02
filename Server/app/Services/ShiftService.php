@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
 
 class ShiftService
 {
-    public function listShifts($departmentId): Collection
+    public function listShifts(int $departmentId): Collection
     {
         $shifts = Shifts::select([
             'id',

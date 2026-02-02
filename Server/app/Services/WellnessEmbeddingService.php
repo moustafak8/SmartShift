@@ -12,10 +12,6 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 class WellnessEmbeddingService
 {
-    private const EMBEDDING_MODEL = 'text-embedding-3-small';
-
-    private const SENTIMENT_MODEL = 'gpt-4o-mini';
-
     private const CRITICAL_KEYWORDS = ['suicide', 'harm', 'crisis', 'emergency'];
 
     private const CONCERNING_KEYWORDS = ['severe', 'overwhelmed', 'breakdown', 'collapse'];
@@ -23,7 +19,7 @@ class WellnessEmbeddingService
     public function generateEmbedding(string $text): array
     {
         $response = OpenAI::embeddings()->create([
-            'model' => self::EMBEDDING_MODEL,
+            'model' => config('openai.models.embedding'),
             'input' => $text,
         ]);
 
@@ -80,7 +76,7 @@ class WellnessEmbeddingService
         );
     }
 
-    private function isCriticalCondition($extraction, float $sentimentScore): bool
+    private function isCriticalCondition(?WellnessEntryExtraction $extraction, float $sentimentScore): bool
     {
         if (! $extraction) {
             return false;
@@ -98,7 +94,7 @@ class WellnessEmbeddingService
         return $sleepDeprivation && ($multipleSymptoms || $highStress || $criticalSentiment);
     }
 
-    private function getCriticalReason($extraction, float $sentimentScore): string
+    private function getCriticalReason(WellnessEntryExtraction $extraction, float $sentimentScore): string
     {
         $reasons = [];
 
@@ -306,12 +302,12 @@ class WellnessEmbeddingService
     private function callSentimentAPI(string $prompt): object
     {
         return OpenAI::chat()->create([
-            'model' => self::SENTIMENT_MODEL,
+            'model' => config('openai.models.sentiment'),
             'messages' => [
                 ['role' => 'system', 'content' => WellnessSentimentPrompt::getSystemPrompt()],
                 ['role' => 'user', 'content' => $prompt],
             ],
-            'temperature' => 0.3,
+            'temperature' => config('openai.defaults.temperature'),
         ]);
     }
 

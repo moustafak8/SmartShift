@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Prompts\WellnessSearchAnalystPrompt;
 use App\Models\User;
 use App\Models\WellnessEntries;
+use Illuminate\Support\Collection;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class WellnessSearchService
@@ -14,12 +15,6 @@ class WellnessSearchService
     private const DEFAULT_SCORE_THRESHOLD = 0.03;
 
     private const DEFAULT_PREVIEW_LENGTH = 150;
-
-    private const OPENAI_CHAT_MODEL = 'gpt-4o-mini';
-
-    private const OPENAI_TEMPERATURE = 0.3;
-
-    private const OPENAI_MAX_TOKENS = 1500;
 
     public function __construct(
         protected WellnessEmbeddingService $embeddingService,
@@ -301,7 +296,7 @@ class WellnessSearchService
         return $enriched;
     }
 
-    private function fetchEntries(array $entryIds)
+    private function fetchEntries(array $entryIds): Collection
     {
         return WellnessEntries::with('employee')
             ->whereIn('id', $entryIds)
@@ -309,7 +304,7 @@ class WellnessSearchService
             ->keyBy('id');
     }
 
-    private function fetchEmployeeNames($entries)
+    private function fetchEmployeeNames(Collection $entries): Collection
     {
         $employeeIds = $entries->pluck('employee_id')->filter()->unique()->all();
 
@@ -475,13 +470,13 @@ class WellnessSearchService
         $userPrompt = WellnessSearchAnalystPrompt::buildUserPrompt($query, $sourcesText, $context);
 
         $response = OpenAI::chat()->create([
-            'model' => self::OPENAI_CHAT_MODEL,
+            'model' => config('openai.models.chat_mini'),
             'messages' => [
                 ['role' => 'system', 'content' => WellnessSearchAnalystPrompt::getSystemPrompt()],
                 ['role' => 'user', 'content' => $userPrompt],
             ],
-            'temperature' => self::OPENAI_TEMPERATURE,
-            'max_tokens' => self::OPENAI_MAX_TOKENS,
+            'temperature' => config('openai.defaults.temperature'),
+            'max_tokens' => config('openai.defaults.max_tokens'),
         ]);
 
         return $response->choices[0]->message->content ?? 'No response generated.';
