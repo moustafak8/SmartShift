@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Prompts\WellnessEntryExtractionPrompt;
 use App\Models\WellnessEntries;
 use App\Models\WellnessEntryExtraction;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -80,43 +81,28 @@ class ProcessWellnessEntry implements ShouldQueue
 
     private function callOpenAI(string $text): object
     {
+        $schemaJson = $this->formatSchema();
+        $userPrompt = WellnessEntryExtractionPrompt::buildUserPrompt($text, $schemaJson);
+
         return OpenAI::chat()->create([
             'model' => self::OPENAI_MODEL,
             'messages' => [
-                ['role' => 'system', 'content' => 'You are a data extraction assistant. Return only valid JSON.'],
-                ['role' => 'user', 'content' => $this->buildPrompt($text)],
+                ['role' => 'system', 'content' => WellnessEntryExtractionPrompt::getSystemPrompt()],
+                ['role' => 'user', 'content' => $userPrompt],
             ],
             'temperature' => self::TEMPERATURE,
         ]);
     }
 
-    private function buildPrompt(string $text): string
-    {
-        $schemaJson = $this->formatSchema();
-
-        return <<<PROMPT
-        Parse the following wellness entry text and extract structured data. Return ONLY a valid JSON object with these exact fields:
-
-        {$schemaJson}
-
-        Entry text:
-        """
-        {$text}
-        """
-
-        Return ONLY the JSON object, no additional text.
-        PROMPT;
-    }
-
     private function formatSchema(): string
     {
         $fields = array_map(
-            fn ($key, $type) => "  \"{$key}\": {$type}",
+            fn($key, $type) => "  \"{$key}\": {$type}",
             array_keys(self::EXTRACTION_SCHEMA),
             self::EXTRACTION_SCHEMA
         );
 
-        return "{\n".implode(",\n", $fields)."\n}";
+        return "{\n" . implode(",\n", $fields) . "\n}";
     }
 
     private function cleanResponse(string $content): string
@@ -132,7 +118,7 @@ class ProcessWellnessEntry implements ShouldQueue
         $extracted = json_decode($content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \RuntimeException('Failed to parse OpenAI response as JSON: '.json_last_error_msg());
+            throw new \RuntimeException('Failed to parse OpenAI response as JSON: ' . json_last_error_msg());
         }
 
         return $extracted;

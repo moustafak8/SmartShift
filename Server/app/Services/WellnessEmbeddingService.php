@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Prompts\WellnessSentimentPrompt;
 use App\Models\FatigueScore;
 use App\Models\Shift_Assigments;
 use App\Models\WellnessEntryExtraction;
@@ -299,20 +300,7 @@ class WellnessEmbeddingService
 
     private function buildSentimentPrompt(string $text): string
     {
-        return <<<PROMPT
-Analyze the sentiment of the following wellness entry and extract key information.
-
-Entry: "$text"
-
-Respond with JSON in this exact format:
-{
-  "sentiment_label": "positive|neutral|negative",
-  "sentiment_score": <number between -1 and 1>,
-  "detected_keywords": ["keyword1", "keyword2"]
-}
-
-Focus on emotional tone, stress indicators, and concerning language.
-PROMPT;
+        return WellnessSentimentPrompt::buildUserPrompt($text);
     }
 
     private function callSentimentAPI(string $prompt): object
@@ -320,7 +308,7 @@ PROMPT;
         return OpenAI::chat()->create([
             'model' => self::SENTIMENT_MODEL,
             'messages' => [
-                ['role' => 'system', 'content' => 'You are a sentiment analysis expert.'],
+                ['role' => 'system', 'content' => WellnessSentimentPrompt::getSystemPrompt()],
                 ['role' => 'user', 'content' => $prompt],
             ],
             'temperature' => 0.3,
