@@ -8,15 +8,10 @@ use App\Services\ShiftService;
 
 class ShiftsController extends Controller
 {
-    protected EmployeeShifts $employeeShiftsService;
-
-    protected ShiftService $shiftService;
-
-    public function __construct(EmployeeShifts $employeeShiftsService, ShiftService $shiftService)
-    {
-        $this->employeeShiftsService = $employeeShiftsService;
-        $this->shiftService = $shiftService;
-    }
+    public function __construct(
+        private EmployeeShifts $employeeShiftsService,
+        private ShiftService $shiftService
+    ) {}
 
     public function getEmployeeShifts($id)
     {

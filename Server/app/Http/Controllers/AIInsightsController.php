@@ -6,12 +6,9 @@ use App\Services\InsightService;
 
 class AIInsightsController extends Controller
 {
-    protected InsightService $insightService;
-
-    public function __construct(InsightService $insightService)
-    {
-        $this->insightService = $insightService;
-    }
+    public function __construct(
+        private InsightService $insightService
+    ) {}
 
     public function index(int $departmentId)
     {

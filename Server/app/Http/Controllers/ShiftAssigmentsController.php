@@ -9,12 +9,9 @@ use App\Services\AssigmentsService;
 
 class ShiftAssigmentsController extends Controller
 {
-    protected AssigmentsService $assigmentsService;
-
-    public function __construct(AssigmentsService $assigmentsService)
-    {
-        $this->assigmentsService = $assigmentsService;
-    }
+    public function __construct(
+        private AssigmentsService $assigmentsService
+    ) {}
 
     public function getAssignments()
     {

@@ -2,14 +2,13 @@
 
 namespace App\Services;
 
-use App\Prompts\ScheduleAiPrompt;
 use App\Models\Shift_Assigments;
+use App\Models\Shift_Position_Requirement;
 use App\Models\Shifts;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use OpenAI\Laravel\Facades\OpenAI;
 
 class GenerateScheduleService
 {
@@ -20,13 +19,13 @@ class GenerateScheduleService
         private ShiftService $shiftService,
         private AssigmentsService $assignmentsService,
         private EmployeeWeeklyStatsCache $statsCache,
-        private NotificationService $notificationService
+        private NotificationService $notificationService,
+        private ScheduleAiAssignmentService $scheduleAiAssignmentService
     ) {}
 
     public function generateSchedule(int $departmentId, string $startDate, string $endDate): array
     {
         try {
-            // Check if schedule already exists for this period
             $existingSchedule = $this->checkIfScheduleExists($departmentId, $startDate, $endDate);
             if ($existingSchedule['exists']) {
                 return [
@@ -69,36 +68,39 @@ class GenerateScheduleService
             $start = Carbon::parse($startDate)->toDateString();
             $end = Carbon::parse($endDate)->toDateString();
 
-            $existingAssignments = Shift_Assigments::with('shift')
-                ->whereHas('shift', function ($query) use ($departmentId, $start, $end) {
-                    $query->where('department_id', $departmentId)
-                        ->whereBetween('shift_date', [$start, $end]);
-                })
-                ->count();
+            $shifts = Shifts::where('department_id', $departmentId)
+                ->whereBetween('shift_date', [$start, $end])
+                ->get();
 
-            if ($existingAssignments > 0) {
-                $dateRgeInfo = Shift_Assigments::with('shift')
-                    ->whereHas('shift', function ($query) use ($departmentId, $start, $end) {
-                        $query->where('department_id', $departmentId)
-                            ->whereBetween('shift_date', [$start, $end]);
-                    })
-                    ->get()
-                    ->groupBy('shift.shift_date');
-
+            if ($shifts->isEmpty()) {
                 return [
-                    'exists' => true,
-                    'count' => $existingAssignments,
+                    'exists' => false,
+                    'count' => 0,
+                    'date_range' => null,
+                ];
+            }
+
+            $allFilled = $shifts->every(fn($shift) => $shift->status === 'filled');
+            $totalAssignments = Shift_Assigments::whereIn('shift_id', $shifts->pluck('id'))->count();
+
+            if (! $allFilled) {
+                return [
+                    'exists' => false,
+                    'count' => $totalAssignments,
                     'date_range' => [
-                        'first_date' => $dateRgeInfo->keys()->first(),
-                        'last_date' => $dateRgeInfo->keys()->last(),
+                        'first_date' => $shifts->min('shift_date'),
+                        'last_date' => $shifts->max('shift_date'),
                     ],
                 ];
             }
 
             return [
-                'exists' => false,
-                'count' => 0,
-                'date_range' => null,
+                'exists' => true,
+                'count' => $totalAssignments,
+                'date_range' => [
+                    'first_date' => $shifts->min('shift_date'),
+                    'last_date' => $shifts->max('shift_date'),
+                ],
             ];
         } catch (\Exception $e) {
             return [
@@ -128,6 +130,7 @@ class GenerateScheduleService
 
             $shiftIds = array_unique(array_column($assignments, 'shift_id'));
             $this->shiftService->updateShiftStatusesByAssignments($shiftIds);
+            $this->incrementPositionRequirementFilledCounts($assignments);
 
             DB::commit();
 
@@ -146,6 +149,25 @@ class GenerateScheduleService
                 'message' => 'Failed to save schedule: ' . $e->getMessage(),
                 'error' => $e,
             ];
+        }
+    }
+
+    private function incrementPositionRequirementFilledCounts(array $assignments): void
+    {
+        $counts = [];
+        foreach ($assignments as $a) {
+            $shiftId = $a['shift_id'] ?? null;
+            $positionId = $a['position_id'] ?? null;
+            if ($shiftId && $positionId) {
+                $key = "{$shiftId}:{$positionId}";
+                $counts[$key] = ($counts[$key] ?? 0) + 1;
+            }
+        }
+        foreach ($counts as $key => $delta) {
+            [$shiftId, $positionId] = explode(':', $key);
+            Shift_Position_Requirement::where('shift_id', $shiftId)
+                ->where('position_id', $positionId)
+                ->increment('filled_count', (int) $delta);
         }
     }
 
@@ -228,7 +250,7 @@ class GenerateScheduleService
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
 
-        $shifts = Shifts::with('positionRequirements.position')
+        $shifts = Shifts::with(['positionRequirements.position', 'shiftAssigments'])
             ->where('department_id', $departmentId)
             ->whereBetween('shift_date', [$start->toDateString(), $end->toDateString()])
             ->orderBy('shift_date')
@@ -247,6 +269,7 @@ class GenerateScheduleService
                 'shift_type' => $shift->shift_type,
                 'department_id' => $shift->department_id,
                 'position_requirements' => $this->formatPositionRequirements($shift->positionRequirements),
+                'assigned_employee_ids' => $shift->shiftAssigments->pluck('employee_id')->toArray(),
             ];
         }
 
@@ -262,7 +285,7 @@ class GenerateScheduleService
                 'position_id' => $req->position_id,
                 'position_name' => $req->position->name ?? 'Unknown',
                 'required_count' => $req->required_count,
-                'filled_count' => 0,
+                'filled_count' => (int) $req->filled_count,
                 'assigned_employees' => [],
             ];
         }
@@ -317,12 +340,12 @@ class GenerateScheduleService
     private function assignEmployeesToShifts(array $scheduleRequirements, array $employeeData): array
     {
         $assignments = [];
-        $filledCounts = [];
-        $assignedInShift = [];
+        $filledCounts = $this->initializeFilledCountsFromExisting($scheduleRequirements);
+        $assignedInShift = $this->initializeAssignedInShiftFromExisting($scheduleRequirements);
 
         $candidatePool = $this->buildCandidatePool($scheduleRequirements, $employeeData, $assignments, $assignedInShift);
 
-        $aiSuggestions = $this->requestAiAssignments($scheduleRequirements, $candidatePool, $employeeData);
+        $aiSuggestions = $this->scheduleAiAssignmentService->requestAiAssignments($scheduleRequirements, $candidatePool, $employeeData);
 
         $this->applyAiAssignments(
             $aiSuggestions,
@@ -344,6 +367,32 @@ class GenerateScheduleService
         );
 
         return $assignments;
+    }
+
+    private function initializeFilledCountsFromExisting(array $scheduleRequirements): array
+    {
+        $filledCounts = [];
+        foreach ($scheduleRequirements as $shiftId => $requirement) {
+            $shiftFilled = ($requirement['shift']->status ?? null) === 'filled';
+            foreach ($requirement['position_requirements'] as $positionId => $posReq) {
+                $filledCounts[$shiftId][$positionId] = $shiftFilled
+                    ? (int) $posReq['required_count']
+                    : (int) ($posReq['filled_count'] ?? 0);
+            }
+        }
+        return $filledCounts;
+    }
+
+    private function initializeAssignedInShiftFromExisting(array $scheduleRequirements): array
+    {
+        $assignedInShift = [];
+        foreach ($scheduleRequirements as $shiftId => $requirement) {
+            $employeeIds = $requirement['assigned_employee_ids'] ?? [];
+            foreach ($employeeIds as $employeeId) {
+                $assignedInShift[$shiftId][$employeeId] = true;
+            }
+        }
+        return $assignedInShift;
     }
 
     private function buildCandidatePool(
@@ -385,94 +434,6 @@ class GenerateScheduleService
         }
 
         return $pool;
-    }
-
-    private function requestAiAssignments(
-        array $scheduleRequirements,
-        array $candidatePool,
-        array $employeeData
-    ): array {
-        try {
-            $prompt = $this->buildAiPrompt($scheduleRequirements, $candidatePool, $employeeData);
-            $raw = $this->callOpenAi($prompt);
-
-            return $this->parseAiAssignments($raw);
-        } catch (\Throwable $e) {
-            return [];
-        }
-    }
-
-    private function buildAiPrompt(array $scheduleRequirements, array $candidatePool, array $employeeData): string
-    {
-        $shiftBlocks = [];
-        foreach ($scheduleRequirements as $shiftId => $req) {
-            $positions = [];
-            foreach ($candidatePool[$shiftId] ?? [] as $posId => $pos) {
-                $candidateNames = array_map(function ($empId) use ($employeeData) {
-                    $empData = $employeeData[$empId];
-                    $fatigueLevel = $empData['fatigue_score']['risk_level'] ?? 'unknown';
-
-                    return [
-                        'id' => $empId,
-                        'name' => $empData['full_name'] ?? 'Employee ' . $empId,
-                        'fatigue_level' => $fatigueLevel,
-                        'hours_this_schedule' => $empData['hours_assigned'] ?? 0,
-                    ];
-                }, $pos['candidates']);
-
-                $positions[] = [
-                    'position_id' => $posId,
-                    'position_name' => $pos['position_name'],
-                    'required_count' => $pos['required_count'],
-                    'candidates' => $candidateNames,
-                ];
-            }
-
-            $date = Carbon::parse($req['shift_date']);
-            $isWeekend = $date->isWeekend();
-            $shiftBlocks[] = [
-                'shift_id' => $shiftId,
-                'date' => (string) $req['shift_date'],
-                'day_of_week' => $date->format('l'),
-                'is_weekend' => $isWeekend,
-                'start_time' => $req['start_time'],
-                'end_time' => $req['end_time'],
-                'shift_type' => $req['shift_type'],
-                'positions' => $positions,
-            ];
-        }
-
-        $instructions = ScheduleAiPrompt::getInstructions();
-
-        return json_encode([
-            'instructions' => $instructions,
-            'shifts' => $shiftBlocks,
-        ], JSON_PRETTY_PRINT);
-    }
-
-    private function callOpenAi(string $prompt): string
-    {
-        $response = OpenAI::chat()->create([
-            'model' => config('openai.schedule.model'),
-            'messages' => [
-                ['role' => 'system', 'content' => ScheduleAiPrompt::getSystemPrompt()],
-                ['role' => 'user', 'content' => $prompt],
-            ],
-            'temperature' => config('openai.schedule.temperature'),
-            'max_tokens' => config('openai.schedule.max_tokens'),
-        ]);
-
-        return $response->choices[0]->message->content ?? '';
-    }
-
-    private function parseAiAssignments(string $raw): array
-    {
-        $decoded = json_decode($raw, true);
-        if (! is_array($decoded) || ! isset($decoded['assignments']) || ! is_array($decoded['assignments'])) {
-            throw new \RuntimeException('AI response was not valid JSON assignments.');
-        }
-
-        return $decoded['assignments'];
     }
 
     private function applyAiAssignments(

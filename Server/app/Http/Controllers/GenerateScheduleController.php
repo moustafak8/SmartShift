@@ -8,12 +8,9 @@ use Illuminate\Http\Request;
 
 class GenerateScheduleController extends Controller
 {
-    private GenerateScheduleService $generateScheduleService;
-
-    public function __construct(GenerateScheduleService $service)
-    {
-        $this->generateScheduleService = $service;
-    }
+    public function __construct(
+        private GenerateScheduleService $generateScheduleService
+    ) {}
 
     public function generate(GenerateScheduleRequest $request)
     {

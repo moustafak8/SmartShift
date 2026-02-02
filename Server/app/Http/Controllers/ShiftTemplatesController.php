@@ -7,12 +7,9 @@ use App\Services\ShiftTemplateService;
 
 class ShiftTemplatesController extends Controller
 {
-    protected ShiftTemplateService $shiftTemplateService;
-
-    public function __construct(ShiftTemplateService $shiftTemplateService)
-    {
-        $this->shiftTemplateService = $shiftTemplateService;
-    }
+    public function __construct(
+        private ShiftTemplateService $shiftTemplateService
+    ) {}
 
     public function getTemplates()
     {

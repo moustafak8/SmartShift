@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ReviewSwapRequest;
 use App\Http\Requests\SwapRequest;
+use App\Http\Requests\TargetRespondSwapRequest;
 use App\Services\ShiftSwapService;
 use Illuminate\Http\Request;
 
 class ShiftSwapsController extends Controller
 {
-    protected ShiftSwapService $swapService;
-
     public function __construct(
-        ShiftSwapService $swapService
-    ) {
-        $this->swapService = $swapService;
-    }
+        private ShiftSwapService $swapService
+    ) {}
 
     public function index(Request $request)
     {
@@ -59,17 +57,11 @@ class ShiftSwapsController extends Controller
         return $this->responseJSON($swap, 'Swap cancelled', 200);
     }
 
-    public function review(int $swapId, Request $request)
+    public function review(int $swapId, ReviewSwapRequest $request)
     {
-        $request->validate([
-            'decision' => ['required', 'in:approve,reject'],
-            'notes' => ['nullable', 'string', 'max:500'],
-        ]);
-
-        $reviewerId = auth()->id();
         $swap = $this->swapService->reviewSwap(
             $swapId,
-            $reviewerId,
+            auth()->id(),
             $request->input('decision'),
             $request->input('notes')
         );
@@ -104,16 +96,11 @@ class ShiftSwapsController extends Controller
         return $this->responseJSON($shifts, 'success', 200);
     }
 
-    public function targetRespond(int $swapId, Request $request)
+    public function targetRespond(int $swapId, TargetRespondSwapRequest $request)
     {
-        $request->validate([
-            'response' => ['required', 'in:accept,decline'],
-        ]);
-
-        $userId = auth()->id();
         $swap = $this->swapService->targetRespond(
             $swapId,
-            $userId,
+            auth()->id(),
             $request->input('response')
         );
 

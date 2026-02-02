@@ -7,12 +7,9 @@ use App\Services\PositionService;
 
 class PositionController extends Controller
 {
-    protected PositionService $positionService;
-
-    public function __construct(PositionService $positionService)
-    {
-        $this->positionService = $positionService;
-    }
+    public function __construct(
+        private PositionService $positionService
+    ) {}
 
     public function getPositionsByDepartment($departmentId)
     {

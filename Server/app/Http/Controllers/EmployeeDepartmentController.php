@@ -6,12 +6,9 @@ use App\Services\EmployeeDepartmentService;
 
 class EmployeeDepartmentController extends Controller
 {
-    protected EmployeeDepartmentService $employeeDepartmentService;
-
-    public function __construct(EmployeeDepartmentService $employeeDepartmentService)
-    {
-        $this->employeeDepartmentService = $employeeDepartmentService;
-    }
+    public function __construct(
+        private EmployeeDepartmentService $employeeDepartmentService
+    ) {}
 
     public function getemployees($id)
     {
