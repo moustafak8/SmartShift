@@ -9,17 +9,12 @@ use App\Models\FatigueScore;
 use App\Models\WellnessEntries;
 use App\Models\WellnessEntryExtraction;
 use App\Models\WellnessEntryVector;
+use App\Prompts\InsightSystemPrompt;
 use Carbon\Carbon;
 use OpenAI\Laravel\Facades\OpenAI;
 
 class InsightService
 {
-    private const OPENAI_MODEL = 'gpt-4o';
-
-    private const OPENAI_TEMPERATURE = 0.4;
-
-    private const OPENAI_MAX_TOKENS = 2000;
-
     private const HIGH_RISK_THRESHOLD = 70;
 
     public function __construct(protected NotificationService $notificationService) {}
@@ -132,8 +127,8 @@ class InsightService
         $avgStress = (float) ($extractions->avg('stress_level') ?? 0);
 
         $latestScores = $fatigueScores->groupBy('employee_id')
-            ->map(fn ($scores) => $scores->sortByDesc('score_date')->first());
-        $highRiskEmployees = $latestScores->filter(fn ($s) => (int) $s->total_score >= self::HIGH_RISK_THRESHOLD);
+            ->map(fn($scores) => $scores->sortByDesc('score_date')->first());
+        $highRiskEmployees = $latestScores->filter(fn($s) => (int) $s->total_score >= self::HIGH_RISK_THRESHOLD);
         $highRiskCount = $highRiskEmployees->count();
 
         return [
@@ -144,13 +139,13 @@ class InsightService
             'sentiment_label' => $avgSentiment >= 0.3 ? 'positive' : ($avgSentiment <= -0.3 ? 'negative' : 'neutral'),
             'flagged_entries' => $vectors->where('is_flagged', true)->count(),
             'avg_sleep_hours' => round($avgSleepHours, 1),
-            'poor_sleep_count' => $extractions->filter(fn ($e) => (float) $e->sleep_hours_before < 5)->count(),
+            'poor_sleep_count' => $extractions->filter(fn($e) => (float) $e->sleep_hours_before < 5)->count(),
             'avg_stress' => round($avgStress, 1),
-            'high_stress_count' => $extractions->filter(fn ($e) => (int) $e->stress_level >= 4)->count(),
+            'high_stress_count' => $extractions->filter(fn($e) => (int) $e->stress_level >= 4)->count(),
             'high_risk_count' => $highRiskCount,
             'prev_week_high_risk' => $prevWeekHighRisk,
             'high_risk_change' => $highRiskCount - $prevWeekHighRisk,
-            'high_risk_employees' => $highRiskEmployees->map(fn ($s) => [
+            'high_risk_employees' => $highRiskEmployees->map(fn($s) => [
                 'employee_id' => $s->employee_id,
                 'score' => (int) $s->total_score,
                 'risk_level' => $s->risk_level,
@@ -176,13 +171,13 @@ class InsightService
     {
         try {
             $response = OpenAI::chat()->create([
-                'model' => self::OPENAI_MODEL,
+                'model' => config('openai.insight.model'),
                 'messages' => [
                     ['role' => 'system', 'content' => $this->getSystemPrompt()],
                     ['role' => 'user', 'content' => $this->buildUserPrompt($metrics, $departmentName)],
                 ],
-                'temperature' => self::OPENAI_TEMPERATURE,
-                'max_tokens' => self::OPENAI_MAX_TOKENS,
+                'temperature' => config('openai.insight.temperature'),
+                'max_tokens' => config('openai.insight.max_tokens'),
                 'response_format' => ['type' => 'json_object'],
             ]);
 
@@ -199,50 +194,12 @@ class InsightService
 
     private function getSystemPrompt(): string
     {
-        return <<<'PROMPT'
-You are an expert HR wellness analyst for SmartShift. Generate a weekly wellness insight report.
-
-Response must be valid JSON:
-{
-  "summary": "2-3 sentence executive summary",
-  "key_findings": [{ "type": "positive|negative|neutral", "finding": "description" }],
-  "metrics_analysis": { "overall_health": "healthy|concerning|critical", "trend": "improving|stable|declining" },
-  "high_risk_employees": [{ "employee_id": 123, "concern": "reason", "recommended_action": "action" }],
-  "recommendations": [{ "priority": "high|medium|low", "action": "recommendation", "reason": "why" }],
-  "formatted_report": "Markdown report (2-3 paragraphs) for the manager"
-}
-
-Be specific, actionable, and prioritize employee wellbeing.
-PROMPT;
+        return InsightSystemPrompt::getSystemPrompt();
     }
 
     private function buildUserPrompt(array $metrics, string $departmentName): string
     {
-        $highRiskList = collect($metrics['high_risk_employees'])
-            ->map(fn ($e) => "- Employee #{$e['employee_id']}: Score {$e['score']} ({$e['risk_level']} risk)")
-            ->implode("\n");
-
-        $concernsList = collect($metrics['top_concerns'])
-            ->map(fn ($count, $concern) => "- {$concern}: {$count} mentions")
-            ->implode("\n");
-
-        return <<<PROMPT
-Weekly wellness insight for **{$departmentName}** department.
-
- This Week's Data
-- Entries: {$metrics['total_entries']} from {$metrics['unique_employees']}/{$metrics['total_employees']} employees
-- Flagged: {$metrics['flagged_entries']}
-- Sentiment: {$metrics['avg_sentiment']} ({$metrics['sentiment_label']})
-- Sleep: {$metrics['avg_sleep_hours']}h avg, {$metrics['poor_sleep_count']} with <5h
-- Stress: {$metrics['avg_stress']}/5 avg, {$metrics['high_stress_count']} high stress
-- High-risk: {$metrics['high_risk_count']} (was {$metrics['prev_week_high_risk']}, change: {$metrics['high_risk_change']})
-
- High-Risk Employees
-{$highRiskList}
-
-Top Concerns
-{$concernsList}
-PROMPT;
+        return InsightSystemPrompt::buildUserPrompt($metrics, $departmentName);
     }
 
     private function saveInsight(int $departmentId, array $aiResponse, Carbon $startDate, Carbon $endDate): AIInsights
@@ -268,7 +225,7 @@ PROMPT;
         }
 
         $hasHighPriority = collect($aiResponse['recommendations'] ?? [])
-            ->contains(fn ($r) => ($r['priority'] ?? '') === 'high');
+            ->contains(fn($r) => ($r['priority'] ?? '') === 'high');
 
         return $hasHighPriority ? 'high' : 'normal';
     }
@@ -279,7 +236,7 @@ PROMPT;
             userId: $managerId,
             type: NotificationService::TYPE_WEEKLY_INSIGHT,
             title: 'Weekly Wellness Insight Ready',
-            message: $insight->title.'. Tap to review team wellness summary.',
+            message: $insight->title . '. Tap to review team wellness summary.',
             priority: $insight->priority,
             referenceType: 'ai_insight',
             referenceId: $insight->id
@@ -289,11 +246,21 @@ PROMPT;
     private function emptyMetrics(): array
     {
         return [
-            'total_entries' => 0, 'unique_employees' => 0, 'total_employees' => 0,
-            'avg_sentiment' => 0, 'sentiment_label' => 'neutral', 'flagged_entries' => 0,
-            'avg_sleep_hours' => 0, 'poor_sleep_count' => 0, 'avg_stress' => 0,
-            'high_stress_count' => 0, 'high_risk_count' => 0, 'prev_week_high_risk' => 0,
-            'high_risk_change' => 0, 'high_risk_employees' => [], 'top_concerns' => [],
+            'total_entries' => 0,
+            'unique_employees' => 0,
+            'total_employees' => 0,
+            'avg_sentiment' => 0,
+            'sentiment_label' => 'neutral',
+            'flagged_entries' => 0,
+            'avg_sleep_hours' => 0,
+            'poor_sleep_count' => 0,
+            'avg_stress' => 0,
+            'high_stress_count' => 0,
+            'high_risk_count' => 0,
+            'prev_week_high_risk' => 0,
+            'high_risk_change' => 0,
+            'high_risk_employees' => [],
+            'top_concerns' => [],
         ];
     }
 }

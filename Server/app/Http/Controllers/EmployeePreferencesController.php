@@ -7,12 +7,9 @@ use App\Services\EmployeePrefrenceService;
 
 class EmployeePreferencesController extends Controller
 {
-    protected EmployeePrefrenceService $prefrenceService;
-
-    public function __construct(EmployeePrefrenceService $prefrenceService)
-    {
-        $this->prefrenceService = $prefrenceService;
-    }
+    public function __construct(
+        private EmployeePrefrenceService $prefrenceService
+    ) {}
 
     public function listPreferences()
     {

@@ -7,12 +7,9 @@ use App\Services\WellnessService;
 
 class WellnessEntriesController extends Controller
 {
-    protected WellnessService $wellnessService;
-
-    public function __construct(WellnessService $wellnessService)
-    {
-        $this->wellnessService = $wellnessService;
-    }
+    public function __construct(
+        private WellnessService $wellnessService
+    ) {}
 
     public function getEntries($deptartmentId)
     {

@@ -98,7 +98,8 @@ export function Dashboard() {
     return employees
       .filter((emp) => {
         const score = emp.fatigue_score?.total_score || 0;
-        return score >= 65;
+        const riskLevel = emp.fatigue_score?.risk_level || "low";
+        return riskLevel === "high" || score >= 65;
       })
       .sort((a, b) => {
         const scoreA = a.fatigue_score?.total_score || 0;

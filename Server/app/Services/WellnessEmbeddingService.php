@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Prompts\WellnessSentimentPrompt;
 use App\Models\FatigueScore;
 use App\Models\Shift_Assigments;
 use App\Models\WellnessEntryExtraction;
@@ -11,10 +12,6 @@ use OpenAI\Laravel\Facades\OpenAI;
 
 class WellnessEmbeddingService
 {
-    private const EMBEDDING_MODEL = 'text-embedding-3-small';
-
-    private const SENTIMENT_MODEL = 'gpt-4o-mini';
-
     private const CRITICAL_KEYWORDS = ['suicide', 'harm', 'crisis', 'emergency'];
 
     private const CONCERNING_KEYWORDS = ['severe', 'overwhelmed', 'breakdown', 'collapse'];
@@ -22,7 +19,7 @@ class WellnessEmbeddingService
     public function generateEmbedding(string $text): array
     {
         $response = OpenAI::embeddings()->create([
-            'model' => self::EMBEDDING_MODEL,
+            'model' => config('openai.models.embedding'),
             'input' => $text,
         ]);
 
@@ -79,7 +76,7 @@ class WellnessEmbeddingService
         );
     }
 
-    private function isCriticalCondition($extraction, float $sentimentScore): bool
+    private function isCriticalCondition(?WellnessEntryExtraction $extraction, float $sentimentScore): bool
     {
         if (! $extraction) {
             return false;
@@ -97,7 +94,7 @@ class WellnessEmbeddingService
         return $sleepDeprivation && ($multipleSymptoms || $highStress || $criticalSentiment);
     }
 
-    private function getCriticalReason($extraction, float $sentimentScore): string
+    private function getCriticalReason(WellnessEntryExtraction $extraction, float $sentimentScore): string
     {
         $reasons = [];
 
@@ -299,31 +296,18 @@ class WellnessEmbeddingService
 
     private function buildSentimentPrompt(string $text): string
     {
-        return <<<PROMPT
-Analyze the sentiment of the following wellness entry and extract key information.
-
-Entry: "$text"
-
-Respond with JSON in this exact format:
-{
-  "sentiment_label": "positive|neutral|negative",
-  "sentiment_score": <number between -1 and 1>,
-  "detected_keywords": ["keyword1", "keyword2"]
-}
-
-Focus on emotional tone, stress indicators, and concerning language.
-PROMPT;
+        return WellnessSentimentPrompt::buildUserPrompt($text);
     }
 
     private function callSentimentAPI(string $prompt): object
     {
         return OpenAI::chat()->create([
-            'model' => self::SENTIMENT_MODEL,
+            'model' => config('openai.models.sentiment'),
             'messages' => [
-                ['role' => 'system', 'content' => 'You are a sentiment analysis expert.'],
+                ['role' => 'system', 'content' => WellnessSentimentPrompt::getSystemPrompt()],
                 ['role' => 'user', 'content' => $prompt],
             ],
-            'temperature' => 0.3,
+            'temperature' => config('openai.defaults.temperature'),
         ]);
     }
 

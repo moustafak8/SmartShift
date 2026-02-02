@@ -7,12 +7,9 @@ use App\Services\WellnessSearchService;
 
 class WellnessSearchController extends Controller
 {
-    protected WellnessSearchService $searchService;
-
-    public function __construct(WellnessSearchService $searchService)
-    {
-        $this->searchService = $searchService;
-    }
+    public function __construct(
+        private WellnessSearchService $searchService
+    ) {}
 
     public function search(SearchWellnessRequest $request)
     {
@@ -26,7 +23,7 @@ class WellnessSearchController extends Controller
             ]);
         } catch (\Exception $e) {
             return $this->responseJSON([
-                'error' => 'Search failed: '.$e->getMessage(),
+                'error' => 'Search failed: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -39,7 +36,7 @@ class WellnessSearchController extends Controller
             return $this->responseJSON($response);
         } catch (\Exception $e) {
             return $this->responseJSON([
-                'error' => 'Search failed: '.$e->getMessage(),
+                'error' => 'Search failed: ' . $e->getMessage(),
             ], 500);
         }
     }

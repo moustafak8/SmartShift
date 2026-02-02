@@ -9,12 +9,9 @@ use Illuminate\Http\Request;
 
 class EmployeeAvailabilityController extends Controller
 {
-    protected EmployeeAvailabilityService $availabilityService;
-
-    public function __construct(EmployeeAvailabilityService $availabilityService)
-    {
-        $this->availabilityService = $availabilityService;
-    }
+    public function __construct(
+        private EmployeeAvailabilityService $availabilityService
+    ) {}
 
     public function getAvailability($employeeId)
     {

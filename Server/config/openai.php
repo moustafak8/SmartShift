@@ -46,4 +46,38 @@ return [
     */
 
     'request_timeout' => env('OPENAI_REQUEST_TIMEOUT', 30),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Models & Defaults
+    |--------------------------------------------------------------------------
+    |
+    | Centralized model names and default parameters for embeddings, chat,
+    | and sentiment. Override per use-case via config keys below.
+    |
+    */
+
+    'models' => [
+        'embedding' => env('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small'),
+        'sentiment' => env('OPENAI_SENTIMENT_MODEL', 'gpt-4o-mini'),
+        'chat' => env('OPENAI_CHAT_MODEL', 'gpt-4o'),
+        'chat_mini' => env('OPENAI_CHAT_MODEL_MINI', 'gpt-4o-mini'),
+    ],
+
+    'defaults' => [
+        'temperature' => (float) env('OPENAI_TEMPERATURE', 0.3),
+        'max_tokens' => (int) env('OPENAI_MAX_TOKENS', 1500),
+    ],
+
+    'schedule' => [
+        'model' => env('OPENAI_SCHEDULE_MODEL', 'gpt-4o'),
+        'temperature' => 0.3,
+        'max_tokens' => 1200,
+    ],
+
+    'insight' => [
+        'model' => env('OPENAI_INSIGHT_MODEL', 'gpt-4o'),
+        'temperature' => 0.4,
+        'max_tokens' => 2000,
+    ],
 ];
