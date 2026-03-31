@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('requester_shift_id')->constrained('shifts')->onDelete('cascade');
             $table->foreignId('target_employee_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->foreignId('target_shift_id')->nullable()->constrained('shifts')->onDelete('cascade');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'cancelled', 'completed'])
+            $table->enum('status', ['pending', 'awaiting_target', 'awaiting_manager', 'approved_by_target', 'approved', 'rejected', 'cancelled', 'completed'])
                 ->default('pending');
             $table->text('swap_reason')->nullable();
             // AI validation results
@@ -29,6 +29,7 @@ return new class extends Migration
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('reviewed_at')->nullable();
             $table->text('review_notes')->nullable();
+            $table->timestamp('target_responded_at')->nullable();
             $table->timestamps();
             $table->index('requester_id');
             $table->index('target_employee_id');

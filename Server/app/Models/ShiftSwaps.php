@@ -24,12 +24,14 @@ class ShiftSwaps extends Model
         'reviewed_by',
         'reviewed_at',
         'review_notes',
+        'target_responded_at',
     ];
 
     protected $casts = [
         'validation_passed' => 'boolean',
         'validation_notes' => 'array',
         'reviewed_at' => 'datetime',
+        'target_responded_at' => 'datetime',
     ];
 
     public function requester(): BelongsTo
