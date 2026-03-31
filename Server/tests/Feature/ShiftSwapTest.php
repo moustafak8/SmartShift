@@ -3,8 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\Department;
-use App\Models\Position;
-use App\Models\Shift_Assigments;
 use App\Models\Shifts;
 use App\Models\ShiftSwaps;
 use App\Models\User;
